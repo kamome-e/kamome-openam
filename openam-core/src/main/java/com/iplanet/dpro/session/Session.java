@@ -29,6 +29,22 @@
 
 package com.iplanet.dpro.session;
 
+import java.net.URL;
+import java.security.AccessController;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.forgerock.util.thread.listener.ShutdownListener;
+import org.forgerock.util.thread.listener.ShutdownManager;
+
 import com.iplanet.am.util.SystemProperties;
 import com.iplanet.am.util.ThreadPool;
 import com.iplanet.am.util.ThreadPoolException;
@@ -48,8 +64,6 @@ import com.iplanet.sso.SSOException;
 import com.iplanet.sso.SSOToken;
 import com.sun.identity.common.GeneralTaskRunnable;
 import com.sun.identity.common.SearchResults;
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.common.ShutdownManager;
 import com.sun.identity.common.SystemTimerPool;
 import com.sun.identity.security.AdminTokenAction;
 import com.sun.identity.session.util.RestrictedTokenAction;
@@ -57,18 +71,6 @@ import com.sun.identity.session.util.RestrictedTokenContext;
 import com.sun.identity.session.util.SessionUtils;
 import com.sun.identity.shared.Constants;
 import com.sun.identity.shared.debug.Debug;
-
-import javax.servlet.http.HttpServletResponse;
-import java.net.URL;
-import java.security.AccessController;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
 
 /**
  * The <code>Session</code> class represents a session. It contains session
@@ -396,24 +398,17 @@ public class Session extends GeneralTaskRunnable {
                 } catch (Exception e) {
                     threshold = DEFAULT_THRESHOLD;
                 }
-                ShutdownManager shutdownMan = ShutdownManager.getInstance();
-                if (shutdownMan.acquireValidLock()) {
-                    try {
-                        threadPool = new ThreadPool("amSessionPoller", poolSize,
-                            threshold, true, sessionDebug);
-                        shutdownMan.addShutdownListener(
-                            new ShutdownListener() {
-                                public void shutdown() {
-                                    threadPool.shutdown();
-                                    threadPool = null;
-                                    pollerPoolInitialized = false;
-                                }
-                            }
-                        );
-                    } finally {
-                        shutdownMan.releaseLockAndNotify();
+                ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
+                threadPool = new ThreadPool("amSessionPoller", poolSize, threshold, true, sessionDebug);
+                shutdownMan.addShutdownListener(
+                    new ShutdownListener() {
+                        public void shutdown() {
+                            threadPool.shutdown();
+                            threadPool = null;
+                            pollerPoolInitialized = false;
+                        }
                     }
-                }
+                );
                 pollerPoolInitialized = true;
             } else {
                 if (sessionDebug.messageEnabled()) {

@@ -29,81 +29,6 @@
 
 package com.iplanet.dpro.session.service;
 
-import com.google.inject.Key;
-import com.google.inject.name.Names;
-import com.iplanet.am.util.SystemProperties;
-import com.iplanet.am.util.ThreadPool;
-import com.iplanet.am.util.ThreadPoolException;
-import com.iplanet.dpro.session.Session;
-import com.iplanet.dpro.session.SessionEvent;
-import com.iplanet.dpro.session.SessionException;
-import com.iplanet.dpro.session.SessionID;
-import com.iplanet.dpro.session.SessionNotificationHandler;
-import com.iplanet.dpro.session.SessionTimedOutException;
-import com.iplanet.dpro.session.TokenRestriction;
-import com.iplanet.dpro.session.TokenRestrictionFactory;
-import com.iplanet.dpro.session.share.SessionBundle;
-import com.iplanet.dpro.session.share.SessionInfo;
-import com.iplanet.dpro.session.share.SessionNotification;
-import com.iplanet.services.comm.server.PLLServer;
-import com.iplanet.services.comm.share.Notification;
-import com.iplanet.services.comm.share.NotificationSet;
-import com.iplanet.services.naming.URLNotFoundException;
-import com.iplanet.services.naming.WebtopNaming;
-import com.iplanet.services.util.Crypt;
-import com.iplanet.sso.SSOException;
-import com.iplanet.sso.SSOToken;
-import com.iplanet.sso.SSOTokenManager;
-import com.sun.identity.authentication.internal.AuthPrincipal;
-import com.sun.identity.common.DNUtils;
-import com.sun.identity.common.HttpURLConnectionManager;
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.common.ShutdownManager;
-import com.sun.identity.common.configuration.ServerConfiguration;
-import com.sun.identity.common.configuration.SiteConfiguration;
-import com.sun.identity.delegation.DelegationEvaluator;
-import com.sun.identity.delegation.DelegationException;
-import com.sun.identity.delegation.DelegationPermission;
-import com.sun.identity.idm.AMIdentity;
-import com.sun.identity.idm.IdRepoException;
-import com.sun.identity.idm.IdSearchResults;
-import com.sun.identity.idm.IdType;
-import com.sun.identity.idm.IdUtils;
-import com.sun.identity.log.LogConstants;
-import com.sun.identity.log.LogRecord;
-import com.sun.identity.log.Logger;
-import com.sun.identity.log.messageid.LogMessageProvider;
-import com.sun.identity.log.messageid.MessageProviderFactory;
-import com.sun.identity.monitoring.Agent;
-import com.sun.identity.monitoring.MonitoringUtil;
-import com.sun.identity.monitoring.SsoServerSessSvcImpl;
-import com.sun.identity.security.AdminDNAction;
-import com.sun.identity.security.AdminPasswordAction;
-import com.sun.identity.security.AdminTokenAction;
-import com.sun.identity.security.DecodeAction;
-import com.sun.identity.security.EncodeAction;
-import com.sun.identity.session.util.RestrictedTokenContext;
-import com.sun.identity.shared.Constants;
-import com.sun.identity.shared.datastruct.CollectionHelper;
-import com.sun.identity.shared.debug.Debug;
-import com.sun.identity.shared.encode.Base64;
-import com.sun.identity.shared.encode.URLEncDec;
-import com.sun.identity.shared.stats.Stats;
-import com.sun.identity.sm.ServiceConfig;
-import com.sun.identity.sm.ServiceConfigManager;
-import com.sun.identity.sm.ServiceSchema;
-import com.sun.identity.sm.ServiceSchemaManager;
-import org.forgerock.openam.cts.CTSPersistentStore;
-import org.forgerock.openam.cts.CoreTokenConfig;
-import org.forgerock.openam.cts.adapters.SessionAdapter;
-import org.forgerock.openam.cts.api.CoreTokenConstants;
-import org.forgerock.openam.cts.api.tokens.Token;
-import org.forgerock.openam.cts.api.tokens.TokenIdFactory;
-import org.forgerock.openam.cts.exceptions.CoreTokenException;
-import org.forgerock.openam.guice.InjectorHolder;
-import org.forgerock.openam.session.service.SessionTimeoutHandler;
-
-import javax.servlet.http.HttpSession;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -140,6 +65,83 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+
+import javax.servlet.http.HttpSession;
+
+import org.forgerock.openam.cts.CTSPersistentStore;
+import org.forgerock.openam.cts.CoreTokenConfig;
+import org.forgerock.openam.cts.adapters.SessionAdapter;
+import org.forgerock.openam.cts.api.CoreTokenConstants;
+import org.forgerock.openam.cts.api.tokens.Token;
+import org.forgerock.openam.cts.api.tokens.TokenIdFactory;
+import org.forgerock.openam.cts.exceptions.CoreTokenException;
+import org.forgerock.openam.guice.InjectorHolder;
+import org.forgerock.openam.session.service.SessionTimeoutHandler;
+import org.forgerock.util.thread.listener.ShutdownListener;
+import org.forgerock.util.thread.listener.ShutdownManager;
+
+import com.google.inject.Key;
+import com.google.inject.name.Names;
+import com.iplanet.am.util.SystemProperties;
+import com.iplanet.am.util.ThreadPool;
+import com.iplanet.am.util.ThreadPoolException;
+import com.iplanet.dpro.session.Session;
+import com.iplanet.dpro.session.SessionEvent;
+import com.iplanet.dpro.session.SessionException;
+import com.iplanet.dpro.session.SessionID;
+import com.iplanet.dpro.session.SessionNotificationHandler;
+import com.iplanet.dpro.session.SessionTimedOutException;
+import com.iplanet.dpro.session.TokenRestriction;
+import com.iplanet.dpro.session.TokenRestrictionFactory;
+import com.iplanet.dpro.session.share.SessionBundle;
+import com.iplanet.dpro.session.share.SessionInfo;
+import com.iplanet.dpro.session.share.SessionNotification;
+import com.iplanet.services.comm.server.PLLServer;
+import com.iplanet.services.comm.share.Notification;
+import com.iplanet.services.comm.share.NotificationSet;
+import com.iplanet.services.naming.URLNotFoundException;
+import com.iplanet.services.naming.WebtopNaming;
+import com.iplanet.services.util.Crypt;
+import com.iplanet.sso.SSOException;
+import com.iplanet.sso.SSOToken;
+import com.iplanet.sso.SSOTokenManager;
+import com.sun.identity.authentication.internal.AuthPrincipal;
+import com.sun.identity.common.DNUtils;
+import com.sun.identity.common.HttpURLConnectionManager;
+import com.sun.identity.common.configuration.ServerConfiguration;
+import com.sun.identity.common.configuration.SiteConfiguration;
+import com.sun.identity.delegation.DelegationEvaluator;
+import com.sun.identity.delegation.DelegationException;
+import com.sun.identity.delegation.DelegationPermission;
+import com.sun.identity.idm.AMIdentity;
+import com.sun.identity.idm.IdRepoException;
+import com.sun.identity.idm.IdSearchResults;
+import com.sun.identity.idm.IdType;
+import com.sun.identity.idm.IdUtils;
+import com.sun.identity.log.LogConstants;
+import com.sun.identity.log.LogRecord;
+import com.sun.identity.log.Logger;
+import com.sun.identity.log.messageid.LogMessageProvider;
+import com.sun.identity.log.messageid.MessageProviderFactory;
+import com.sun.identity.monitoring.Agent;
+import com.sun.identity.monitoring.MonitoringUtil;
+import com.sun.identity.monitoring.SsoServerSessSvcImpl;
+import com.sun.identity.security.AdminDNAction;
+import com.sun.identity.security.AdminPasswordAction;
+import com.sun.identity.security.AdminTokenAction;
+import com.sun.identity.security.DecodeAction;
+import com.sun.identity.security.EncodeAction;
+import com.sun.identity.session.util.RestrictedTokenContext;
+import com.sun.identity.shared.Constants;
+import com.sun.identity.shared.datastruct.CollectionHelper;
+import com.sun.identity.shared.debug.Debug;
+import com.sun.identity.shared.encode.Base64;
+import com.sun.identity.shared.encode.URLEncDec;
+import com.sun.identity.shared.stats.Stats;
+import com.sun.identity.sm.ServiceConfig;
+import com.sun.identity.sm.ServiceConfigManager;
+import com.sun.identity.sm.ServiceSchema;
+import com.sun.identity.sm.ServiceSchemaManager;
 
 /**
  * This class represents a Session Service
@@ -419,22 +421,18 @@ public class SessionService {
         }
 
         // Establish Shutdown Manager.
-        ShutdownManager shutdownMan = ShutdownManager.getInstance();
-        if (shutdownMan.acquireValidLock()) {
-            try {
-                threadPool = new ThreadPool("amSession", poolSize, threshold, true,
-                        sessionDebug);
-                shutdownMan.addShutdownListener(
-                        new ShutdownListener() {
-                            public void shutdown() {
-                                threadPool.shutdown();
-                            }
-                        }
-                );
-            } finally {
-                shutdownMan.releaseLockAndNotify();
-            }
-        }
+        ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
+
+        threadPool = new ThreadPool("amSession", poolSize, threshold, true,
+                sessionDebug);
+        shutdownMan.addShutdownListener(
+                new ShutdownListener() {
+                    public void shutdown() {
+                        threadPool.shutdown();
+                    }
+                }
+        );
+
         if (threadPool != null) {
             try {
                 maxSessions = Integer.parseInt(SystemProperties

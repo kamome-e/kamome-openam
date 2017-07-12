@@ -15,20 +15,21 @@
  */
 package org.forgerock.openam.cts.reaper;
 
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.shared.debug.Debug;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
+import java.util.concurrent.ScheduledFuture;
+
 import org.forgerock.openam.core.guice.CoreGuiceModule;
+import org.forgerock.util.thread.listener.ShutdownListener;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.util.concurrent.ScheduledFuture;
-
-import static org.fest.assertions.Assertions.assertThat;
-import static org.mockito.BDDMockito.mock;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
+import com.sun.identity.shared.debug.Debug;
 
 public class ReaperShutdownMonitorTest {
 

@@ -31,6 +31,7 @@
  */
 package com.sun.identity.idm.server;
 
+import java.security.AccessController;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,9 +40,10 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.NameCallback;
 
-import com.sun.identity.shared.ldap.LDAPDN;
-import com.sun.identity.shared.ldap.util.DN;
+import org.forgerock.util.thread.listener.ShutdownListener;
+import org.forgerock.util.thread.listener.ShutdownManager;
 
 import com.iplanet.am.sdk.AMHashMap;
 import com.iplanet.sso.SSOException;
@@ -49,8 +51,6 @@ import com.iplanet.sso.SSOToken;
 import com.sun.identity.authentication.spi.AuthLoginException;
 import com.sun.identity.common.CaseInsensitiveHashMap;
 import com.sun.identity.common.CaseInsensitiveHashSet;
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.common.ShutdownManager;
 import com.sun.identity.common.DNUtils;
 import com.sun.identity.delegation.DelegationEvaluator;
 import com.sun.identity.delegation.DelegationException;
@@ -77,6 +77,8 @@ import com.sun.identity.idm.plugins.internal.SpecialRepo;
 import com.sun.identity.security.AdminTokenAction;
 import com.sun.identity.shared.datastruct.OrderedSet;
 import com.sun.identity.shared.debug.Debug;
+import com.sun.identity.shared.ldap.LDAPDN;
+import com.sun.identity.shared.ldap.util.DN;
 import com.sun.identity.sm.DNMapper;
 import com.sun.identity.sm.OrganizationConfigManager;
 import com.sun.identity.sm.SMSException;
@@ -84,8 +86,6 @@ import com.sun.identity.sm.SchemaType;
 import com.sun.identity.sm.ServiceManager;
 import com.sun.identity.sm.ServiceSchema;
 import com.sun.identity.sm.ServiceSchemaManager;
-import java.security.AccessController;
-import javax.security.auth.callback.NameCallback;
 
 public class IdServicesImpl implements IdServices {
 
@@ -118,23 +118,19 @@ public class IdServicesImpl implements IdServices {
        if (_instance == null) {
            DEBUG.message("IdServicesImpl.getInstance(): "
                    + "Creating new Instance of IdServicesImpl()");
-           ShutdownManager shutdownMan = ShutdownManager.getInstance();
-           if (shutdownMan.acquireValidLock()) {
-               try {
-                   _instance = new IdServicesImpl();
-                   shutdownMan.addShutdownListener(
-                       new ShutdownListener() {
-                           public void shutdown() {
-                               synchronized (_instance) {
-                                   shutdownCalled = true;
-                               }
-                               _instance.clearIdRepoPlugins();
-                           }
-                   });
-               } finally {
-                   shutdownMan.releaseLockAndNotify();
-               }
-           }
+           ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
+
+           _instance = new IdServicesImpl();
+           shutdownMan.addShutdownListener(
+               new ShutdownListener() {
+                   public void shutdown() {
+                       synchronized (_instance) {
+                           shutdownCalled = true;
+                       }
+                       _instance.clearIdRepoPlugins();
+                   }
+           });
+
        }
        return _instance;
    }

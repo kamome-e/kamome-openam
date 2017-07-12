@@ -31,6 +31,19 @@
  */
 package com.iplanet.ums;
 
+import java.security.AccessController;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.StringTokenizer;
+
+import org.forgerock.util.thread.listener.ShutdownListener;
+import org.forgerock.util.thread.listener.ShutdownManager;
+
 import com.iplanet.am.util.SystemProperties;
 import com.iplanet.services.ldap.Attr;
 import com.iplanet.services.ldap.AttrSet;
@@ -42,35 +55,24 @@ import com.iplanet.services.ldap.ServerInstance;
 import com.iplanet.services.ldap.event.EventService;
 import com.iplanet.services.util.I18n;
 import com.sun.identity.common.LDAPConnectionPool;
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.common.ShutdownManager;
 import com.sun.identity.security.ServerInstanceAction;
 import com.sun.identity.shared.debug.Debug;
-import java.security.AccessController;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.StringTokenizer;
+import com.sun.identity.shared.ldap.LDAPAddRequest;
 import com.sun.identity.shared.ldap.LDAPAttribute;
 import com.sun.identity.shared.ldap.LDAPAttributeSet;
 import com.sun.identity.shared.ldap.LDAPBind;
 import com.sun.identity.shared.ldap.LDAPConnection;
 import com.sun.identity.shared.ldap.LDAPControl;
+import com.sun.identity.shared.ldap.LDAPDeleteRequest;
 import com.sun.identity.shared.ldap.LDAPEntry;
 import com.sun.identity.shared.ldap.LDAPException;
 import com.sun.identity.shared.ldap.LDAPModification;
+import com.sun.identity.shared.ldap.LDAPModifyRDNRequest;
+import com.sun.identity.shared.ldap.LDAPModifyRequest;
 import com.sun.identity.shared.ldap.LDAPRequestParser;
 import com.sun.identity.shared.ldap.LDAPSchema;
 import com.sun.identity.shared.ldap.LDAPSchemaElement;
 import com.sun.identity.shared.ldap.LDAPSearchConstraints;
-import com.sun.identity.shared.ldap.LDAPAddRequest;
-import com.sun.identity.shared.ldap.LDAPDeleteRequest;
-import com.sun.identity.shared.ldap.LDAPModifyRequest;
-import com.sun.identity.shared.ldap.LDAPModifyRDNRequest;
 import com.sun.identity.shared.ldap.LDAPSearchRequest;
 import com.sun.identity.shared.ldap.LDAPSearchResults;
 import com.sun.identity.shared.ldap.LDAPSortKey;
@@ -1578,25 +1580,20 @@ public class DataLayer implements java.io.Serializable {
             connOptions.put("referrals", Boolean.valueOf(referrals));
             connOptions.put("searchconstraints", _defaultSearchConstraints);
 
-            ShutdownManager shutdownMan = ShutdownManager.getInstance();
-            if (shutdownMan.acquireValidLock()) {
-                try {
-                    _ldapPool = new LDAPConnectionPool("DataLayer", poolMin,
-                        poolMax, hostName, 389, connDN, connPWD, _trialConn,
-                        connOptions);
-                    shutdownMan.addShutdownListener(
-                        new ShutdownListener() {
-                            public void shutdown() {
-                                if (_ldapPool != null) {
-                                    _ldapPool.destroy();
-                                }
-                            }
+            ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
+
+            _ldapPool = new LDAPConnectionPool("DataLayer", poolMin,
+                poolMax, hostName, 389, connDN, connPWD, _trialConn,
+                connOptions);
+            shutdownMan.addShutdownListener(
+                new ShutdownListener() {
+                    public void shutdown() {
+                        if (_ldapPool != null) {
+                            _ldapPool.destroy();
                         }
-                    );
-                } finally {
-                    shutdownMan.releaseLockAndNotify();
+                    }
                 }
-            }
+            );
 
         } catch (LDAPException e) {
             debug.error("Exception in DataLayer.initLdapPool:", e);

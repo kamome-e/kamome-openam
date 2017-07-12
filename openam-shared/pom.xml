@@ -80,6 +80,10 @@
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-multibindings</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>commons-lang</groupId>
@@ -104,6 +108,11 @@
         <dependency>
             <groupId>org.forgerock.ce.commons</groupId>
             <artifactId>json-fluent</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>forgerock-guice-core</artifactId>
         </dependency>
 
         <dependency>

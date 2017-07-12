@@ -15,7 +15,7 @@
  */
 package org.forgerock.openam.cts.reaper;
 
-import com.sun.identity.common.ShutdownListener;
+import org.forgerock.util.thread.listener.ShutdownListener;
 import com.sun.identity.shared.debug.Debug;
 import org.forgerock.openam.core.guice.CoreGuiceModule;
 import org.forgerock.openam.cts.api.CoreTokenConstants;

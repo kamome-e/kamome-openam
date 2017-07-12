@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import org.forgerock.util.thread.listener.ShutdownListener;
 
 import com.iplanet.am.sdk.AMEvent;
 import com.iplanet.am.sdk.AMEventManagerException;
@@ -56,7 +57,6 @@ import com.iplanet.sso.SSOException;
 import com.iplanet.sso.SSOToken;
 import com.iplanet.sso.SSOTokenManager;
 import com.sun.identity.common.GeneralTaskRunnable;
-import com.sun.identity.common.ShutdownListener;
 import com.sun.identity.common.ShutdownManager;
 import com.sun.identity.common.SystemTimer;
 import com.sun.identity.shared.debug.Debug;
@@ -135,34 +135,28 @@ class EventListener {
                         debug.message("EventListener: registerNotificationURL returned null ID");
                     }
                 }
-                ShutdownManager shutdownMan = ShutdownManager.getInstance();
-                if (shutdownMan.acquireValidLock()) {
-                    try {
-                        shutdownMan.addShutdownListener(new ShutdownListener() {
-                            @Override
-                            public void shutdown() {
-                                try {
-                                    if (remoteId != null) {
-                                        client.send("deRegisterNotificationURL", remoteId, null, null);
-                                        if (debug.messageEnabled()) {
-                                            debug.message("EventListener: deRegisterNotificationURL for " + remoteId);
-                                        }
-                                    } else {
-                                        if (debug.messageEnabled()) {
-                                            debug.message("EventListener: Could not deRegisterNotificationURL " +
-                                                    "due to null ID");
-                                        }
-                                    }
-                                } catch (Exception e) {
-                                    debug.error("EventListener: There was a problem calling " +
-                                            "deRegisterNotificationURL with ID " +  remoteId, e);
+                ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
+                shutdownMan.addShutdownListener(new ShutdownListener() {
+                    @Override
+                    public void shutdown() {
+                        try {
+                            if (remoteId != null) {
+                                client.send("deRegisterNotificationURL", remoteId, null, null);
+                                if (debug.messageEnabled()) {
+                                    debug.message("EventListener: deRegisterNotificationURL for " + remoteId);
+                                }
+                            } else {
+                                if (debug.messageEnabled()) {
+                                    debug.message("EventListener: Could not deRegisterNotificationURL " +
+                                            "due to null ID");
                                 }
                             }
-                        });
-                    } finally {
-                        shutdownMan.releaseLockAndNotify();
+                        } catch (Exception e) {
+                            debug.error("EventListener: There was a problem calling " +
+                                    "deRegisterNotificationURL with ID " +  remoteId, e);
+                        }
                     }
-                }
+                });
                 // Register with PLLClient for notification
                 PLLClient.addNotificationHandler(
                         RemoteServicesImpl.SDK_SERVICE,

@@ -31,22 +31,24 @@
  */
 package com.sun.identity.setup;
 
-import com.iplanet.am.util.SSLSocketFactoryManager;
-import com.sun.identity.common.LDAPUtils;
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.common.ShutdownManager;
-import com.sun.identity.shared.debug.Debug;
-import com.sun.identity.sm.SMSSchema;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.io.IOException;
+
+import org.forgerock.util.thread.listener.ShutdownListener;
+import org.forgerock.util.thread.listener.ShutdownManager;
+
+import com.iplanet.am.util.SSLSocketFactoryManager;
+import com.sun.identity.common.LDAPUtils;
+import com.sun.identity.shared.debug.Debug;
 import com.sun.identity.shared.ldap.LDAPConnection;
 import com.sun.identity.shared.ldap.LDAPDN;
 import com.sun.identity.shared.ldap.LDAPException;
 import com.sun.identity.shared.ldap.LDAPSearchResults;
 import com.sun.identity.shared.ldap.util.DN;
 import com.sun.identity.shared.ldap.util.RDN;
+import com.sun.identity.sm.SMSSchema;
 
 /**
  * This class does Directory Server related tasks for 
@@ -323,27 +325,23 @@ public class AMSetupDSConfig {
     private synchronized LDAPConnection getLDAPConnection(boolean ssl) {
         if (ld == null) {
             try {
-                ShutdownManager shutdownMan = ShutdownManager.getInstance();
-                if (shutdownMan.acquireValidLock()) {
-                    try {
-                        ld = (ssl) ? new LDAPConnection(
-                            SSLSocketFactoryManager.getSSLSocketFactory()) :
-                            new LDAPConnection();
-                        ld.setConnectTimeout(300);
-                        ld.connect(3, dsHostName, getPort(), dsManager,
-                            dsAdminPwd);
-                        shutdownMan.addShutdownListener(new
-                            ShutdownListener() {
+                ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
 
-                            public void shutdown() {
-                                disconnectDServer();
-                            }
+                ld = (ssl) ? new LDAPConnection(
+                    SSLSocketFactoryManager.getSSLSocketFactory()) :
+                    new LDAPConnection();
+                ld.setConnectTimeout(300);
+                ld.connect(3, dsHostName, getPort(), dsManager,
+                    dsAdminPwd);
+                shutdownMan.addShutdownListener(new
+                    ShutdownListener() {
 
-                        });
-                    } finally {
-                        shutdownMan.releaseLockAndNotify();
+                    public void shutdown() {
+                        disconnectDServer();
                     }
-                }
+
+                });
+
             } catch (LDAPException e) {
                 disconnectDServer();
                 dsConfigInstance = null;

@@ -35,33 +35,32 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
 
-import com.iplanet.am.util.SystemProperties;
-import com.iplanet.sso.SSOException;
-import com.iplanet.sso.SSOToken;
-import com.sun.identity.common.DNUtils;
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.common.ShutdownManager;
-
-import com.sun.identity.idm.AMIdentity;
-import com.sun.identity.idm.IdCachedServices;
-import com.sun.identity.idm.IdConstants;
-import com.sun.identity.idm.IdRepoException;
-import com.sun.identity.idm.IdServices;
-import com.sun.identity.idm.IdType;
-import com.sun.identity.idm.IdUtils;
-import com.sun.identity.idm.IdSearchControl;
-import com.sun.identity.idm.IdSearchResults;
-import com.sun.identity.idm.common.IdCacheBlock;
-import com.sun.identity.idm.common.IdCacheStats;
-import com.sun.identity.monitoring.Agent;
-import com.sun.identity.monitoring.SsoServerIdRepoSvcImpl;
-import com.sun.identity.shared.stats.Stats;
-import com.sun.identity.sm.ServiceManager;
+import org.forgerock.util.thread.listener.ShutdownListener;
+import org.forgerock.util.thread.listener.ShutdownManager;
 
 import com.iplanet.am.sdk.AMEvent;
 import com.iplanet.am.sdk.AMHashMap;
 import com.iplanet.am.util.Cache;
+import com.iplanet.am.util.SystemProperties;
+import com.iplanet.sso.SSOException;
+import com.iplanet.sso.SSOToken;
+import com.sun.identity.common.DNUtils;
+import com.sun.identity.idm.AMIdentity;
+import com.sun.identity.idm.IdCachedServices;
+import com.sun.identity.idm.IdConstants;
+import com.sun.identity.idm.IdRepoException;
+import com.sun.identity.idm.IdSearchControl;
+import com.sun.identity.idm.IdSearchResults;
+import com.sun.identity.idm.IdServices;
+import com.sun.identity.idm.IdType;
+import com.sun.identity.idm.IdUtils;
+import com.sun.identity.idm.common.IdCacheBlock;
+import com.sun.identity.idm.common.IdCacheStats;
+import com.sun.identity.monitoring.Agent;
 import com.sun.identity.monitoring.MonitoringUtil;
+import com.sun.identity.monitoring.SsoServerIdRepoSvcImpl;
+import com.sun.identity.shared.stats.Stats;
+import com.sun.identity.sm.ServiceManager;
 
 /*
  * Class which provides caching on top of available IdRepoLDAPServices.
@@ -147,25 +146,21 @@ public class IdCachedServicesImpl extends IdServicesImpl implements
         if (instance == null) {
             DEBUG.message("IdCachedServicesImpl.getInstance(): "
                     + "Creating new Instance of IdCachedServicesImpl()");
-            ShutdownManager shutdownMan = ShutdownManager.getInstance();
+            ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
             //the instance should be created before acquiring the lock to
             //prevent possible deadlocks by using Stats
             instance = new IdCachedServicesImpl();
-            if (shutdownMan.acquireValidLock()) {
-                try {
-                    shutdownMan.addShutdownListener(
-                        new ShutdownListener() {
-                            public void shutdown() {
-                               synchronized (instance) {
-                                   shutdownCalled = true;
-                               }
-                                instance.clearIdRepoPlugins();
-                            }
-                        });                                                                             
-                } finally {
-                    shutdownMan.releaseLockAndNotify();
-                }
-            }
+
+            shutdownMan.addShutdownListener(
+                new ShutdownListener() {
+                    public void shutdown() {
+                       synchronized (instance) {
+                           shutdownCalled = true;
+                       }
+                        instance.clearIdRepoPlugins();
+                    }
+                });
+
         }
         return instance;
     }

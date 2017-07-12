@@ -15,13 +15,14 @@
  */
 package org.forgerock.openam.utils;
 
-import com.sun.identity.common.ShutdownListener;
-import org.forgerock.openam.core.guice.CoreGuiceModule;
-
-import javax.inject.Inject;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+
+import javax.inject.Inject;
+
+import org.forgerock.openam.core.guice.CoreGuiceModule;
+import org.forgerock.util.thread.listener.ShutdownListener;
 
 /**
  * Responsible for generating ExecutorService instances which are automatically

@@ -44,12 +44,6 @@ public class ShutdownServletContextListener implements ServletContextListener
 
     public void contextDestroyed(ServletContextEvent sce) {
         ShutdownManager shutdownMan = ShutdownManager.getInstance();
-        if (shutdownMan.acquireValidLock()) {
-            try {
-                shutdownMan.shutdown();
-            } finally {
-                shutdownMan.releaseLockAndNotify();
-            }
-        }
+        shutdownMan.shutdown();
     }
 }

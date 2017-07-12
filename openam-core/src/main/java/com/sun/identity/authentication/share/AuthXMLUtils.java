@@ -32,16 +32,6 @@
 
 package com.sun.identity.authentication.share;
 
-import com.sun.identity.shared.debug.Debug;
-import com.sun.identity.shared.xml.XMLUtils;
-import com.sun.identity.shared.encode.Base64;
-import com.sun.identity.authentication.spi.DSAMECallbackInterface;
-import com.sun.identity.authentication.spi.HttpCallback;
-import com.sun.identity.authentication.spi.PagePropertiesCallback;
-import com.sun.identity.authentication.spi.RedirectCallback;
-import com.sun.identity.authentication.spi.X509CertificateCallback;
-import com.sun.identity.security.DecodeAction;
-import com.sun.identity.security.EncodeAction;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -59,6 +49,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.ChoiceCallback;
@@ -70,8 +61,21 @@ import javax.security.auth.callback.TextInputCallback;
 import javax.security.auth.callback.TextOutputCallback;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import com.sun.identity.authentication.callbacks.ScriptTextOutputCallback;
+import com.sun.identity.authentication.spi.DSAMECallbackInterface;
+import com.sun.identity.authentication.spi.HttpCallback;
+import com.sun.identity.authentication.spi.PagePropertiesCallback;
+import com.sun.identity.authentication.spi.RedirectCallback;
+import com.sun.identity.authentication.spi.X509CertificateCallback;
+import com.sun.identity.security.DecodeAction;
+import com.sun.identity.security.EncodeAction;
+import com.sun.identity.shared.debug.Debug;
+import com.sun.identity.shared.encode.Base64;
+import com.sun.identity.shared.xml.XMLUtils;
 
 public class AuthXMLUtils {
     
@@ -1174,6 +1178,8 @@ public class AuthXMLUtils {
                 break;
             case TextOutputCallback.WARNING:
                 xmlString.append("warning");
+            case ScriptTextOutputCallback.SCRIPT:
+                xmlString.append("script");
         }
         xmlString.append(AuthXMLTags.QUOTE)
             .append(AuthXMLTags.ELEMENT_END)

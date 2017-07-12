@@ -40,10 +40,12 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.StringTokenizer;
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.common.ShutdownManager;
-import com.sun.identity.shared.debug.Debug;
+
+import org.forgerock.util.thread.listener.ShutdownListener;
+import org.forgerock.util.thread.listener.ShutdownManager;
+
 import com.sun.identity.shared.configuration.SystemPropertiesManager;
+import com.sun.identity.shared.debug.Debug;
 
 public class JSSProxy implements Runnable {
     public static HashMap connectHashMap = new HashMap();
@@ -81,29 +83,25 @@ public class JSSProxy implements Runnable {
             try {
                 JSSProxy tempInstance = null;
                 thread = null;
-                ShutdownManager shutdownMan = ShutdownManager.getInstance();
-                if (shutdownMan.acquireValidLock()) {
-                    try {
-                        tempInstance = new JSSProxy();
-                        thread = new Thread(tempInstance);
-                        final JSSProxy finalInstance = tempInstance;
-                        shutdownMan.addShutdownListener(new
-                            ShutdownListener() {
+                ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
 
-                            public void shutdown() {
-                                if (finalInstance != null) {
-                                    finalInstance.shutdown();
-                                }
-                                if (threadPool != null) {
-                                    threadPool.shutdown();
-                                }
-                            }
+                tempInstance = new JSSProxy();
+                thread = new Thread(tempInstance);
+                final JSSProxy finalInstance = tempInstance;
+                shutdownMan.addShutdownListener(new
+                    ShutdownListener() {
 
-                        });
-                    } finally {
-                        shutdownMan.releaseLockAndNotify();
+                    public void shutdown() {
+                        if (finalInstance != null) {
+                            finalInstance.shutdown();
+                        }
+                        if (threadPool != null) {
+                            threadPool.shutdown();
+                        }
                     }
-                }
+
+                });
+
                 final JSSProxy instance = tempInstance;
                 if (thread != null) {
                     thread.start();

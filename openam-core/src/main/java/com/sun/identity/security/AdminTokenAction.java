@@ -33,6 +33,8 @@ package com.sun.identity.security;
 
 import java.security.PrivilegedAction;
 
+import org.forgerock.util.thread.listener.ShutdownListener;
+
 import com.iplanet.am.util.AdminUtils;
 import com.iplanet.am.util.SystemProperties;
 import com.iplanet.services.util.Crypt;
@@ -41,8 +43,6 @@ import com.iplanet.sso.SSOToken;
 import com.iplanet.sso.SSOTokenManager;
 import com.sun.identity.authentication.internal.AuthContext;
 import com.sun.identity.authentication.internal.AuthPrincipal;
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.common.ShutdownManager;
 import com.sun.identity.shared.debug.Debug;
 
 /**
@@ -130,12 +130,12 @@ public class AdminTokenAction implements PrivilegedAction<SSOToken> {
 	if (tokenManager == null) {
 	    try {
 		tokenManager = SSOTokenManager.getInstance();
-                ShutdownManager.getInstance().addApplicationSSOTokenDestoryer(
-                    new ShutdownListener() {
-                        public void shutdown() {
-                            AdminTokenAction.reset();
-                        }
-                    }); 
+        com.sun.identity.common.ShutdownManager.getInstance().addApplicationSSOTokenDestroyer(
+                new ShutdownListener() {
+                    public void shutdown() {
+                        AdminTokenAction.reset();
+                    }
+                });
 	    } catch (SSOException ssoe) {
 		debug.error("AdminTokenAction::init Unable to get " +
 		    "SSOTokenManager", ssoe);

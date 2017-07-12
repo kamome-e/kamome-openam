@@ -15,28 +15,12 @@
  */
 package org.forgerock.openam.core.guice;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provider;
-import com.google.inject.Provides;
-import com.google.inject.TypeLiteral;
-import com.google.inject.name.Named;
-import com.google.inject.name.Names;
-import com.iplanet.dpro.session.service.SessionConstants;
-import com.iplanet.dpro.session.service.SessionService;
-import com.iplanet.services.ldap.DSConfigMgr;
-import com.iplanet.services.ldap.LDAPServiceException;
-import com.iplanet.sso.SSOToken;
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.common.ShutdownManager;
-import com.sun.identity.common.configuration.ConfigurationObserver;
-import com.sun.identity.entitlement.EntitlementConfiguration;
-import com.sun.identity.entitlement.opensso.SubjectUtils;
-import com.sun.identity.security.AdminTokenAction;
-import com.sun.identity.shared.debug.Debug;
-import com.sun.identity.sm.DNMapper;
-import com.sun.identity.sm.SMSEntry;
-import com.sun.identity.sm.ServiceManagementDAO;
-import com.sun.identity.sm.ServiceManagementDAOWrapper;
+import java.security.PrivilegedAction;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+
+import javax.inject.Singleton;
+
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.openam.cts.CTSPersistentStore;
 import org.forgerock.openam.cts.CoreTokenConfig;
@@ -55,17 +39,35 @@ import org.forgerock.openam.entitlement.indextree.IndexTreeService;
 import org.forgerock.openam.entitlement.indextree.IndexTreeServiceImpl;
 import org.forgerock.openam.entitlement.indextree.events.IndexChangeObservable;
 import org.forgerock.openam.guice.AMGuiceModule;
-import org.forgerock.openam.shared.concurrency.LockFactory;
 import org.forgerock.openam.guice.InjectorHolder;
+import org.forgerock.openam.shared.concurrency.LockFactory;
 import org.forgerock.openam.sm.DataLayerConnectionFactory;
-import org.forgerock.openam.utils.ExecutorServiceFactory;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.util.thread.ExecutorServiceFactory;
+import org.forgerock.util.thread.listener.ShutdownListener;
+import org.forgerock.util.thread.listener.ShutdownManager;
 
-import javax.inject.Singleton;
-import java.security.PrivilegedAction;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provider;
+import com.google.inject.Provides;
+import com.google.inject.TypeLiteral;
+import com.google.inject.name.Named;
+import com.google.inject.name.Names;
+import com.iplanet.dpro.session.service.SessionConstants;
+import com.iplanet.dpro.session.service.SessionService;
+import com.iplanet.services.ldap.DSConfigMgr;
+import com.iplanet.services.ldap.LDAPServiceException;
+import com.iplanet.sso.SSOToken;
+import com.sun.identity.common.configuration.ConfigurationObserver;
+import com.sun.identity.entitlement.EntitlementConfiguration;
+import com.sun.identity.entitlement.opensso.SubjectUtils;
+import com.sun.identity.security.AdminTokenAction;
+import com.sun.identity.shared.debug.Debug;
+import com.sun.identity.sm.DNMapper;
+import com.sun.identity.sm.SMSEntry;
+import com.sun.identity.sm.ServiceManagementDAO;
+import com.sun.identity.sm.ServiceManagementDAOWrapper;
 
 /**
  * Guice Module for configuring bindings for the OpenAM Core classes.
@@ -146,7 +148,7 @@ public class CoreGuiceModule extends AbstractModule {
                 .toProvider(new Provider<ExecutorService>() {
                     public ExecutorService get() {
                         ExecutorServiceFactory factory = InjectorHolder.getInstance(ExecutorServiceFactory.class);
-                        return factory.createThreadPool(5);
+                        return factory.createFixedThreadPool(5);
                     }
                 });
 
@@ -205,16 +207,8 @@ public class CoreGuiceModule extends AbstractModule {
          * @see com.sun.identity.common.ShutdownManager#removeShutdownListener(com.sun.identity.common.ShutdownListener)
          */
         public void removeShutdownListener(ShutdownListener listener) {
-            ShutdownManager shutdownManager = ShutdownManager.getInstance();
-
-            try {
-                if (shutdownManager.acquireValidLock()) {
-                    // Remove the listener.
-                    shutdownManager.removeShutdownListener(listener);
-                }
-            } finally {
-                shutdownManager.releaseLockAndNotify();
-            }
+            ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
+            shutdownMan.removeShutdownListener(listener);
         }
     }
 
@@ -229,16 +223,8 @@ public class CoreGuiceModule extends AbstractModule {
          * @see com.sun.identity.common.ShutdownManager#addShutdownListener(com.sun.identity.common.ShutdownListener)
          */
         public void addShutdownListener(ShutdownListener listener) {
-            ShutdownManager shutdownManager = ShutdownManager.getInstance();
-
-            try {
-                if (shutdownManager.acquireValidLock()) {
-                    // Add the listener.
-                    shutdownManager.addShutdownListener(listener);
-                }
-            } finally {
-                shutdownManager.releaseLockAndNotify();
-            }
+            ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
+            shutdownMan.addShutdownListener(listener);
         }
 
     }

@@ -44,48 +44,19 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 
-import com.sun.identity.shared.ldap.LDAPAttribute;
-import com.sun.identity.shared.ldap.LDAPAttributeSet;
-import com.sun.identity.shared.ldap.LDAPCache;
-import com.sun.identity.shared.ldap.LDAPConnection;
-import com.sun.identity.shared.ldap.LDAPControl;
-import com.sun.identity.shared.ldap.LDAPEntry;
-import com.sun.identity.shared.ldap.LDAPException;
-import com.sun.identity.shared.ldap.LDAPModification;
-import com.sun.identity.shared.ldap.LDAPModificationSet;
-import com.sun.identity.shared.ldap.LDAPObjectClassSchema;
-import com.sun.identity.shared.ldap.LDAPRebind;
-import com.sun.identity.shared.ldap.LDAPRebindAuth;
-import com.sun.identity.shared.ldap.LDAPReferralException;
-import com.sun.identity.shared.ldap.LDAPSchema;
-import com.sun.identity.shared.ldap.LDAPSearchConstraints;
-import com.sun.identity.shared.ldap.LDAPSearchResults;
-import com.sun.identity.shared.ldap.LDAPUrl;
-import com.sun.identity.shared.ldap.LDAPv2;
-import com.sun.identity.shared.ldap.LDAPv3;
-import com.sun.identity.shared.ldap.controls.LDAPPasswordExpiringControl;
-import com.sun.identity.shared.ldap.controls.LDAPPersistSearchControl;
-import com.sun.identity.shared.ldap.factory.JSSESocketFactory;
-import com.sun.identity.shared.ldap.util.DN;
-import com.sun.identity.shared.ldap.LDAPAddRequest;
-import com.sun.identity.shared.ldap.LDAPDeleteRequest;
-import com.sun.identity.shared.ldap.LDAPRequestParser;
-import com.sun.identity.shared.ldap.LDAPModifyRequest;
-import com.sun.identity.shared.ldap.LDAPSearchRequest;
+import org.forgerock.util.thread.listener.ShutdownListener;
+import org.forgerock.util.thread.listener.ShutdownManager;
 
 import com.iplanet.am.sdk.AMCommonUtils;
 import com.iplanet.am.sdk.AMHashMap;
-//import com.iplanet.am.util.AMURLEncDec;
-import com.sun.identity.shared.encode.URLEncDec;
 import com.iplanet.am.util.SystemProperties;
 import com.iplanet.services.naming.ServerEntryNotFoundException;
 import com.iplanet.services.naming.WebtopNaming;
@@ -96,8 +67,6 @@ import com.sun.identity.authentication.spi.InvalidPasswordException;
 import com.sun.identity.common.CaseInsensitiveHashMap;
 import com.sun.identity.common.CaseInsensitiveHashSet;
 import com.sun.identity.common.LDAPConnectionPool;
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.common.ShutdownManager;
 import com.sun.identity.idm.IdConstants;
 import com.sun.identity.idm.IdOperation;
 import com.sun.identity.idm.IdRepo;
@@ -110,9 +79,38 @@ import com.sun.identity.idm.IdType;
 import com.sun.identity.idm.RepoSearchResults;
 import com.sun.identity.idm.common.IdRepoUtils;
 import com.sun.identity.shared.debug.Debug;
+//import com.iplanet.am.util.AMURLEncDec;
+import com.sun.identity.shared.encode.URLEncDec;
 import com.sun.identity.shared.jaxrpc.SOAPClient;
+import com.sun.identity.shared.ldap.LDAPAddRequest;
+import com.sun.identity.shared.ldap.LDAPAttribute;
+import com.sun.identity.shared.ldap.LDAPAttributeSet;
+import com.sun.identity.shared.ldap.LDAPCache;
+import com.sun.identity.shared.ldap.LDAPConnection;
+import com.sun.identity.shared.ldap.LDAPControl;
+import com.sun.identity.shared.ldap.LDAPDeleteRequest;
+import com.sun.identity.shared.ldap.LDAPEntry;
+import com.sun.identity.shared.ldap.LDAPException;
+import com.sun.identity.shared.ldap.LDAPModification;
+import com.sun.identity.shared.ldap.LDAPModificationSet;
+import com.sun.identity.shared.ldap.LDAPModifyRequest;
+import com.sun.identity.shared.ldap.LDAPObjectClassSchema;
+import com.sun.identity.shared.ldap.LDAPRebind;
+import com.sun.identity.shared.ldap.LDAPRebindAuth;
+import com.sun.identity.shared.ldap.LDAPReferralException;
+import com.sun.identity.shared.ldap.LDAPRequestParser;
+import com.sun.identity.shared.ldap.LDAPSchema;
+import com.sun.identity.shared.ldap.LDAPSearchConstraints;
+import com.sun.identity.shared.ldap.LDAPSearchRequest;
+import com.sun.identity.shared.ldap.LDAPSearchResults;
+import com.sun.identity.shared.ldap.LDAPUrl;
+import com.sun.identity.shared.ldap.LDAPv2;
+import com.sun.identity.shared.ldap.LDAPv3;
+import com.sun.identity.shared.ldap.controls.LDAPPasswordExpiringControl;
+import com.sun.identity.shared.ldap.controls.LDAPPersistSearchControl;
+import com.sun.identity.shared.ldap.factory.JSSESocketFactory;
+import com.sun.identity.shared.ldap.util.DN;
 import com.sun.identity.shared.ldap.util.LDAPUtilException;
-import com.sun.identity.shared.locale.AMResourceBundleCache;
 import com.sun.identity.shared.locale.Locale;
 import com.sun.identity.sm.SchemaType;
 
@@ -779,30 +777,26 @@ public class LDAPv3Repo extends IdRepo {
                 ldapPort = ldc.getPort();
 
                 // Construct the pool by cloning the successful connection
-                ShutdownManager shutdownMan = ShutdownManager.getInstance();
+                ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
 
-                if (shutdownMan.acquireValidLock()) {
-                    try {
-                        connPool = new LDAPConnectionPool("LDAPv3Repo", minPoolSize,
-                            maxPoolSize, ldapServerList, ldapPort,
-                            ldc.getAuthenticationDN(),
-                                ldc.getAuthenticationPassword(),
-                                ldc, connOptions);
 
-                        // create the shutdown hook
-                        shutdownListener = new ShutdownListener() {
-                            public void shutdown() {
-                                if (connPool != null) {
-                                    connPool.destroy();
-                                }
-                            }
-                        };
-                        // Register the shutdown hook
-                        shutdownMan.addShutdownListener(shutdownListener);
-                    } finally {
-                        shutdownMan.releaseLockAndNotify();
+                connPool = new LDAPConnectionPool("LDAPv3Repo", minPoolSize,
+                    maxPoolSize, ldapServerList, ldapPort,
+                    ldc.getAuthenticationDN(),
+                        ldc.getAuthenticationPassword(),
+                        ldc, connOptions);
+
+                // create the shutdown hook
+                shutdownListener = new ShutdownListener() {
+                    public void shutdown() {
+                        if (connPool != null) {
+                            connPool.destroy();
+                        }
                     }
-                }
+                };
+                // Register the shutdown hook
+                shutdownMan.addShutdownListener(shutdownListener);
+
             } catch (LDAPException lex) {
                 int resultCode = lex.getLDAPResultCode();
                 ldapConnError = Integer.toString(resultCode);
@@ -1096,18 +1090,14 @@ public class LDAPv3Repo extends IdRepo {
         removeListener();
         
         if (shutdownListener != null) {
-            ShutdownManager shutdownMan = ShutdownManager.getInstance();
-            if (shutdownMan.acquireValidLock()) {
-                try {
-                    shutdownMan.removeShutdownListener(shutdownListener);
-                    shutdownListener = null;                   
-                    if (debug.messageEnabled()) {
-                        debug.message("LDAPv3Repo: removed shutdown listener");
-                    }
-                } finally {
-                    shutdownMan.releaseLockAndNotify();
-                }
+            ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
+
+            shutdownMan.removeShutdownListener(shutdownListener);
+            shutdownListener = null;
+            if (debug.messageEnabled()) {
+                debug.message("LDAPv3Repo: removed shutdown listener");
             }
+
         }        
         
         reBind = null;

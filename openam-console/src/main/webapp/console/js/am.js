@@ -25,6 +25,7 @@
  * $Id: am.js,v 1.10 2009/07/20 23:02:31 asyhuang Exp $
  *
  */
+var SCRIPT_UPLOAD_URL = "ScriptUploader";
 
 var origFrmAction = '';
 var tblBtnCounter = new Array();
@@ -41,6 +42,29 @@ function submitButton(btn, val) {
     origFrmAction = frm.action;
     frm.action += '?attrname=' + val;
     setTimeout("resetForm()", 1000);
+}
+
+/**
+ * Submit a dynamic validation request for the specific attribute.
+ * @param btn The button from which this request originated.
+ * @param val The name of the attribute for which the validation is needed.
+ */
+function submitValidate(btn, val) {
+    var frm = document.forms[0];
+    frm.target = '';
+    origFrmAction = frm.action;
+    frm.action += '?dynamic_validation=true&attrname=' + val;
+    setTimeout("resetForm()", 1000);
+}
+
+/**
+ * Submits a dynamic request to upload a file on a property sheet.
+ * @param btn The button from which this request originated.
+ * @param val The name of the attribute for which the validation is needed.
+ */
+function submitFileUpload(btn, val) {
+    var uploadWindow = window.open(SCRIPT_UPLOAD_URL, val, 'height=300,width=650');
+    uploadWindow.focus();
 }
 
 function resetForm() {

@@ -15,25 +15,6 @@
  */
 package org.forgerock.openam.entitlement.indextree;
 
-import com.iplanet.sso.SSOToken;
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.entitlement.EntitlementException;
-import com.sun.identity.shared.debug.Debug;
-import com.sun.identity.sm.SMSDataEntry;
-import com.sun.identity.sm.SMSException;
-import com.sun.identity.sm.ServiceManagementDAO;
-import org.forgerock.openam.core.guice.CoreGuiceModule.DNWrapper;
-import org.forgerock.openam.core.guice.CoreGuiceModule.ShutdownManagerWrapper;
-import org.forgerock.openam.entitlement.indextree.events.ModificationEvent;
-import org.forgerock.openam.entitlement.indextree.events.ModificationEventType;
-import org.forgerock.openam.entitlement.indextree.events.ErrorEventType;
-import org.forgerock.openam.entitlement.indextree.events.EventType;
-import org.forgerock.openam.entitlement.indextree.events.IndexChangeEvent;
-import org.forgerock.openam.entitlement.indextree.events.IndexChangeObserver;
-import org.forgerock.openam.entitlement.utils.indextree.IndexRuleTree;
-import org.forgerock.openam.entitlement.utils.indextree.SimpleReferenceTree;
-
-import javax.inject.Inject;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Collections;
@@ -41,6 +22,27 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import javax.inject.Inject;
+
+import org.forgerock.openam.core.guice.CoreGuiceModule.DNWrapper;
+import org.forgerock.openam.core.guice.CoreGuiceModule.ShutdownManagerWrapper;
+import org.forgerock.openam.entitlement.indextree.events.ErrorEventType;
+import org.forgerock.openam.entitlement.indextree.events.EventType;
+import org.forgerock.openam.entitlement.indextree.events.IndexChangeEvent;
+import org.forgerock.openam.entitlement.indextree.events.IndexChangeObserver;
+import org.forgerock.openam.entitlement.indextree.events.ModificationEvent;
+import org.forgerock.openam.entitlement.indextree.events.ModificationEventType;
+import org.forgerock.openam.entitlement.utils.indextree.IndexRuleTree;
+import org.forgerock.openam.entitlement.utils.indextree.SimpleReferenceTree;
+import org.forgerock.util.thread.listener.ShutdownListener;
+
+import com.iplanet.sso.SSOToken;
+import com.sun.identity.entitlement.EntitlementException;
+import com.sun.identity.shared.debug.Debug;
+import com.sun.identity.sm.SMSDataEntry;
+import com.sun.identity.sm.SMSException;
+import com.sun.identity.sm.ServiceManagementDAO;
 
 /**
  * Provides a search implementation that takes on a lazy approach to policy rule retrieval. Policy rules for a given

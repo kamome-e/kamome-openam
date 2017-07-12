@@ -18,7 +18,7 @@ package org.forgerock.openam.sm;
 import com.google.inject.Inject;
 import com.iplanet.dpro.session.service.SessionService;
 import com.iplanet.services.ldap.LDAPUser;
-import com.sun.identity.common.ShutdownListener;
+import org.forgerock.util.thread.listener.ShutdownListener;
 import com.sun.identity.shared.debug.Debug;
 import org.forgerock.openam.ldap.LDAPUtils;
 import org.forgerock.openam.sm.exceptions.ConnectionCredentialsNotFound;

@@ -38,9 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
-import com.sun.identity.common.ShutdownListener;
-import com.sun.identity.common.ShutdownManager;
-import com.sun.identity.shared.ldap.util.DN;
+import org.forgerock.util.thread.listener.ShutdownListener;
+import org.forgerock.util.thread.listener.ShutdownManager;
 
 import com.iplanet.am.util.SystemProperties;
 import com.iplanet.services.comm.client.NotificationHandler;
@@ -54,6 +53,7 @@ import com.sun.identity.idm.IdRepoListener;
 import com.sun.identity.shared.Constants;
 import com.sun.identity.shared.debug.Debug;
 import com.sun.identity.shared.jaxrpc.SOAPClient;
+import com.sun.identity.shared.ldap.util.DN;
 import com.sun.identity.sm.CreateServiceConfig;
 import com.sun.identity.sm.SMSSchema;
 
@@ -129,35 +129,31 @@ public class IdRemoteEventListener {
                         DEBUG.message("IdRemoteEventListener: registerNotificationURL_idrepo returned null ID");
                     }
                 }
-                ShutdownManager shutdownMan = ShutdownManager.getInstance();
-                if (shutdownMan.acquireValidLock()) {
-                    try {
-                        shutdownMan.addShutdownListener(new ShutdownListener() {
-                            @Override
-                            public void shutdown() {
-                                try {
-                                    if (remoteId != null) {
-                                        client.send("deRegisterNotificationURL_idrepo", remoteId, null, null);
-                                        if (DEBUG.messageEnabled()) {
-                                            DEBUG.message("IdRemoteEventListener: deRegisterNotificationURL_idrepo for "
-                                                    + remoteId);
-                                        }
-                                    } else {
-                                        if (DEBUG.messageEnabled()) {
-                                            DEBUG.message("IdRemoteEventListener: Could not " +
-                                                    "deRegisterNotificationURL_idrepo due to null ID");
-                                        }
-                                    }
-                                } catch (Exception e) {
-                                    DEBUG.error("IdRemoteEventListener: There was a problem calling " +
-                                            "deRegisterNotificationURL_idrepo with ID " +  remoteId, e);
+                ShutdownManager shutdownMan = com.sun.identity.common.ShutdownManager.getInstance();
+
+                shutdownMan.addShutdownListener(new ShutdownListener() {
+                    @Override
+                    public void shutdown() {
+                        try {
+                            if (remoteId != null) {
+                                client.send("deRegisterNotificationURL_idrepo", remoteId, null, null);
+                                if (DEBUG.messageEnabled()) {
+                                    DEBUG.message("IdRemoteEventListener: deRegisterNotificationURL_idrepo for "
+                                            + remoteId);
+                                }
+                            } else {
+                                if (DEBUG.messageEnabled()) {
+                                    DEBUG.message("IdRemoteEventListener: Could not " +
+                                            "deRegisterNotificationURL_idrepo due to null ID");
                                 }
                             }
-                        });
-                    } finally {
-                        shutdownMan.releaseLockAndNotify();
+                        } catch (Exception e) {
+                            DEBUG.error("IdRemoteEventListener: There was a problem calling " +
+                                    "deRegisterNotificationURL_idrepo with ID " +  remoteId, e);
+                        }
                     }
-                }
+                });
+
                 // Register with PLLClient for notification
                 PLLClient.addNotificationHandler(IDREPO_SERVICE,
                         new IdRepoEventNotificationHandler());
