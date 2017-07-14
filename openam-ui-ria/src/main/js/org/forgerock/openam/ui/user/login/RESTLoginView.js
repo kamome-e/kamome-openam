@@ -291,7 +291,8 @@ define("org/forgerock/openam/ui/user/login/RESTLoginView", [
         var result = "",
             cb = this,
             prompt,
-            options;
+            options,
+            hideButton;
         
         prompt = _.find(cb.output, function (o) { return o.name === "prompt"; });
         if (prompt && prompt.value !== undefined && prompt.value.length) {
@@ -311,10 +312,19 @@ define("org/forgerock/openam/ui/user/login/RESTLoginView", [
                 result += '<textarea name="callback_' + cb.input.index + '" data-validator="required" data-validator-event="keyup">' + cb.input.value + '</textarea>';
             break;
             case "TextOutputCallback" :
-                result += '<div id="callback_' + cb.input.index + '" class="textOutputCallback ' + 
-                            _.find(cb.output, function (o) { return o.name === "messageType"; }) + '">' + 
-                          _.find(cb.output, function (o) { return o.name === "message"; }) + 
-                          '</div>';
+                options = [];
+                options.message = _.find(cb.output, function (o) { return o.name === "message"; });
+                options.type = _.find(cb.output, function (o) { return o.name === "messageType"; });
+
+                if (options.type.value === "4") { //4 is our magic number for a <script>, taken from ScriptTextOutputCallback.java
+                    hideButton = "if(document.getElementsByClassName('button')[0] != undefined){document" +
+                        ".getElementsByClassName" +
+                        "('button')[0].style.visibility = 'hidden';}";
+                    result += "<script type='text/javascript'>" + hideButton + options.message.value + "</script>";
+                } else {
+                    result += '<div id="callback_' + cb.input.index + '" class="textOutputCallback ' + options.type.value + '">' + options.message.value + '</div>';
+                }
+
             break;
             
             case "ConfirmationCallback" : 
@@ -336,6 +346,12 @@ define("org/forgerock/openam/ui/user/login/RESTLoginView", [
                     result += "</ul>";
                 }
             break;
+            case "HiddenValueCallback" :
+                result += '<input type="hidden" id="' + cb.input.value + '" name="callback_' + cb.input.index + '" value="" data-validator="required" required data-validator-event="keyup" />';
+                break;
+            case "RedirectCallback":
+                result += 'Redirecting...';
+                break;
             default: 
                 result += '<input type="text" name="callback_' + cb.input.index + '" value="' + cb.input.value + '" data-validator="required" data-validator-event="keyup" />';
             break;

@@ -55,9 +55,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-import com.sun.identity.shared.debug.Debug;
+import com.sun.identity.authentication.callbacks.HiddenValueCallback;
+import com.sun.identity.authentication.callbacks.ScriptTextOutputCallback;
 import com.sun.identity.authentication.service.AuthD;
 import com.sun.identity.authentication.share.AuthXMLTags;
+import com.sun.identity.shared.debug.Debug;
 import com.sun.identity.shared.xml.XMLUtils;
 
 class AMModuleProperties {
@@ -257,6 +259,40 @@ class AMModuleProperties {
                             infoText.add("");
                         }
                         p++;
+                } else if (nodeName.equals("HiddenValueCallback")) {
+                    sub = node.getFirstChild();
+                    sub = sub.getNextSibling();
+                    String id = sub.getFirstChild().getNodeValue();
+
+                    String dftName = null;
+                    sub = sub.getNextSibling().getNextSibling();
+                    if (sub != null) {
+                        sub = sub.getFirstChild();
+                        dftName = sub.getNodeValue();
+                        callbacks[p] = new HiddenValueCallback(id, dftName);
+                    } else {
+                        callbacks[p] = new HiddenValueCallback(id);
+                    }
+
+                    tmp = getAttribute(node, "isRequired");
+                    if (Boolean.parseBoolean(tmp)) {
+                        require.add("true");
+                    } else {
+                        require.add("");
+                    }
+                    tmp = getAttribute(node, "attribute");
+                    if (tmp != null) {
+                        attribute.add(tmp);
+                    } else {
+                        attribute.add("");
+                    }
+                    tmp = getAttribute(node, "infoText");
+                    if (tmp != null) {
+                        infoText.add(tmp);
+                    } else {
+                        infoText.add("");
+                    }
+                    p++;
                 } else if (nodeName.equals("PasswordCallback")) {
                         String echo = getAttribute(node, "echoPassword");
                         sub = node.getFirstChild();
@@ -387,21 +423,27 @@ class AMModuleProperties {
                         callbacks[p] = new TextInputCallback(prompt);
                         p++;
                 } else if (nodeName.equals("TextOutputCallback")) {
-                        int messageType = TextOutputCallback.ERROR;
-                        String s = getAttribute(node, "messageType");
+                    int messageType = TextOutputCallback.ERROR;
+                    String s = getAttribute(node, "messageType");
+                    String value = node.getFirstChild().getNodeValue();
+
+
+                    if (s.equals("script")) {
+                        callbacks[p]  = new ScriptTextOutputCallback(value);
+                    } else {
                         if (s.equals("error")) {
                             messageType = TextOutputCallback.ERROR;
-                        } else if (s.equals("information")) {
-                            messageType = TextOutputCallback.INFORMATION;
                         } else if (s.equals("warning")) {
                             messageType = TextOutputCallback.WARNING;
+                        } else { //default to information
+                            messageType = TextOutputCallback.INFORMATION;
                         }
-                        sub = node.getFirstChild();
-                        sub = sub.getNextSibling().getFirstChild();
-                        String value = sub.getNodeValue();
-                        callbacks[p] = new TextOutputCallback(
-                            messageType, value);
-                        p++;
+
+                        callbacks[p] = new TextOutputCallback(messageType, value);
+
+                    }
+
+                    p++;
                 } else if (nodeName.equals("LanguageCallback")) {
                         for (sub=node.getFirstChild(); sub!=null;
                             sub=sub.getNextSibling()

@@ -62,36 +62,38 @@ import com.iplanet.am.sdk.AMException;
 import com.iplanet.am.sdk.AMUser;
 import com.iplanet.am.sdk.AMUserPasswordValidation;
 import com.iplanet.am.util.Misc;
-import com.sun.identity.shared.locale.AMResourceBundleCache;
-import com.sun.identity.shared.debug.Debug;
-import com.sun.identity.shared.datastruct.CollectionHelper;
 import com.iplanet.dpro.session.service.InternalSession;
-import com.iplanet.dpro.session.service.SessionCount;
 import com.iplanet.dpro.session.service.SessionConstraint;
+import com.iplanet.dpro.session.service.SessionCount;
 import com.iplanet.sso.SSOException;
 import com.iplanet.sso.SSOToken;
 import com.iplanet.sso.SSOTokenManager;
+import com.sun.identity.authentication.callbacks.HiddenValueCallback;
+import com.sun.identity.authentication.callbacks.ScriptTextOutputCallback;
 import com.sun.identity.authentication.service.AMAuthErrorCode;
 import com.sun.identity.authentication.service.AuthD;
 import com.sun.identity.authentication.service.AuthException;
-import com.sun.identity.authentication.service.LoginStateCallback;
 import com.sun.identity.authentication.service.LoginState;
+import com.sun.identity.authentication.service.LoginStateCallback;
 import com.sun.identity.authentication.util.ISAuthConstants;
 import com.sun.identity.authentication.util.ISValidation;
+import com.sun.identity.common.AccountLockoutInfo;
 import com.sun.identity.common.AdministrationServiceListener;
-import com.sun.identity.idm.AMIdentityRepository;
+import com.sun.identity.common.DNUtils;
+import com.sun.identity.common.ISAccountLockout;
 import com.sun.identity.idm.AMIdentity;
+import com.sun.identity.idm.AMIdentityRepository;
 import com.sun.identity.idm.IdRepoException;
 import com.sun.identity.idm.IdType;
 import com.sun.identity.idm.IdUtils;
-import com.sun.identity.common.ISAccountLockout;
-import com.sun.identity.common.DNUtils;
-import com.sun.identity.common.AccountLockoutInfo;
 import com.sun.identity.shared.Constants;
+import com.sun.identity.shared.datastruct.CollectionHelper;
+import com.sun.identity.shared.debug.Debug;
+import com.sun.identity.shared.ldap.util.DN;
+import com.sun.identity.shared.locale.AMResourceBundleCache;
 import com.sun.identity.sm.OrganizationConfigManager;
 import com.sun.identity.sm.ServiceSchema;
 import com.sun.identity.sm.ServiceSchemaManager;
-import com.sun.identity.shared.ldap.util.DN;
 
 /**
  * An abstract class which implements JAAS LoginModule, it provides
@@ -293,7 +295,21 @@ public abstract class AMLoginModule implements LoginModule {
         // iterate through Callback array, and copy them one by one
         // if it is an external Callback, add to the extCallback list
         for (int i = 0; i < len; i++) {
-            if (original[i] instanceof NameCallback) {
+            if (original[i] instanceof HiddenValueCallback) {
+                final HiddenValueCallback hiddenValueCallback = (HiddenValueCallback) original[i];
+                String defaultValue = hiddenValueCallback.getDefaultValue();
+                if (defaultValue != null && defaultValue.length() != 0) {
+                    copy[i] = new HiddenValueCallback(
+                            hiddenValueCallback.getId(), defaultValue);
+                } else {
+                    copy[i] = new HiddenValueCallback(
+                            hiddenValueCallback.getId());
+                }
+                extCallbacks.add(copy[i]);
+                if (debug.messageEnabled()) {
+                    debug.message("clone #" + i + " is HiddenValueCallback");
+                }
+            } else if (original[i] instanceof NameCallback) {
                 String dftName = ((NameCallback)original[i]).getDefaultName();
                 if (dftName != null && dftName.length() != 0) {
                     copy[i] = new NameCallback(
@@ -313,6 +329,13 @@ public abstract class AMLoginModule implements LoginModule {
                 extCallbacks.add(copy[i]);
                 if (debug.messageEnabled()) {
                     debug.message("clone #" + i + " is PasswordCallback");
+                }
+            } else if (original[i] instanceof ScriptTextOutputCallback) {
+                copy[i] = new ScriptTextOutputCallback(
+                        ((TextOutputCallback) original[i]).getMessage());
+                extCallbacks.add(copy[i]);
+                if (debug.messageEnabled()) {
+                    debug.message("clone #" + i + " is ScriptTextOutputCallback");
                 }
             } else if (original[i] instanceof TextOutputCallback) {
                 copy[i] = new TextOutputCallback(
