@@ -15,25 +15,8 @@
  */
 package org.forgerock.openam.authentication.modules.scripted;
 
-import com.sun.identity.authentication.callbacks.HiddenValueCallback;
-import com.google.inject.Key;
-import com.google.inject.name.Names;
-import com.sun.identity.authentication.callbacks.ScriptTextOutputCallback;
-import com.sun.identity.authentication.spi.AMLoginModule;
-import com.sun.identity.authentication.spi.AuthLoginException;
-import com.sun.identity.idm.AMIdentityRepository;
-import com.sun.identity.authentication.util.ISAuthConstants;
-import com.sun.identity.shared.datastruct.CollectionHelper;
-import com.sun.identity.shared.debug.Debug;
-import org.forgerock.guice.core.InjectorHolder;
-import org.forgerock.http.client.RestletHttpClient;
-import org.forgerock.openam.authentication.modules.scripted.http.GroovyHttpClient;
-import org.forgerock.http.client.request.HttpClientRequest;
-import org.forgerock.http.client.request.HttpClientRequestFactory;
-import org.forgerock.openam.authentication.modules.scripted.http.JavaScriptHttpClient;
-import org.forgerock.openam.scripting.ScriptEvaluator;
-import org.forgerock.openam.scripting.ScriptObject;
-import org.forgerock.openam.scripting.SupportedScriptingLanguage;
+import java.security.Principal;
+import java.util.Map;
 
 import javax.script.Bindings;
 import javax.script.ScriptException;
@@ -41,9 +24,27 @@ import javax.script.SimpleBindings;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.login.LoginException;
-import java.security.Principal;
-import java.util.HashMap;
-import java.util.Map;
+
+import org.forgerock.guice.core.InjectorHolder;
+import org.forgerock.http.client.RestletHttpClient;
+import org.forgerock.http.client.request.HttpClientRequest;
+import org.forgerock.http.client.request.HttpClientRequestFactory;
+import org.forgerock.openam.authentication.modules.scripted.http.GroovyHttpClient;
+import org.forgerock.openam.authentication.modules.scripted.http.JavaScriptHttpClient;
+import org.forgerock.openam.scripting.ScriptEvaluator;
+import org.forgerock.openam.scripting.ScriptObject;
+import org.forgerock.openam.scripting.SupportedScriptingLanguage;
+
+import com.google.inject.Key;
+import com.google.inject.name.Names;
+import com.sun.identity.authentication.callbacks.HiddenValueCallback;
+import com.sun.identity.authentication.callbacks.ScriptTextOutputCallback;
+import com.sun.identity.authentication.spi.AMLoginModule;
+import com.sun.identity.authentication.spi.AuthLoginException;
+import com.sun.identity.authentication.util.ISAuthConstants;
+import com.sun.identity.idm.AMIdentityRepository;
+import com.sun.identity.shared.datastruct.CollectionHelper;
+import com.sun.identity.shared.debug.Debug;
 
 /**
  * An authentication module that allows users to authenticate via a scripting language
@@ -128,48 +129,54 @@ public class Scripted extends AMLoginModule {
         switch (state) {
 
             case ISAuthConstants.LOGIN_START:
-                if (!clientSideScriptEnabled) {
-                    clientSideScript = " ";
+                if (clientSideScriptEnabled) {
+                    substituteUIStrings();
+                    return STATE_RUN_SCRIPT;
                 }
-
-                substituteUIStrings();
-
-                return STATE_RUN_SCRIPT;
+                return runScript(callbacks, state);
 
             case STATE_RUN_SCRIPT:
-                Bindings scriptVariables = new SimpleBindings();
-                scriptVariables.put(REQUEST_DATA_VARIABLE_NAME, getScriptHttpRequestWrapper());
-                String clientScriptOutputData = getClientScriptOutputData(callbacks);
-                scriptVariables.put(CLIENT_SCRIPT_OUTPUT_DATA_VARIABLE_NAME, clientScriptOutputData);
-                scriptVariables.put(LOGGER_VARIABLE_NAME, DEBUG);
-                scriptVariables.put(STATE_VARIABLE_NAME, state);
-                scriptVariables.put(SHARED_STATE, sharedState);
-                scriptVariables.put(USERNAME_VARIABLE_NAME, userName);
-                scriptVariables.put(SUCCESS_ATTR_NAME, SUCCESS_VALUE);
-                scriptVariables.put(FAILED_ATTR_NAME, FAILURE_VALUE);
-                scriptVariables.put(HTTP_CLIENT_VARIABLE_NAME, httpClient);
-                scriptVariables.put(IDENTITY_REPOSITORY, identityRepository);
+                return runScript(callbacks, state);
 
-                try {
-                    scriptEvaluator.evaluateScript(serverSideScript, scriptVariables);
-                } catch (ScriptException e) {
-                    DEBUG.message("Error running server side scripts", e);
-                    throw new AuthLoginException("Error running script", e);
-                }
-
-                state = ((Number) scriptVariables.get(STATE_VARIABLE_NAME)).intValue();
-                userName = (String) scriptVariables.get(USERNAME_VARIABLE_NAME);
-                sharedState.put(CLIENT_SCRIPT_OUTPUT_DATA_VARIABLE_NAME, clientScriptOutputData);
-
-                if (state != SUCCESS_VALUE) {
-                    throw new AuthLoginException("Authentication failed");
-                }
-
-                return state;
             default:
                 throw new AuthLoginException("Invalid state");
         }
 
+    }
+
+    private int runScript(Callback[] callbacks, int state) throws AuthLoginException {
+        Bindings scriptVariables = new SimpleBindings();
+        scriptVariables.put(REQUEST_DATA_VARIABLE_NAME, getScriptHttpRequestWrapper());
+        String clientScriptOutputData = null;
+        if (clientSideScriptEnabled) {
+            clientScriptOutputData = getClientScriptOutputData(callbacks);
+        }
+        scriptVariables.put(CLIENT_SCRIPT_OUTPUT_DATA_VARIABLE_NAME, clientScriptOutputData);
+        scriptVariables.put(LOGGER_VARIABLE_NAME, DEBUG);
+        scriptVariables.put(STATE_VARIABLE_NAME, state);
+        scriptVariables.put(SHARED_STATE, sharedState);
+        scriptVariables.put(USERNAME_VARIABLE_NAME, userName);
+        scriptVariables.put(SUCCESS_ATTR_NAME, SUCCESS_VALUE);
+        scriptVariables.put(FAILED_ATTR_NAME, FAILURE_VALUE);
+        scriptVariables.put(HTTP_CLIENT_VARIABLE_NAME, httpClient);
+        scriptVariables.put(IDENTITY_REPOSITORY, identityRepository);
+
+        try {
+            scriptEvaluator.evaluateScript(serverSideScript, scriptVariables);
+        } catch (ScriptException e) {
+            DEBUG.message("Error running server side scripts", e);
+            throw new AuthLoginException("Error running script", e);
+        }
+
+        state = ((Number) scriptVariables.get(STATE_VARIABLE_NAME)).intValue();
+        userName = (String) scriptVariables.get(USERNAME_VARIABLE_NAME);
+        sharedState.put(CLIENT_SCRIPT_OUTPUT_DATA_VARIABLE_NAME, clientScriptOutputData);
+
+        if (state != SUCCESS_VALUE) {
+            throw new AuthLoginException("Authentication failed");
+        }
+
+        return state;
     }
 
     private String getClientScriptOutputData(Callback[] callbacks) {
