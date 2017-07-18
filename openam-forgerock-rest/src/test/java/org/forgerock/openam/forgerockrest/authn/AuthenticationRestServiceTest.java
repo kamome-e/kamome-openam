@@ -70,7 +70,11 @@ public class AuthenticationRestServiceTest {
                 authIndexValue, sessionUpgradeSSOTokenId)).willReturn(jaxrsResponse);
 
         //When
-        Response resp = authenticationRestService.authenticate(headers, request, response, authIndexType,
+        ThreadLocal<HttpServletRequest> req = new ThreadLocal<>();
+        req.set(request);
+        ThreadLocal<HttpServletResponse> res = new ThreadLocal<>();
+        res.set(response);
+        Response resp = authenticationRestService.authenticate(headers, req, res, authIndexType,
                 authIndexValue, sessionUpgradeSSOTokenId, null);
 
         //Then
@@ -100,7 +104,11 @@ public class AuthenticationRestServiceTest {
                 Matchers.<JsonValue>anyObject(), eq(sessionUpgradeSSOTokenId))).willReturn(jaxrsResponse);
 
         //When
-        Response resp = authenticationRestService.authenticate(headers, request, response, authIndexType,
+        ThreadLocal<HttpServletRequest> req = new ThreadLocal<>();
+        req.set(request);
+        ThreadLocal<HttpServletResponse> res = new ThreadLocal<>();
+        res.set(response);
+        Response resp = authenticationRestService.authenticate(headers, req, res, authIndexType,
                 authIndexValue, sessionUpgradeSSOTokenId, postBody);
 
         //Then

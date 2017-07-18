@@ -16,13 +16,6 @@
 
 package org.forgerock.openam.forgerockrest.authn;
 
-import com.google.inject.Singleton;
-import org.apache.commons.lang.StringUtils;
-import org.forgerock.json.fluent.JsonValue;
-import org.forgerock.openam.forgerockrest.authn.exceptions.RestAuthException;
-import org.forgerock.openam.guice.InjectorHolder;
-import org.forgerock.openam.utils.JsonValueBuilder;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
@@ -34,6 +27,14 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang.StringUtils;
+import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.openam.forgerockrest.authn.exceptions.RestAuthException;
+import org.forgerock.openam.guice.InjectorHolder;
+import org.forgerock.openam.utils.JsonValueBuilder;
+
+import com.google.inject.Singleton;
 
 /**
  * JAX-RS endpoint for version 1 RESTful authentication requests.
@@ -73,7 +74,6 @@ public class AuthenticationRestService {
      * @return A HTTP 405 response to be sent back to the client.
      */
     @GET
-    @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getMethodNotSupported() {
 
@@ -113,14 +113,15 @@ public class AuthenticationRestService {
      * complete and return or a JSON object containing an exception message.
      */
     @POST
-    @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response authenticate(@Context HttpHeaders headers, @Context HttpServletRequest request,
-            @Context HttpServletResponse response, @QueryParam("authIndexType") String authIndexType,
+    public Response authenticate(@Context HttpHeaders headers, @Context ThreadLocal<HttpServletRequest> req,
+            @Context ThreadLocal<HttpServletResponse> res, @QueryParam("authIndexType") String authIndexType,
             @QueryParam("authIndexValue") String authIndexValue,
             @QueryParam("sessionUpgrade") String sessionUpgradeSSOTokenId, String postBody) {
 
-        if (!isJsonContentType(headers)) {
+        HttpServletRequest request = (HttpServletRequest) req.get();
+        HttpServletResponse response = (HttpServletResponse) res.get();
+        if (!isJsonContentType(headers)) { 
             return new RestAuthException(Response.Status.UNSUPPORTED_MEDIA_TYPE, "Unsupported Media Type")
                     .getResponse();
         }
