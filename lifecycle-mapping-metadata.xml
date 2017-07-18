@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lifecycleMappingMetadata>
+  <pluginExecutions>
+
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <groupId>com.github.mcheely</groupId>
+        <artifactId>requirejs-maven-plugin</artifactId>
+        <versionRange>2.0.0</versionRange>
+        <goals>
+          <goal>optimize</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+        <ignore />
+      </action>
+    </pluginExecution>
+
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <groupId>com.google.code.maven-svn-revision-number-plugin</groupId>
+        <artifactId>maven-svn-revision-number-plugin</artifactId>
+        <versionRange>1.6</versionRange>
+        <goals>
+          <goal>revision</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+        <ignore />
+      </action>
+    </pluginExecution>
+
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <versionRange>1.7</versionRange>
+        <goals>
+          <goal>run</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+        <ignore />
+      </action>
+    </pluginExecution>
+
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <groupId>org.apache.portals.jetspeed-2</groupId>
+        <artifactId>jetspeed-unpack-maven-plugin</artifactId>
+        <versionRange>2.2.2</versionRange>
+        <goals>
+          <goal>unpack</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+        <ignore />
+      </action>
+    </pluginExecution>
+
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <groupId>org.forgerock.maven.plugins</groupId>
+        <artifactId>build-helper-plugin</artifactId>
+        <versionRange>11.0.3</versionRange>
+        <goals>
+          <goal>generate-cli</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+        <ignore />
+      </action>
+    </pluginExecution>
+
+  </pluginExecutions>
+</lifecycleMappingMetadata>
