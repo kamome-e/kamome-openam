@@ -108,6 +108,14 @@
                                             elmCount++;
                                             -->
                                         </script>
+                                        <jato:content name="textOut">
+                                            <script language="javascript" type="text/javascript">
+                                                <!--
+                                                <jato:text name="scriptContent" defaultValue="" escape="false"/>
+                                                -->
+                                            </script>
+                                            <div class="TextOutputCallback_<jato:text name="messageType" />"><jato:text name="textContent" defaultValue="" escape="false" /></div>
+                                        </jato:content>
                                         <jato:content name="textBox">
                                             <div class="row">
                                                 <label for="IDToken<jato:text name="txtIndex" />">
@@ -119,6 +127,9 @@
                                                 </label>
                                                 <input class="textbox" type="text" name="IDToken<jato:text name="txtIndex" />" id="IDToken<jato:text name="txtIndex" />" value="<jato:text name="txtValue" />" />
                                             </div>
+                                        </jato:content>
+                                        <jato:content name="hiddenValueBox">
+                                            <input class="hiddenValueBox" type="hidden" name="<jato:text name="txtId" />" id="<jato:text name="txtId" />" value="<jato:text name="txtValue" />" />
                                         </jato:content>
                                         <jato:content name="password">
                                             <div class="row">

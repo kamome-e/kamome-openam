@@ -38,9 +38,9 @@ public class ScriptedClientUtilityFunctions {
         }
 
         String spinningWheelScript = "if (window.require) {\n" +
-                "    var messenger = require(\"org/forgerock/commons/ui/common/components/Messages\"),\n" +
-                "        spinner =  require(\"org/forgerock/commons/ui/common/main/SpinnerManager\"),\n" +
-                "        message =  {message:\"Collecting Data...\", type:\"info\"};\n" +
+                "    var messenger = require('org/forgerock/commons/ui/common/components/Messages'),\n" +
+                "        spinner =  require('org/forgerock/commons/ui/common/main/SpinnerManager'),\n" +
+                "        message =  {message:'Collecting Data...', type:'info'};\n" +
                 "    spinner.showSpinner();\n" +
                 collectingDataMessage +
                 "}";
