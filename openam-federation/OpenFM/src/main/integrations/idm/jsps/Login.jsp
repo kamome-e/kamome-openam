@@ -188,6 +188,15 @@ System.out.println("replaygotoURL: " + replaygotoURL);
             elmCount++;
         </script>
 
+        <jato:content name="textOut">
+            <script language="javascript" type="text/javascript">
+                <!--
+                  <jato:text name="scriptContent" defaultValue="" escape="false"/>
+                -->
+                </script>
+            <div class="TextOutputCallback_<jato:text name="messageType" />"><jato:text name="textContent" defaultValue="" escape="false" /></div>
+        </jato:content>
+
         <jato:content name="textBox">
         <!-- text box display -->
         <tr>
