@@ -15,6 +15,11 @@
  */
 package org.forgerock.http.client;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.List;
+import java.util.Map;
+
 import org.forgerock.guice.core.InjectorHolder;
 import org.forgerock.http.client.request.HttpClientRequest;
 import org.forgerock.http.client.request.HttpClientRequestCookie;
@@ -24,13 +29,15 @@ import org.forgerock.http.client.response.SimpleHttpClientResponse;
 import org.restlet.Client;
 import org.restlet.Request;
 import org.restlet.Response;
-import org.restlet.data.*;
+import org.restlet.data.CookieSetting;
+import org.restlet.data.MediaType;
+import org.restlet.data.Method;
+import org.restlet.data.Protocol;
+import org.restlet.engine.header.Header;
+import org.restlet.engine.header.HeaderConstants;
+import org.restlet.engine.util.CaseInsensitiveHashSet;
 import org.restlet.engine.util.CookieSettingSeries;
 import org.restlet.util.Series;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.*;
 
 /**
  * A basic http client that can be used to send
@@ -60,7 +67,7 @@ public class RestletHttpClient {
             List<Map<String,String>> headers = requestData.get("headers");
             if (headers != null) {
                 for (Map header : headers) {
-                    httpClientRequest.addQueryParameter((String) header.get("field"),
+                    httpClientRequest.addHeader((String) header.get("field"),
                             (String) header.get("value"));
                 }
             }
@@ -107,7 +114,12 @@ public class RestletHttpClient {
         request.setMethod(Method.valueOf(httpClientRequest.getMethod()));
         request.setResourceRef(httpClientRequest.getUri());
         if (hasEntity(httpClientRequest)) {
-            request.setEntity(httpClientRequest.getEntity(), MediaType.ALL);
+            String contentType = getHeaderValue(httpClientRequest, HeaderConstants.HEADER_CONTENT_TYPE);
+            if (contentType == null) {
+                request.setEntity(httpClientRequest.getEntity(), MediaType.ALL);
+            } else {
+                request.setEntity(httpClientRequest.getEntity(), MediaType.valueOf(contentType));
+            }
         }
         if (hasHeaders(httpClientRequest)) {
             addHeadersToRequest(httpClientRequest, request);
@@ -123,13 +135,16 @@ public class RestletHttpClient {
     }
 
     private void addHeadersToRequest(HttpClientRequest httpClientRequest, Request request) {
-        Map<String, Object> headersMap = new HashMap<String, Object>();
-        Form headersForm = new Form();
-        for (String key : httpClientRequest.getHeaders().keySet()) {
-            headersForm.set(key, httpClientRequest.getHeaders().get(key));
+        Series<Header> headers = (Series<Header>) request.getAttributes().get(HeaderConstants.ATTRIBUTE_HEADERS);
+        if (headers == null) {
+            headers = new Series<>(Header.class);
+            request.getAttributes().put(HeaderConstants.ATTRIBUTE_HEADERS, headers);
         }
-        headersMap.put("org.restlet.http.headers", headersForm);
-        request.setAttributes(headersMap);
+        for (String key : httpClientRequest.getHeaders().keySet()) {
+            if (!key.equalsIgnoreCase(HeaderConstants.HEADER_CONTENT_TYPE)) {
+                headers.set(key, httpClientRequest.getHeaders().get(key));
+            }
+        }
     }
 
     private void addQueryParametersToRequest(HttpClientRequest httpClientRequest, Request request) throws UnsupportedEncodingException {
@@ -166,6 +181,18 @@ public class RestletHttpClient {
 
     private boolean hasHeaders(HttpClientRequest httpClientRequest) {
         return (httpClientRequest.getHeaders() != null && !(httpClientRequest.getHeaders().isEmpty()));
+    }
+
+    private String getHeaderValue(HttpClientRequest httpClientRequest, String headerName) {
+        if (httpClientRequest.getHeaders() == null) {
+            return null;
+        }
+        for (Map.Entry<String, String> e : httpClientRequest.getHeaders().entrySet()) {
+            if (e.getKey().equalsIgnoreCase(headerName)) {
+                return e.getValue();
+            }
+        }
+        return null;
     }
 
     private boolean hasQueryParameters(HttpClientRequest httpClientRequest) {
