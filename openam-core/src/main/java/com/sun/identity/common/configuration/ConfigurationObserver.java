@@ -152,7 +152,7 @@ public class ConfigurationObserver implements ServiceListener {
 
                 if (serverName.equals(ServerConfiguration.DEFAULT_SERVER_CONFIG)
                     ||
-                    serverName.equals(SystemProperties.getServerInstanceName())
+                    serverName.equalsIgnoreCase(SystemProperties.getServerInstanceName())
                  ) {
                     // always use the server instance name with initialising properties
                     if (serverName.equals(ServerConfiguration.DEFAULT_SERVER_CONFIG)) {
