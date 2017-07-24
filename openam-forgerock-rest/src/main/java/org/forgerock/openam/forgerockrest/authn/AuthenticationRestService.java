@@ -16,6 +16,8 @@
 
 package org.forgerock.openam.forgerockrest.authn;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
@@ -150,7 +152,12 @@ public class AuthenticationRestService {
      */
     private boolean isJsonContentType(HttpHeaders headers) {
 
-        for (String contentType : headers.getRequestHeader(HttpHeaders.CONTENT_TYPE)) {
+        List<String> contentTypes = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE);
+        if (contentTypes == null) {
+            return false;
+        }
+
+        for (String contentType : contentTypes) {
             if (contentType != null && contentType.startsWith(MediaType.APPLICATION_JSON)) {
                 return true;
             }
