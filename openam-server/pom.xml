@@ -41,7 +41,7 @@
 
     <!-- Build -->
     <build>
-        <finalName>OpenAM-Community-Edition-${project.version}</finalName>
+        <finalName>KAMOME-SSO-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.cargo</groupId>
