@@ -19,8 +19,10 @@ import java.security.PrivilegedAction;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.forgerock.guice.core.GuiceModule;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.openam.cts.CTSPersistentStore;
 import org.forgerock.openam.cts.CoreTokenConfig;
@@ -38,8 +40,6 @@ import org.forgerock.openam.entitlement.indextree.IndexChangeMonitorImpl;
 import org.forgerock.openam.entitlement.indextree.IndexTreeService;
 import org.forgerock.openam.entitlement.indextree.IndexTreeServiceImpl;
 import org.forgerock.openam.entitlement.indextree.events.IndexChangeObservable;
-import org.forgerock.openam.guice.AMGuiceModule;
-import org.forgerock.openam.guice.InjectorHolder;
 import org.forgerock.openam.shared.concurrency.LockFactory;
 import org.forgerock.openam.sm.DataLayerConnectionFactory;
 import org.forgerock.opendj.ldap.ConnectionFactory;
@@ -72,7 +72,7 @@ import com.sun.identity.sm.ServiceManagementDAOWrapper;
 /**
  * Guice Module for configuring bindings for the OpenAM Core classes.
  */
- @AMGuiceModule
+ @GuiceModule
 public class CoreGuiceModule extends AbstractModule {
 
     @Override
@@ -134,23 +134,6 @@ public class CoreGuiceModule extends AbstractModule {
                 return ConfigurationObserver.getInstance();
             }
         }).in(Singleton.class);
-        // CTS Worker Thread Pools
-        bind(ScheduledExecutorService.class)
-                .annotatedWith(Names.named(CoreTokenConstants.CTS_SCHEDULED_SERVICE))
-                .toProvider(new Provider<ScheduledExecutorService>() {
-                    public ScheduledExecutorService get() {
-                        ExecutorServiceFactory factory = InjectorHolder.getInstance(ExecutorServiceFactory.class);
-                        return factory.createScheduledService(1);
-                    }
-                });
-        bind(ExecutorService.class)
-                .annotatedWith(Names.named(CoreTokenConstants.CTS_WORKER_POOL))
-                .toProvider(new Provider<ExecutorService>() {
-                    public ExecutorService get() {
-                        ExecutorServiceFactory factory = InjectorHolder.getInstance(ExecutorServiceFactory.class);
-                        return factory.createFixedThreadPool(5);
-                    }
-                });
 
         /**
          * Session related dependencies.
@@ -163,11 +146,28 @@ public class CoreGuiceModule extends AbstractModule {
         bind(Debug.class)
                 .annotatedWith(Names.named(SessionConstants.SESSION_DEBUG))
                 .toInstance(Debug.getInstance(SessionConstants.SESSION_DEBUG));
+
+        bind(ShutdownManager.class).toInstance(com.sun.identity.common.ShutdownManager.getInstance());
     }
 
     @Provides @Singleton @Named(CoreTokenConstants.CTS_LOCK_FACTORY)
     LockFactory<String> getCTSLockFactory() {
         return new LockFactory<String>();
+    }
+
+    @Provides @Inject
+    ExecutorServiceFactory provideExecutorServiceFactory(ShutdownManager manager) {
+        return new ExecutorServiceFactory(manager);
+    }
+
+    @Provides @Inject @Named(CoreTokenConstants.CTS_WORKER_POOL)
+    ExecutorService getCTSWorkerExecutorService(ExecutorServiceFactory esf) {
+        return esf.createFixedThreadPool(5);
+    }
+
+    @Provides @Inject @Named(CoreTokenConstants.CTS_SCHEDULED_SERVICE)
+    ScheduledExecutorService getCTSScheduledService(ExecutorServiceFactory esf) {
+        return esf.createScheduledService(1);
     }
 
     // Implementation exists to capture the generic type of the PrivilegedAction.
