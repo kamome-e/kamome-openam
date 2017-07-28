@@ -79,11 +79,21 @@ public class RestletHttpClient {
     private HttpClientResponse perform(HttpClientRequest httpClientRequest) throws UnsupportedEncodingException {
         Request request = createRequest(httpClientRequest);
 
-        Client client = new Client(Protocol.HTTP);
-        Response response = new Response(request);
-        client.handle(request, response);
+        Client client = null;
+        try {
+            client = new Client(Protocol.HTTP);
+            Response response = new Response(request);
+            client.handle(request, response);
 
-        return createHttpClientResponse(response);
+            return createHttpClientResponse(response);
+        } finally {
+            if (client != null) {
+                try {
+                    client.stop();
+                } catch (Exception ignored) {
+                }
+            }
+        }
     }
 
     private HttpClientResponse createHttpClientResponse(Response response) {
