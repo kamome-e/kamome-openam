@@ -72,7 +72,7 @@ import com.sun.identity.sm.ServiceManagementDAOWrapper;
 /**
  * Guice Module for configuring bindings for the OpenAM Core classes.
  */
- @GuiceModule
+@GuiceModule
 public class CoreGuiceModule extends AbstractModule {
 
     @Override

@@ -1578,24 +1578,11 @@
                 <version>${json.version}</version>
             </dependency>
 
-<!-- 
-            <dependency>
-                <groupId>com.google.inject</groupId>
-                <artifactId>guice</artifactId>
-                <version>${guice.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.forgerock.commons</groupId>
-                <artifactId>forgerock-guice-core</artifactId>
-                <version>${forgerock.guice.version}</version>
-            </dependency>
- -->
             <dependency>
                 <groupId>com.google.inject</groupId>
                 <artifactId>guice</artifactId>
                 <version>${guice.version}</version>
                 <!-- Exclude aopalliance dependency due to ambiguous licensing terms. -->
-<!-- 
                 <classifier>no_aop</classifier>
                 <exclusions>
                     <exclusion>
@@ -1603,7 +1590,6 @@
                         <artifactId>aopalliance</artifactId>
                     </exclusion>
                 </exclusions>
-                 -->
             </dependency>
             <dependency>
                 <groupId>com.google.inject.extensions</groupId>
