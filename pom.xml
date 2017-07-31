@@ -187,7 +187,7 @@
         <java-ipv6.version>0.14</java-ipv6.version>
         <json.version>20090211</json.version>
 
-        <openam.version>OpenAM ${project.version}</openam.version>
+        <openam.version>KAMOME SSO ${project.version}</openam.version>
         <!--  Project web site -->
         <siteDistributionURL>scp://forgerock.org/var/www/vhosts/openam.forgerock.org/httpdocs</siteDistributionURL>
 
