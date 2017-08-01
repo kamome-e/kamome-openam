@@ -30,7 +30,7 @@
     <parent>
         <groupId>org.forgerock.ce.openam</groupId>
         <artifactId>openam-auth-filter</artifactId>
-        <version>11.1.3</version>
+        <version>11.1.4</version>
     </parent>
 
     <!-- Component Definition -->
