@@ -24,10 +24,7 @@
  *
  * $Id: Cert.java,v 1.14 2009/03/13 20:54:42 beomsuk Exp $
  *
- */
-
-/**
- * Portions Copyrighted 2013 ForgeRock AS
+ * Portions Copyrighted 2013-2014 ForgeRock AS.
  */
 
 package com.sun.identity.authentication.modules.cert;
@@ -71,7 +68,7 @@ import com.sun.identity.shared.datastruct.CollectionHelper;
 import com.iplanet.am.util.JSSInit;
 import com.iplanet.am.util.SSLSocketFactoryManager;
 import com.iplanet.am.util.SystemProperties;
-import com.iplanet.security.x509.X500Name;
+import com.iplanet.security.x509.CertUtils;
 import com.sun.identity.shared.Constants;
 import com.sun.identity.authentication.spi.X509CertificateCallback;
 import com.sun.identity.authentication.spi.AMLoginModule;
@@ -83,6 +80,8 @@ import com.sun.identity.security.cert.AMLDAPCertStoreParameters;
 import com.sun.identity.security.cert.AMCertPath;
 import com.sun.identity.shared.encode.Base64;
 import java.util.Arrays;
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
 
 public class Cert extends AMLoginModule {
 
@@ -133,7 +132,7 @@ public class Cert extends AMLoginModule {
     // this is what appears in the user selectable choice field.
     private String amAuthCert_emailAddrTag; 
     private int amAuthCert_serverPort =389;
-    private static boolean portal_gw_cert_auth_enabled = false;
+    private boolean portal_gw_cert_auth_enabled = false;
     private Set portalGateways = null;
     // HTTP Header name to have clien certificate in servlet request.
     private String certParamName = null;
@@ -346,17 +345,14 @@ public class Cert extends AMLoginModule {
                 debug.error("Fatal error: LDAP Start Search " +
                                 "DN is not configured");
                 throw new AuthLoginException(amAuthCert, "wrongStartDN", null);
-            } 
-            
+            }
+
             if (amAuthCert_startSearchLoc != null) {
                 try {
-                    X500Name baseDN = new X500Name(amAuthCert_startSearchLoc);
-                }
-                catch (Exception e) {
-                    debug.error("Fatal error: LDAP Start Search " +
-                                    "DN misconfigured");
-                    throw new AuthLoginException(amAuthCert, "wrongStartDN",
-                        null);
+                    LdapName ldapName = new LdapName(amAuthCert_startSearchLoc);
+                } catch (InvalidNameException ine) {
+                    debug.error("Fatal error: LDAP Start Search DN misconfigured");
+                    throw new AuthLoginException(amAuthCert, "wrongStartDN", null);
                 }
             }
 
@@ -401,10 +397,11 @@ public class Cert extends AMLoginModule {
     public int process (Callback[] callbacks, int state) 
         throws AuthLoginException {
         initAuthConfig();
+        X509Certificate[] allCerts = null;
         try {
             HttpServletRequest servletRequest = getHttpServletRequest();
             if (servletRequest != null) { 
-                X509Certificate[] allCerts = (X509Certificate[]) servletRequest.
+                allCerts = (X509Certificate[]) servletRequest.
                    getAttribute("javax.servlet.request.X509Certificate"); 
                 if (allCerts == null || allCerts.length == 0) {
                     debug.message(
@@ -479,7 +476,12 @@ public class Cert extends AMLoginModule {
             }
         }
 
-        int ret = doRevocationValidation(thecert);
+        int ret;
+        if (usingJSSHandler) {
+            ret = doJSSRevocationValidation(thecert);
+        } else {
+            ret = doJCERevocationValidation(allCerts);
+        }
 
         if (ret != ISAuthConstants.LOGIN_SUCCEED) {
             debug.error("X509Certificate:CRL / OCSP verify failed.");
@@ -490,32 +492,9 @@ public class Cert extends AMLoginModule {
         return ISAuthConstants.LOGIN_SUCCEED;
     }
 
-    private int doRevocationValidation(X509Certificate cert) 
-        throws AuthLoginException {
-        boolean validateCA = amAuthCert_validateCA.equalsIgnoreCase("true");
-
-	int ret = ISAuthConstants.LOGIN_IGNORE;
-	
-        if (usingJSSHandler) {
-            ret = doJSSRevocationValidation(cert);
-        } else {
-            ret = doJCERevocationValidation(cert);
-        }
-        
-        if ((ret == ISAuthConstants.LOGIN_SUCCEED) 
-            && (crlEnabled || ocspEnabled)
-            && validateCA
-            && !AMCertStore.isRootCA(cert)) {
-            ret = doRevocationValidation(
-                AMCertStore.getIssuerCertificate(
-                    ldapParam, cert, amAuthCert_chkAttrCertInLDAP));
-        }
-
-        return ret;
-    }
-    
     private int doJSSRevocationValidation(X509Certificate cert) {
         int ret = ISAuthConstants.LOGIN_IGNORE;
+        boolean validateCA = amAuthCert_validateCA.equalsIgnoreCase("true");
 
         X509CRL crl = null;
         
@@ -551,20 +530,35 @@ public class Cert extends AMLoginModule {
                 debug.message("certValidation failed with exception",e);
             }
         }
-
+        if ((ret == ISAuthConstants.LOGIN_SUCCEED)
+                && (crlEnabled || ocspEnabled)
+                && validateCA
+                && !AMCertStore.isRootCA(cert)) {
+            /*
+            The trust anchor is not necessarily a certificate, but a public key (trusted) entry in the trust-store. Don't
+            march up the chain unless the AMCertStore can actually return a non-null issuer certificate. If the issuer
+            certificate is null, then the result of the previous doRevocationValidation invocation is the final answer.
+             */
+            X509Certificate issuerCertificate = AMCertStore.getIssuerCertificate(
+                    ldapParam, cert, amAuthCert_chkAttrCertInLDAP);
+            if (issuerCertificate != null) {
+                ret = doJSSRevocationValidation(issuerCertificate);
+            }
+        }
         return ret;
     }
 
-    private int doJCERevocationValidation(X509Certificate cert) 
+    private int doJCERevocationValidation(X509Certificate[] allCerts)
         throws AuthLoginException {
     	int ret = ISAuthConstants.LOGIN_IGNORE;
 		
     	try {
             Vector crls = new Vector();
-            X509CRL crl = AMCRLStore.getCRL(ldapParam, cert, amAuthCert_chkAttributesCRL);
-
-            if (crl != null) {
-                crls.add(crl);
+            for (X509Certificate cert : allCerts) {
+                X509CRL crl = AMCRLStore.getCRL(ldapParam, cert, amAuthCert_chkAttributesCRL);
+                if (crl != null) {
+                    crls.add(crl);
+                }
             }
             if (debug.messageEnabled()) {
                 debug.message("Cert.doRevocationValidation: crls size = " +
@@ -575,8 +569,7 @@ public class Cert extends AMLoginModule {
             }
 
             AMCertPath certpath = new AMCertPath(crls);
-            X509Certificate certs[] = { cert }; 
-            if (!certpath.verify(certs, crlEnabled, ocspEnabled)) {
+            if (!certpath.verify(allCerts, crlEnabled, ocspEnabled)) {
                 debug.error("CertPath:verify failed.");
                 return ret;
             } else {
@@ -700,55 +693,36 @@ public class Cert extends AMLoginModule {
          * Get the Attribute value of the input certificate
          */
             X500Principal subjectPrincipal = cert.getSubjectX500Principal();
-            X500Name certDN = new X500Name(subjectPrincipal.getEncoded());
             if (debug.messageEnabled()) {
-                debug.message("getTokenFromCert: Subject DN : " + 
-                                certDN.getName());
+                debug.message("getTokenFromCert: Subject DN : " + CertUtils.getSubjectName(cert));
             }
 
-            if (amAuthCert_userProfileMapper.equalsIgnoreCase("subject DN")) { 
-                userTokenId = certDN.getName();
-            }
-
-            if (amAuthCert_userProfileMapper.equalsIgnoreCase("subject UID")) {
-                userTokenId = certDN.getAttributeValue("uid");
-            }
-
-            if (amAuthCert_userProfileMapper.equalsIgnoreCase("subject CN")) { 
-                userTokenId = certDN.getCommonName(); 
-            }
-
-            if (amAuthCert_userProfileMapper.equalsIgnoreCase
-                                                  (amAuthCert_emailAddrTag)) {
-                userTokenId = certDN.getEmail();
+            if (amAuthCert_userProfileMapper.equalsIgnoreCase("subject DN")) {
+                userTokenId = CertUtils.getSubjectName(cert);
+            } else if (amAuthCert_userProfileMapper.equalsIgnoreCase("subject UID")) {
+                userTokenId = CertUtils.getAttributeValue(subjectPrincipal, CertUtils.UID);
+            } else if (amAuthCert_userProfileMapper.equalsIgnoreCase("subject CN")) {
+                userTokenId = CertUtils.getAttributeValue(subjectPrincipal, CertUtils.COMMON_NAME);
+            } else if (amAuthCert_userProfileMapper.equalsIgnoreCase(amAuthCert_emailAddrTag)) {
+                userTokenId = CertUtils.getAttributeValue(subjectPrincipal, CertUtils.EMAIL_ADDRESS);
                 if (userTokenId == null) {
-                    userTokenId = certDN.getAttributeValue("mail");
+                    userTokenId = CertUtils.getAttributeValue(subjectPrincipal, CertUtils.MAIL);
                 }
-            }
-
-            if (amAuthCert_userProfileMapper.
-                            equalsIgnoreCase("DER Certificate")) { 
+            } else if (amAuthCert_userProfileMapper.equalsIgnoreCase("DER Certificate")) {
                 userTokenId = String.valueOf(cert.getTBSCertificate());
-            }
-
-            //  "other" has been selected, so use attribute specified in the
-            //  iplanet-am-auth-cert-user-profile-mapper-other attribute,
-            //  which is in amAuthCert_altUserProfileMapper.
-            if (amAuthCert_userProfileMapper.equals("other")) {
-                userTokenId = certDN.getAttributeValue
-                                           (amAuthCert_altUserProfileMapper);
+            } else if (amAuthCert_userProfileMapper.equals("other")) {
+                //  "other" has been selected, so use attribute specified in the
+                //  iplanet-am-auth-cert-user-profile-mapper-other attribute,
+                //  which is in amAuthCert_altUserProfileMapper.
+                userTokenId =  CertUtils.getAttributeValue(subjectPrincipal, amAuthCert_altUserProfileMapper);
             }
 
             if (debug.messageEnabled()) {
-                debug.message("getTokenFromCert: " + 
-                                amAuthCert_userProfileMapper + userTokenId);
+                debug.message("getTokenFromCert: " + amAuthCert_userProfileMapper + userTokenId);
             }
-
-            return;
         } catch (Exception e) {
             if (debug.messageEnabled()) {
-                debug.message("Certificate - " + 
-                    "Error in getTokenFromSubjectDN = " , e);
+                debug.message("Certificate - Error in getTokenFromSubjectDN = " , e);
             }
             throw new AuthLoginException(amAuthCert, "CertNoReg", null);
         }

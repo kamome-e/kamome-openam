@@ -31,6 +31,8 @@
  */
 package com.sun.identity.console.service;
 
+import java.util.Set;
+
 import com.iplanet.jato.model.ModelControlException;
 import com.iplanet.jato.view.event.DisplayEvent;
 import com.iplanet.jato.view.event.RequestInvocationEvent;
@@ -42,7 +44,6 @@ import com.sun.identity.console.base.model.AMConsoleException;
 import com.sun.identity.console.service.model.ServerSiteModel;
 import com.sun.web.ui.view.alert.CCAlert;
 import com.sun.web.ui.view.html.CCDropDownMenu;
-import java.util.Set;
 
 /**
  * Server Configuration, General Tab.
