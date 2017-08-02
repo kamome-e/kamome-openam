@@ -19,7 +19,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import org.forgerock.guice.core.InjectorHolder;
 import org.forgerock.http.client.request.HttpClientRequest;
@@ -48,8 +47,6 @@ import org.restlet.util.Series;
  */
 public class RestletHttpClient {
     final HttpClientRequestFactory httpClientRequestFactory = InjectorHolder.getInstance(HttpClientRequestFactory.class);
-
-    private static Client httpClient = new Client(Protocol.HTTP);
 
     protected HttpClientResponse getHttpClientResponse(String uri, String body, Map<String, List<Map<String,String>>> requestData, String method) throws UnsupportedEncodingException {
         HttpClientRequest httpClientRequest = httpClientRequestFactory.createRequest();
@@ -81,9 +78,22 @@ public class RestletHttpClient {
 
     private HttpClientResponse perform(HttpClientRequest httpClientRequest) throws UnsupportedEncodingException {
         Request request = createRequest(httpClientRequest);
-        Response response = new Response(request);
-        httpClient.handle(request, response);
-        return createHttpClientResponse(response);
+
+        Client client = null;
+        try {
+            client = new Client(Protocol.HTTP);
+            Response response = new Response(request);
+            client.handle(request, response);
+
+            return createHttpClientResponse(response);
+        } finally {
+            if (client != null) {
+                try {
+                    client.stop();
+                } catch (Exception ignored) {
+                }
+            }
+        }
     }
 
     private HttpClientResponse createHttpClientResponse(Response response) {

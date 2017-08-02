@@ -31,7 +31,7 @@
     <parent>
         <groupId>org.forgerock.ce.openam</groupId>
         <artifactId>openam-diagnostics</artifactId>
-        <version>11.1.4</version>
+        <version>11.1.3</version>
     </parent>
 
     <!-- Component Definition -->

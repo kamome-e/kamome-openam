@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.forgerock.ce.openam</groupId>
         <artifactId>openam-auth-deviceprint</artifactId>
-        <version>11.1.4</version>
+        <version>11.1.3</version>
     </parent>
 
     <name>OpenAM Auth Device Print Module</name>
