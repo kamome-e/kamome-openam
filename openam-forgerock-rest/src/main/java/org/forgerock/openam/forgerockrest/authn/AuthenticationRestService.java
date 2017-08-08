@@ -121,8 +121,14 @@ public class AuthenticationRestService {
             @QueryParam("authIndexValue") String authIndexValue,
             @QueryParam("sessionUpgrade") String sessionUpgradeSSOTokenId, String postBody) {
 
-        HttpServletRequest request = (HttpServletRequest) req.get();
-        HttpServletResponse response = (HttpServletResponse) res.get();
+        HttpServletRequest request = null;
+        HttpServletResponse response = null;
+        if (req != null) {
+            request = (HttpServletRequest) req.get();
+        }
+        if (res != null) {
+            response = (HttpServletResponse) res.get();
+        }
         if (!isJsonContentType(headers)) { 
             return new RestAuthException(Response.Status.UNSUPPORTED_MEDIA_TYPE, "Unsupported Media Type")
                     .getResponse();
