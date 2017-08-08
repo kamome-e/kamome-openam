@@ -180,6 +180,22 @@
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.santuario</groupId>
+            <artifactId>xmlsec</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>xerces-J</groupId>
+            <artifactId>xml-apis</artifactId>
+        </dependency>
+
+        <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging-api</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>${forgerock.license.groupId}</groupId>
             <artifactId>${forgerock.license.artifactId}</artifactId>
