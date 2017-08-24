@@ -529,7 +529,7 @@ public class PolicyUtils {
      *  its XML string representation.
      *  @param name the attribute name of the attribute value pair
      *  @param values the attribute values of the attribute value pair
-     *  @return XML string representation of attribue value pair
+     *  @return XML string representation of attribute value pair
      */
 
     public static String attributeValuePairToXMLString(String name, Set values)

@@ -154,7 +154,7 @@ For example, referral policy doesn't have a Subject -->
 written by the customer, in which the attribute "type" giving
 the plugin name. The attribute "name" gives a user friendly
 name for this instance of the plugin.
-The attribue "includeType" indicates whether the subject is
+The attribute "includeType" indicates whether the subject is
 a normal (non exclusive) subject or exclusive subject.
 If subject is exclusive, policy applies to users who are not
 members of the  subject.  Otherwise, policy applies to users
@@ -168,9 +168,9 @@ who are members of the subject.   -->
 
 <!-- RealmSubject element is a reference to a Subject object 
 defined at the realm level.
-The attribue "name" is the name of the Subject object defined
+The attribute "name" is the name of the Subject object defined
 at the realm.
-The attribue "includeType" indicates whether the subject is
+The attribute "includeType" indicates whether the subject is
 a normal (non exclusive) subject or exclusive subject.
 If subject is exclusive, policy applies to users who are not
 members of the  subject.  Otherwise, policy applies to users
