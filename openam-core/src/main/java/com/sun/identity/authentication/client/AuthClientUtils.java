@@ -102,7 +102,11 @@ import com.sun.identity.shared.debug.Debug;
 import com.sun.identity.shared.encode.CookieUtils;
 import com.sun.identity.shared.encode.URLEncDec;
 import com.sun.identity.shared.locale.Locale;
+
+import org.forgerock.openam.shared.security.whitelist.RedirectUrlValidator;
 import org.forgerock.openam.utils.ClientUtils;
+import org.forgerock.openam.utils.StringUtils;
+
 import com.sun.identity.sm.ServiceSchemaManager;
 import com.sun.identity.sm.ServiceSchema;
 import com.sun.identity.sm.SMSException;
@@ -404,7 +408,7 @@ public class AuthClientUtils {
                         } 
                     }          
             	}            	
-            } else if ("goto".equals(name)) {
+            } else if (name.equals(RedirectUrlValidator.GOTO) || name.equals(RedirectUrlValidator.GOTO_ON_FAIL)){
                 // Again this will be the case when browser back
                 // button is used and the form is posted with the
                 // base64 encoded parameters including goto
@@ -1723,14 +1727,15 @@ public class AuthClientUtils {
                     queryString.append(queryParams);
                 } else {
                     String value = request.getParameter(parameter);
-                    if((value != null) && !value.isEmpty()) {
-                        if ("goto".equals(parameter) && encoded) {
+                    if (StringUtils.isNotEmpty(value)) {
+                        if ((RedirectUrlValidator.GOTO.equals(parameter) ||
+                                RedirectUrlValidator.GOTO_ON_FAIL.equals(parameter)) && encoded) {
                     	   // Again this will be the case when browser back
                     	   // button is used and the form is posted with the
                     	   // base64 encoded parameters including goto
                  	       value = getBase64DecodedValue(value);
                            if(utilDebug.messageEnabled()) {
-                               utilDebug.message("constructLoginURL: Base64 decoded goto='" + value + "'");
+                               utilDebug.message("constructLoginURL: Base64 decoded parameter='" + value + "'");
                            }
                        } 
                        queryString.append(URLEncDec.encode(parameter)).append("=")

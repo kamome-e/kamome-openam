@@ -47,7 +47,55 @@ public final class StringUtils {
         return content;
     }
 
+    /**
+     * Inserted content into a string.
+     *
+     * @param original The original string.
+     * @param position The insertion position.
+     * @param content The content to insert.
+     * @return A new string with the inserted content.
+     */
     public static String insertContent(String original, int position, String content) {
         return original.substring(0, position) + content + original.substring(position);
+    }
+
+    /**
+     * Determines if the string is empty.
+     *
+     * @param s string to test
+     * @return true if the specified string is null or zero length.
+     */
+    public static boolean isEmpty(final String s) {
+        return (s == null || s.length() == 0);
+    }
+
+    /**
+     * Determines if the string is blank.
+     *
+     * @param s string to test
+     * @return true if the specified string is null or when trimmed is empty (i.e. when trimmed it has zero length)
+     */
+    public static boolean isBlank(final String s) {
+        return (s == null || s.trim().length() == 0);
+    }
+
+    /**
+     * Determines if the string is not empty.
+     *
+     * @param s string to test
+     * @return test if the specified string is not null and not empty (i.e. is greater than zero length).
+     */
+    public static boolean isNotEmpty(final String s) {
+        return (s != null && s.length() > 0);
+    }
+
+    /**
+     * Determines if the string is not blank.
+     *
+     * @param s string to test
+     * @return true if the specified string is not null and when trimmed has greater than zero length.
+     */
+    public static boolean isNotBlank(final String s) {
+        return (s != null && s.trim().length() > 0);
     }
 }
