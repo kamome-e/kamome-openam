@@ -21,6 +21,9 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class SAML2UtilsTest {
@@ -47,5 +50,38 @@ public class SAML2UtilsTest {
             String decoded = SAML2Utils.decodeFromRedirect(URLEncDec.decode(encoded));
             Assert.assertEquals(decoded, randomString);
         }
+    }
+
+    @Test
+    public void getMappedAttributesTest() {
+
+        List<String> mappings = new ArrayList<>(6);
+
+        mappings.add("invalid entry");
+        mappings.add("name1=value");
+        mappings.add("name2=\"static value\"");
+        mappings.add("name3=\"static cn=value\"");
+        mappings.add("urn:oasis:names:tc:SAML:2.0:attrname-format:uri|urn:mace:dir:attribute-def:name4=value");
+        mappings.add("urn:oasis:names:tc:SAML:2.0:attrname-format:uri|name5=\"static value\"");
+
+        Map<String, String> mappedAttributes = SAML2Utils.getMappedAttributes(mappings);
+
+        Assert.assertNotNull(mappedAttributes);
+        Assert.assertEquals(mappedAttributes.size(), 5);
+
+        Assert.assertTrue(mappedAttributes.containsKey("name1"));
+        Assert.assertEquals(mappedAttributes.get("name1"), "value");
+        
+        Assert.assertTrue(mappedAttributes.containsKey("name2"));
+        Assert.assertEquals(mappedAttributes.get("name2"), "\"static value\"");
+
+        Assert.assertTrue(mappedAttributes.containsKey("name3"));
+        Assert.assertEquals(mappedAttributes.get("name3"), "\"static cn=value\"");
+
+        Assert.assertTrue(mappedAttributes.containsKey("urn:oasis:names:tc:SAML:2.0:attrname-format:uri|urn:mace:dir:attribute-def:name4"));
+        Assert.assertEquals(mappedAttributes.get("urn:oasis:names:tc:SAML:2.0:attrname-format:uri|urn:mace:dir:attribute-def:name4"), "value");
+
+        Assert.assertTrue(mappedAttributes.containsKey("urn:oasis:names:tc:SAML:2.0:attrname-format:uri|name5"));
+        Assert.assertEquals(mappedAttributes.get("urn:oasis:names:tc:SAML:2.0:attrname-format:uri|name5"), "\"static value\"");
     }
 }
