@@ -1200,6 +1200,16 @@ public class LoginViewBean extends AuthViewBeanBase {
                 }
             } else {
                 callbacks = AuthUtils.getRecdCallback(ac);
+                if(callbacks == null) {
+                	errorCode = AMAuthErrorCode.AUTH_TIMEOUT;
+                	ErrorMessage = AuthUtils.getErrorVal(
+                              AMAuthErrorCode.AUTH_TIMEOUT,
+                              AuthUtils.ERROR_MESSAGE);
+                	errorTemplate = AuthUtils.getErrorVal(
+                              AMAuthErrorCode.AUTH_TIMEOUT,
+                              AuthUtils.ERROR_TEMPLATE);
+                	return;
+                }
             }
             
             indexType = AuthUtils.getIndexType(ac);
