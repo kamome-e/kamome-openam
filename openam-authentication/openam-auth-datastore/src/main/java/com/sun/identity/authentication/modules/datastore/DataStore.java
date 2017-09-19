@@ -128,7 +128,7 @@ public class DataStore extends AMLoginModule {
                         debug.message("DataStore.process: Password is null/empty");
                     } 
                     throw new InvalidPasswordException("amAuth",
-                            "invalidPasswd", null);
+                            "invalidPasswd", null, userName);
                 }
                 //store username password both in success and failure case
                 storeUsernamePasswd(userName, userPassword);

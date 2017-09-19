@@ -106,6 +106,24 @@ public class InvalidPasswordException extends AuthLoginException {
      *            Arguments to the message.
      * @param tokenId
      *            <code>userID</code> for which the exception occurred.
+     */
+    public InvalidPasswordException(String rbName, String errorCode,
+            Object[] args, String tokenId) {
+        super(rbName, errorCode, args);
+        this.tokenId = tokenId;
+    }
+
+    /**
+     * Constructs an <code>InvalidPasswordException</code> object.
+     * 
+     * @param rbName
+     *            Resource bundle name for the message.
+     * @param errorCode
+     *            Key to the message in resource bundle.
+     * @param args
+     *            Arguments to the message.
+     * @param tokenId
+     *            <code>userID</code> for which the exception occurred.
      * @param t
      *            The root cause of the exception.
      */
