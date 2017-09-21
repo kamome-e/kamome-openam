@@ -419,7 +419,7 @@ public class Membership extends AMLoginModule {
                     debug.message("Membership.loginUser: Password is null/empty");
                 } 
                 
-                throw new InvalidPasswordException("amAuth", "invalidPasswd", null); 
+                throw new InvalidPasswordException("amAuth", "invalidPasswd", null, userName); 
             }
 
             //store username password both in success and failure case
