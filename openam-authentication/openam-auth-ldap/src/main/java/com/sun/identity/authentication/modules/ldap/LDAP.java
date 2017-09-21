@@ -316,7 +316,7 @@ public class LDAP extends AMLoginModule {
                     }
 
                     throw new InvalidPasswordException("amAuth",
-                            "invalidPasswd", null);
+                            "invalidPasswd", null, userName);
                 }
 
                 //store username password both in success and failure case
