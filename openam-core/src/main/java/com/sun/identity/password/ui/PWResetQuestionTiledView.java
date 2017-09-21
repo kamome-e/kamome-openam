@@ -50,6 +50,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * <code>PWResetQuestionTiledView</code> is a tiled view
@@ -186,13 +188,14 @@ public class PWResetQuestionTiledView extends RequestHandlingTiledViewBase
             if (maxQuestions >=0 && maxQuestions < secretMap.size())  {
                 map = new HashMap(maxQuestions);
                 Set secretSet = secretMap.keySet();
-                Iterator it = secretSet.iterator();
-                int i = 0;
-                while  (it.hasNext()) {
-                    Object obj = (Object)it.next();
+                List<Object> keyList = new ArrayList<Object>(secretSet);
+                List<Integer> indexList = IntStream.range(0, secretMap.size()).boxed().collect(Collectors.toList());
+                Collections.shuffle(indexList);
+                Object obj;
+                for (Integer index : indexList) {
+                    obj = keyList.get(index);
                     map.put(obj, secretMap.get(obj));
-                    i++;
-                    if  (i == maxQuestions) {
+                    if (map.size() == maxQuestions) {
                         break;
                     }
                 }
