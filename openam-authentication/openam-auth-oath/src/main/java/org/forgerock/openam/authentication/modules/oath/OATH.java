@@ -291,13 +291,10 @@ public class OATH extends AMLoginModule {
                     String OTP = String.valueOf(((PasswordCallback)
                             callbacks[0]).getPassword());
                     if (OTP == null || OTP.length() == 0) {
-                        debug.error("OATH" +
-                                ".process() : " +
-                                "invalid OTP code");
+                        debug.error("OATH" + ".process() : " + "invalid OTP code");
                         setFailureID(userName);
                         throw new InvalidPasswordException("amAuth",
-                                "invalidPasswd",
-                                null);
+                                "invalidPasswd", null, userName);
                     }
 
                     //get Arrival time of the OTP
@@ -310,7 +307,7 @@ public class OATH extends AMLoginModule {
                         //the OTP is out of the window or incorect
                         setFailureID(userName);
                         throw new InvalidPasswordException("amAuth",
-                                "invalidPasswd", null);
+                                "invalidPasswd", null, userName);
                     }
             }
         } catch (SSOException e) {

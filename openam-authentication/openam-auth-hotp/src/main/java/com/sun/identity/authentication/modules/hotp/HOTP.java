@@ -216,7 +216,7 @@ public class HOTP extends AMLoginModule {
                                 debug.message("HOTP.process() : " + "invalid HOTP code");
                             }
                             setFailureID(userName); 
-                            throw new InvalidPasswordException("amAuth", "invalidPasswd", null);
+                            throw new InvalidPasswordException("amAuth", "invalidPasswd", null, userName);
                         }
 
                         // Enforce the code validate time HOTP module config
@@ -224,7 +224,7 @@ public class HOTP extends AMLoginModule {
                             return ISAuthConstants.LOGIN_SUCCEED;
                         } else {
                             setFailureID(userName);
-                            throw new InvalidPasswordException("amAuth", "invalidPasswd", null);
+                            throw new InvalidPasswordException("amAuth", "invalidPasswd", null, userName);
                         }
                     } else { // Send HOTP Code
                         try {
