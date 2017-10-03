@@ -23,6 +23,8 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
  * $Id: RealmRemovedTest.java,v 1.1 2010/01/11 20:15:45 veiming Exp $
+ * 
+ * Portions Copyrighted 2014-2015 ForgeRock AS.
  */
 
 package com.sun.identity.entitlement.opensso;
@@ -116,7 +118,7 @@ public class RealmRemovedTest {
         ApplicationPrivilege ap = new ApplicationPrivilege(
             APP_PRIVILEGE_NAME);
         OpenSSOUserSubject sbj = new OpenSSOUserSubject();
-        sbj.setID("ou=dummy,ou=user,dc=openam,dc=forgerock.dc=org");
+        sbj.setID("ou=dummy,ou=user,dc=openam,dc=forgerock,dc=org");
         Set<SubjectImplementation> subjects = new
             HashSet<SubjectImplementation>();
         subjects.add(sbj);
