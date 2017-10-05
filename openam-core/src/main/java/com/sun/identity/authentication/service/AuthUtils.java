@@ -2205,12 +2205,16 @@ public class AuthUtils extends AuthClientUtils {
         final SSOToken token = AccessController.doPrivileged(AdminTokenAction.getInstance());
         final ServiceConfigManager mgr = new ServiceConfigManager(ISAuthConstants.AUTH_SERVICE_NAME, token);
         final ServiceConfig serviceConfig = mgr.getOrganizationConfig(realm, null);
-        @SuppressWarnings("unchecked")
-        final Map<String, Set<String>> configMap = serviceConfig.getAttributes();
-        return new ZeroPageLoginConfig(
-                CollectionHelper.getBooleanMapAttr(configMap, Constants.ZERO_PAGE_LOGIN_ENABLED, false),
-                configMap.get(Constants.ZERO_PAGE_LOGIN_WHITELIST),
-                CollectionHelper.getBooleanMapAttr(configMap, Constants.ZERO_PAGE_LOGIN_ALLOW_MISSING_REFERER, true)
-        );
+        if (serviceConfig == null) {
+        	return new ZeroPageLoginConfig(false, null, false);
+        } else {
+	        @SuppressWarnings("unchecked")
+	        final Map<String, Set<String>> configMap = serviceConfig.getAttributes();
+	        return new ZeroPageLoginConfig(
+	                CollectionHelper.getBooleanMapAttr(configMap, Constants.ZERO_PAGE_LOGIN_ENABLED, false),
+	                configMap.get(Constants.ZERO_PAGE_LOGIN_WHITELIST),
+	                CollectionHelper.getBooleanMapAttr(configMap, Constants.ZERO_PAGE_LOGIN_ALLOW_MISSING_REFERER, true)
+	        );
+        }
     }
 }

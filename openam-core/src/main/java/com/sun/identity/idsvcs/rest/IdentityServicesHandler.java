@@ -689,7 +689,10 @@ public class IdentityServicesHandler extends HttpServlet {
 
                 // Respect Zero-Page Login Settings
                 if (method == SecurityMethod.AUTHENTICATE && !isZeroPageLoginAllowed(request)) {
-                    throw new UnsupportedOperationException("Zero-page login is not allowed");
+                    response.setStatus(501);
+                    mar.newInstance(Throwable.class).marshall(wrt,
+                        new UnsupportedOperationException("Zero-page login is not allowed"));
+                    return;
                 }
 
                 // execute the method w/ the parameters..
