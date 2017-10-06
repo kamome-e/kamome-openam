@@ -62,9 +62,6 @@
                     type="list"
                     syntax="string"
                     i18nKey="a103">
-                    <DefaultValues>
-                        <Value>@COOKIE_DOMAIN@</Value>
-                    </DefaultValues>
                 </AttributeSchema>
                 <SubSchema name="com-sun-identity-sites">
                     <SubSchema name="site" inheritance="multiple">

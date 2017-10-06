@@ -361,10 +361,6 @@
         </dependency>
         <dependency>
             <groupId>external</groupId>
-            <artifactId>publicsuffix</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>external</groupId>
             <artifactId>webservices-extra</artifactId>
         </dependency>
         <dependency>

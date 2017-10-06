@@ -146,6 +146,7 @@ import java.util.TreeMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import static org.forgerock.openam.utils.CollectionUtils.*;
+import static org.forgerock.openam.utils.StringUtils.*;
 
 /**
  * This class is the first class to get loaded by the Servlet 
@@ -999,6 +1000,12 @@ public class AMSetupServlet extends HttpServlet {
             try {
                 if (!isDITLoaded) {
                     ServerConfiguration.createDefaults(adminSSOToken);
+                    final String cookieDomain = (String) map.get(SetupConstants.CONFIG_VAR_COOKIE_DOMAIN);
+                    if (isNotEmpty(cookieDomain)) {
+                    	ServiceSchemaManager scm = new ServiceSchemaManager(Constants.SVC_NAME_PLATFORM, adminSSOToken);
+                    	ServiceSchema globalSchema = scm.getGlobalSchema();
+                    	globalSchema.setAttributeDefaults(Constants.ATTR_COOKIE_DOMAINS, asSet(cookieDomain));
+                    }
                 }
                 if (!isDITLoaded ||
                     !ServerConfiguration.isServerInstanceExist(
