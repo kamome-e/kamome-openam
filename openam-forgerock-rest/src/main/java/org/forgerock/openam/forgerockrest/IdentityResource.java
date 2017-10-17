@@ -377,6 +377,18 @@ public final class IdentityResource implements CollectionResourceProvider {
         JsonValue result = new JsonValue(new LinkedHashMap<String, Object>(1));
 
         try{
+
+            if(restSecurity == null){
+                RestDispatcher.debug.warning("IdentityResource.confirmRegistration(): " +
+                        "Rest Security not created. restSecurity = " + restSecurity);
+                throw new NotFoundException("Rest Security Service not created" );
+            }
+            if(!restSecurity.isSelfRegistration()){
+                RestDispatcher.debug.warning("IdentityResource.confirmRegistration(): Self-Registration set to :"
+                        + restSecurity.isSelfRegistration());
+                throw new NotFoundException("Self Registration is not accessible.");
+            }
+
             tokenID = jVal.get(TOKEN_ID).asString();
             confirmationId = jVal.get(CONFIRMATION_ID).asString();
             email = jVal.get(EMAIL).asString();
