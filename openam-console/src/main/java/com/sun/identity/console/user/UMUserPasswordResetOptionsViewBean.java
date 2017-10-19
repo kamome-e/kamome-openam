@@ -63,12 +63,10 @@ public class UMUserPasswordResetOptionsViewBean
     public static final String TBL_COL_QUESTION = "tblColQuestion";
     public static final String TBL_COL_ANSWER = "tblColAnswer";
     public static final String TBL_DATA_QUESTION = "tblDataQuestion";
-    public static final String TBL_DATA_PERSONAL_QUESTION =
-        "tblDataPersonalQuestion";
+    public static final String TBL_DATA_PERSONAL_QUESTION = "tblDataPersonalQuestion";
     public static final String TBL_DATA_ANSWER = "tblDataAnswer";
     public static final String PAGETITLE = "pgtitle";
-    public static final String CHILD_USER_PWD_RESET_TILED_VIEW =
-        "pwdResetTiledView";
+    public static final String CHILD_USER_PWD_RESET_TILED_VIEW = "pwdResetTiledView";
     public static final String CB_FORCE_RESET_PWD = "cbForceResetPwd";
 
     private CCActionTableModel tblModel = null;
@@ -84,9 +82,8 @@ public class UMUserPasswordResetOptionsViewBean
     }
 
     private void createPageTitleModel() {
-        ptModel = new CCPageTitleModel(
-            getClass().getClassLoader().getResourceAsStream(
-                "com/sun/identity/console/threeBtnsPageTitle.xml"));
+        ptModel = new CCPageTitleModel(getClass().getClassLoader()
+        		.getResourceAsStream("com/sun/identity/console/threeBtnsPageTitle.xml"));
         ptModel.setValue("button1", "button.save");
         ptModel.setValue("button2", "button.reset");
         ptModel.setValue("button3", "button.close");
@@ -97,8 +94,7 @@ public class UMUserPasswordResetOptionsViewBean
         registerChild(PAGETITLE, CCPageTitle.class);
         registerChild(TBL_SEARCH, CCActionTable.class);
         registerChild(CB_FORCE_RESET_PWD, CCCheckBox.class);
-        registerChild(CHILD_USER_PWD_RESET_TILED_VIEW,
-            UMUserPasswordResetOptionsTiledView.class);
+        registerChild(CHILD_USER_PWD_RESET_TILED_VIEW, UMUserPasswordResetOptionsTiledView.class);
         ptModel.registerChildren(this);
         tblModel.registerChildren(this);
     }
@@ -107,13 +103,11 @@ public class UMUserPasswordResetOptionsViewBean
         View view = null;
 
         if (name.equals(CHILD_USER_PWD_RESET_TILED_VIEW)) {
-            view = new UMUserPasswordResetOptionsTiledView(
-                this, tblModel, name);
+            view = new UMUserPasswordResetOptionsTiledView(this, tblModel, name);
         } else if (name.equals(TBL_SEARCH)) {
             populateTableModelEx();
             CCActionTable child = new CCActionTable(this, tblModel, name);
-            child.setTiledView((ContainerView)getChild(
-                CHILD_USER_PWD_RESET_TILED_VIEW));
+            child.setTiledView((ContainerView)getChild(CHILD_USER_PWD_RESET_TILED_VIEW));
             view = child;
         } else if (name.equals(PAGETITLE)) {
             view = new CCPageTitle(this, ptModel, name);
@@ -128,18 +122,17 @@ public class UMUserPasswordResetOptionsViewBean
         return view;
     }
 
-    public void beginDisplay(DisplayEvent event)
-        throws ModelControlException {
+    public void beginDisplay(DisplayEvent event) throws ModelControlException {
         super.beginDisplay(event);
 
         if (!tblModelPopulated) {
             getQuestions();
-            CCCheckBox cbForceResetPwd = (CCCheckBox)getChild(
-                CB_FORCE_RESET_PWD);
-            UMUserPasswordResetOptionsModel model =
-                (UMUserPasswordResetOptionsModel)getModel();
-            String userId = (String)getPageSessionAttribute(
-                EntityEditViewBean.UNIVERSAL_ID);
+            CCCheckBox cbForceResetPwd = (CCCheckBox)getChild(CB_FORCE_RESET_PWD);
+            UMUserPasswordResetOptionsModel model = (UMUserPasswordResetOptionsModel)getModel();
+            String userId = (String)getPageSessionAttribute(EntityEditViewBean.UNIVERSAL_ID);
+            if (userId == null) {
+                userId = model.getUserName();
+            }
             cbForceResetPwd.setChecked(model.isForceReset(userId));
         }
     }
@@ -152,10 +145,11 @@ public class UMUserPasswordResetOptionsViewBean
 
     public boolean beginQuestionsDisplay(ChildDisplayEvent event) {
         boolean display = false;
-        UMUserPasswordResetOptionsModel model =
-            (UMUserPasswordResetOptionsModel)getModel();
-        String userId = (String)getPageSessionAttribute(
-            EntityEditViewBean.UNIVERSAL_ID);
+        UMUserPasswordResetOptionsModel model = (UMUserPasswordResetOptionsModel)getModel();
+        String userId = (String)getPageSessionAttribute(EntityEditViewBean.UNIVERSAL_ID);
+        if (userId == null) {
+            userId = model.getUserName();
+        }
 
         if (model.isLoggedInUser(userId)) {
             SerializedField szCache = (SerializedField)getChild(SZ_CACHE);
@@ -168,33 +162,29 @@ public class UMUserPasswordResetOptionsViewBean
 
     protected AMModel getModelInternal() {
         HttpServletRequest req = getRequestContext().getRequest();
-        return new UMUserPasswordResetOptionsModelImpl(
-            req, getPageSessionAttributes());
+        return new UMUserPasswordResetOptionsModelImpl(req, getPageSessionAttributes());
     }
 
     private void createTableModel() {
-        tblModel = new CCActionTableModel(
-            getClass().getClassLoader().getResourceAsStream(
-                "com/sun/identity/console/tblUMUserPasswordResetOptions.xml"));
+        tblModel = new CCActionTableModel(getClass().getClassLoader()
+        		.getResourceAsStream("com/sun/identity/console/tblUMUserPasswordResetOptions.xml"));
         tblModel.setTitleLabel("label.question");
-        tblModel.setActionValue(TBL_COL_QUESTION,
-            "table.user.password.reset.name.column.question");
-        tblModel.setActionValue(TBL_COL_ANSWER,
-            "table.user.password.reset.name.column.answer");
+        tblModel.setActionValue(TBL_COL_QUESTION, "table.user.password.reset.name.column.question");
+        tblModel.setActionValue(TBL_COL_ANSWER, "table.user.password.reset.name.column.answer");
     }
 
     private void getQuestions() {
-        UMUserPasswordResetOptionsModel model =
-            (UMUserPasswordResetOptionsModel)getModel();
-        String userId = (String)getPageSessionAttribute(
-            EntityEditViewBean.UNIVERSAL_ID);
+        UMUserPasswordResetOptionsModel model = (UMUserPasswordResetOptionsModel)getModel();
+        String userId = (String)getPageSessionAttribute(EntityEditViewBean.UNIVERSAL_ID);
+        if (userId == null) {
+            userId = model.getUserName();
+        }
 
         try {
             List questionAnswers = model.getUserAnswers(userId);
             populateTableModel(questionAnswers);
         } catch (AMConsoleException e) {
-            setInlineAlertMessage(CCAlert.TYPE_ERROR, "message.error",
-                e.getMessage());
+            setInlineAlertMessage(CCAlert.TYPE_ERROR, "message.error", e.getMessage());
         }
     }
 
@@ -214,8 +204,7 @@ public class UMUserPasswordResetOptionsViewBean
         int i
     ) {
         SerializedField szCache = (SerializedField)getChild(SZ_CACHE);
-        return (UMUserPasswordResetOptionsData)
-            ((List)szCache.getSerializedObj()).get(i);
+        return (UMUserPasswordResetOptionsData) ((List)szCache.getSerializedObj()).get(i);
     }
 
     private void populateTableModel(List questionAnswers) {
@@ -233,8 +222,7 @@ public class UMUserPasswordResetOptionsViewBean
                     tblModel.appendRow();
                 }
 
-                UMUserPasswordResetOptionsData data =
-                    (UMUserPasswordResetOptionsData)iter.next();
+                UMUserPasswordResetOptionsData data = (UMUserPasswordResetOptionsData)iter.next();
 
                 String question = data.getQuestionLocalizedName();
                 if (data.isPersonalQuestion()) {
@@ -275,10 +263,11 @@ public class UMUserPasswordResetOptionsViewBean
         CCCheckBox cbForceResetPwd = (CCCheckBox)getChild(CB_FORCE_RESET_PWD);
         boolean forceResetPwd = cbForceResetPwd.isChecked();
 
-        UMUserPasswordResetOptionsModel model =
-            (UMUserPasswordResetOptionsModel)getModel();
-        String userId = (String)getPageSessionAttribute(
-            EntityEditViewBean.UNIVERSAL_ID);
+        UMUserPasswordResetOptionsModel model = (UMUserPasswordResetOptionsModel)getModel();
+        String userId = (String)getPageSessionAttribute(EntityEditViewBean.UNIVERSAL_ID);
+        if (userId == null) {
+            userId = model.getUserName();
+        }
 
         try {
             model.modifyUserOption(optionData, userId, forceResetPwd);
@@ -286,8 +275,7 @@ public class UMUserPasswordResetOptionsViewBean
             setInlineAlertMessage(CCAlert.TYPE_INFO, "message.information",
                 model.getLocalizedString("profile.updated"));
         } catch (AMConsoleException e) {
-            setInlineAlertMessage(CCAlert.TYPE_ERROR, "message.error",
-                e.getMessage());
+            setInlineAlertMessage(CCAlert.TYPE_ERROR, "message.error", e.getMessage());
         }
 
         forwardTo();
@@ -299,8 +287,7 @@ public class UMUserPasswordResetOptionsViewBean
      * @param event Request invocation event.
      */
     public void handleButton3Request(RequestInvocationEvent event) {
-        CloseWindowViewBean vb = (CloseWindowViewBean)getViewBean(
-            CloseWindowViewBean.class);
+        CloseWindowViewBean vb = (CloseWindowViewBean)getViewBean(CloseWindowViewBean.class);
         vb.forwardTo(getRequestContext());
     }
 
@@ -313,15 +300,13 @@ public class UMUserPasswordResetOptionsViewBean
         int sz = optionData.size();
 
         for (int i = 0; i <sz; i++) {
-            UMUserPasswordResetOptionsData data =
-                (UMUserPasswordResetOptionsData)optionData.get(i);
+            UMUserPasswordResetOptionsData data = (UMUserPasswordResetOptionsData)optionData.get(i);
             tblModel.setRowIndex(i);
             data.setSelected(tblModel.isRowSelected());
             data.setAnswer((String)tblModel.getValue(TBL_DATA_ANSWER));
 
             if (data.isPersonalQuestion()) {
-                data.setQuestion((String)tblModel.getValue(
-                    TBL_DATA_PERSONAL_QUESTION));
+                data.setQuestion((String)tblModel.getValue(TBL_DATA_PERSONAL_QUESTION));
             }
         }
 

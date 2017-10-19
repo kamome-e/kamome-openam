@@ -62,7 +62,7 @@ public class UMChangeUserPasswordModelImpl
      */
     public String getUserName(String userId) {
         String userName = "";
-        try {        
+        try {
             AMIdentity amid = IdUtils.getIdentity(getUserSSOToken(), userId);
             userName = amid.getName();
         } catch (IdRepoException e) {
