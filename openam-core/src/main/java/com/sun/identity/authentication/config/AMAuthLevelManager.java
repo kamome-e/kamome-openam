@@ -83,6 +83,7 @@ public class AMAuthLevelManager implements ServiceListener {
     private static Map authConfigListenerMap = new HashMap();
 
     private static String CORE_AUTH = "iPlanetAMAuthService";
+    private static String AUTH_APPLICATION_SERVICE = "sunAMAuthApplicationService";
 
     private Debug debug = Debug.getInstance("amAuthConfig");
 
@@ -724,6 +725,9 @@ public class AMAuthLevelManager implements ServiceListener {
     private void updateGlobalAuthLevelMap(String serviceName) {
         if (debug.messageEnabled()) {
             debug.message("updateGlobalAuthLevelMap for " + serviceName);
+        }
+        if (serviceName.equals(AUTH_APPLICATION_SERVICE)) {
+        	return;
         }
         try {
             ServiceSchemaManager ssm = new ServiceSchemaManager(serviceName, 
