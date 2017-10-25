@@ -123,7 +123,7 @@ public class UpgradeUtils {
 
     public static final Integer ELEVEN_VERSION_NUMBER = Integer.valueOf(1100);
     private static final Pattern VERSION_FORMAT_PATTERN =
-            Pattern.compile("^(?:.*?(\\d+\\.\\d+\\.?\\d*).*)?\\((.*)\\)");
+            Pattern.compile("^(?:.*?(\\d+\\.\\d+\\.?\\d*).*)?\\((.*)\\)(.*)");
     static Properties configTags;
     public static final String SCHEMA_TYPE_GLOBAL = "global";
     public static final String SCHEMA_TYPE_ORGANIZATION = "organization";
