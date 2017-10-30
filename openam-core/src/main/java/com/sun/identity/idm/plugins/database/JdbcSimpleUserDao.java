@@ -43,15 +43,29 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+
+import org.forgerock.openam.utils.CipherProvider;
+import org.forgerock.openam.utils.Providers;
+
 import java.sql.DriverManager;
 
+import com.iplanet.services.util.Crypt;
 import com.sun.identity.shared.debug.Debug;
+
+import java.nio.charset.StandardCharsets;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * This class encapsulates all the JDBC code used to access identity
@@ -323,13 +337,15 @@ public class JdbcSimpleUserDao implements DaoInterface {
      * @param attrMap is a Map that contains attribute/column names as keys
      *        and values are Sets of values
      */
-    public void updateUser(String userID, String userIDAttributeName, 
+     //パスワード暗号解除に対応するために引数にユーザーパスワードが格納されたカラム名を追加
+    public void updateUser(String userID, String userIDAttributeName, String passwordAttributeName,
             Map<String, Set<String> > attrMap) {        
                              
         if(debug.messageEnabled()) {
             debug.message("JdbcSimpleUserDao.updateUser: called with params"
                     + " id=" + userID 
                     + " userIDAttributeName=" + userIDAttributeName
+                    + " passwordAttributeName=" + passwordAttributeName
                     + " attrMap =\n" + attrMap);
         }        
         if (userID == null || userID.trim().length() == 0
@@ -339,13 +355,16 @@ public class JdbcSimpleUserDao implements DaoInterface {
             if(debug.messageEnabled()) {
                 debug.message("JdbcSimpleUserDao.updateUser: one or more of"
                     + " parameters is null or empty, so not executing update"
-                    + " command. userID=" + userID + " userIDAttributeName="
-                    + userIDAttributeName + " attrMap=" + attrMap);
+                    + " command. userID=" + userID
+                    + " userIDAttributeName=" + userIDAttributeName
+                    + " passwordAttributeName=" + passwordAttributeName
+                    + " attrMap=" + attrMap);
             }
             return;
         }
         userID = userID.trim();
         userIDAttributeName = userIDAttributeName.trim();
+        passwordAttributeName = passwordAttributeName.trim();
         
         /**
          *  RFE: make sure update does not mess up referential integrity...
@@ -399,7 +418,12 @@ public class JdbcSimpleUserDao implements DaoInterface {
                   Iterator<String> it = valSet.iterator();
                   String value = null;//null may be a valid value if not required column
                   if(it.hasNext()) {
-                    value = it.next();                                
+                	   //パスワードの値は暗号化する
+                	  if(keyAtPosition.equals(passwordAttributeName)) {
+                		  value = Crypt.encode(it.next());
+                	  }else {
+                		  value = it.next();
+                	  }               
                   }
                   //what if value == null, should I use setNull() ???
                   stmt.setString(i, value);
@@ -484,12 +508,14 @@ public class JdbcSimpleUserDao implements DaoInterface {
      *                or returns null if user already exists or unsuccessful.
      *
      */
-    public String createUser(String userIDAttributeName, Map<String, Set<String> > attrMap) {        
+    //public String createUser(String userIDAttributeName, Map<String, Set<String> > attrMap) {
+    public String createUser(String userIDAttributeName, String passwordAttributeName, Map<String, Set<String> > attrMap) {
         if(debug.messageEnabled()) {
             debug.message("JdbcSimpleUserDao.create: called with parameters"
                     + "userIDAttributeName=" + userIDAttributeName 
+                    + " passwordAttributeName=" + passwordAttributeName
                     + " attrMap =\n" + attrMap);
-        }       
+        }
         if (attrMap == null || attrMap.isEmpty()) {
             if(debug.messageEnabled()) {
             debug.message("JdbcSimpleUserDao.createUser: attrMap is null or"
@@ -503,6 +529,14 @@ public class JdbcSimpleUserDao implements DaoInterface {
                debug.message("JdbcSimpleUserDao.createUser: userIDAttributeName"
                     + "  is null or empty so not executing create command."
                     + "  userIDAttributeName" + userIDAttributeName);
+            }
+              return null;
+        }
+        if (passwordAttributeName == null || passwordAttributeName.length() == 0) {
+            if(debug.messageEnabled()) {
+               debug.message("JdbcSimpleUserDao.createUser: userPWAttributeName"
+                    + "  is null or empty so not executing create command."
+                    + "  passwordAttributeName" + passwordAttributeName);
             }
             return null;
         }
@@ -589,7 +623,12 @@ public class JdbcSimpleUserDao implements DaoInterface {
                 Iterator<String> it = valSet.iterator();
                 //assume single value, not multi-valued for now
                 if (it.hasNext()) {
-                    val = it.next();
+                		//パスワードの値は暗号化する
+                	   if(key.equals(passwordAttributeName)) {
+                		   val = Crypt.encode(it.next());
+                	   }else {
+                		   val = it.next();
+                	   }
                 }
             }           
             fullAttrMap.put(key, val);

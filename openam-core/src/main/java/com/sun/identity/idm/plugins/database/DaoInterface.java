@@ -55,13 +55,17 @@ public interface DaoInterface {
             String membershipDataBaseTableName, Debug idRepoDebugLog)
             throws java.lang.InstantiationException;
     
-    public void updateUser(String userID, String userIDAttributeName,
+     //パスワード暗号化に対応するために引数にユーザーパスワードが格納されたカラム名を追加
+    //public void updateUser(String userID, String userIDAttributeName,
+    public void updateUser(String userID, String userIDAttributeName, String passwordAttributeName,
             Map<String, Set<String> > attrMap);
     
     public void deleteUser(String userID, String userIDAttributeName);
     
-    public String createUser(String userIDAttributeName, 
-                                    Map<String, Set<String> > attrMap);
+     //パスワード暗号化に対応するために引数にユーザーパスワードが格納されたカラム名を追加
+    //public String createUser(String userIDAttributeName
+    public String createUser(String userIDAttributeName, String passwordAttributeName,
+                             Map<String, Set<String> > attrMap);
     
     public Map<String, Set<String>> getAttributes(String userID, 
             String userIDAttributeName,

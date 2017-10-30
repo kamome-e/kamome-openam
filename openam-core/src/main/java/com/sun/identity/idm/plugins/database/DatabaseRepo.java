@@ -591,7 +591,9 @@ public class DatabaseRepo extends IdRepo {
                 //put info into DB
                 //FIX: should validate that attrMap is Ok, has required
                 //      attributes, proper types for values etc
-                createdName = dao.createUser(userIDAttributeName, attrMap);    
+        	       //パスワード暗号化に対応するために引数にユーザーパスワードが格納されたカラム名を追加
+                //createdName = dao.createUser(userIDAttributeName, attrMap);
+                createdName = dao.createUser(userIDAttributeName, passwordAttributeName, attrMap);    
         } else {
                 //Name already exists
                 String args[] = { name };
@@ -786,7 +788,9 @@ public class DatabaseRepo extends IdRepo {
         isAdd = false;
         
         if (name != null && name.length() != 0) {
-            dao.updateUser(name, userIDAttributeName, attributes);
+        	  //パスワード暗号化に対応するために引数にユーザーパスワードが格納されたカラム名を追加
+            //dao.updateUser(name, userIDAttributeName, attributes);
+            dao.updateUser(name, userIDAttributeName, passwordAttributeName, attributes);
         } else {
             if (debug.messageEnabled()) {
                 debug.message("DatabaseRepo.setAttributes: input parameter"
