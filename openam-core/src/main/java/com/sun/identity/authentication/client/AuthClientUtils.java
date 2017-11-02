@@ -2551,6 +2551,11 @@ public class AuthClientUtils {
             utilDebug.message("SENDING DATA ... ");
             copyRequestHeaders(request, conn);
 
+            if (utilDebug.messageEnabled()) {
+            	utilDebug.message("sendAuthRequestToOrigServer - using request headers: "
+            			+ conn.getRequestProperties());
+            }
+
             if (request.getMethod().equals("GET")) {
                 conn.connect();
             } else {
