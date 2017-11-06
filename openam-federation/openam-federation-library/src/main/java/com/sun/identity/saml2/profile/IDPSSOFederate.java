@@ -1035,7 +1035,6 @@ public class IDPSSOFederate {
                         reqID);
                 }
 
-                //TODO
                 // Fix for Session Upgrade Bypass
                 IDPAuthnContextMapper idpAuthnContextMapper = null;
                 try {
@@ -1084,7 +1083,6 @@ public class IDPSSOFederate {
                     throw new SessionException("Session upgrade was skipped: Possible attempt to compromise security.");
                 }
                 // End of Fix
-                //TODO
 
                 boolean isSessionUpgrade = false;
 
