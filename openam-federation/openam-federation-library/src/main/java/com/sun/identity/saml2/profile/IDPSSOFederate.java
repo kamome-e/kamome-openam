@@ -210,6 +210,7 @@ public class IDPSSOFederate {
       
             // retrieve IDP entity id from meta alias
             String idpEntityID = null;
+            String spEntityID = null;
             String realm = null;
             try {
                 if (IDPSSOUtil.metaManager == null) {
@@ -298,7 +299,7 @@ public class IDPSSOFederate {
                     return;
                 }
 
-                String spEntityID = authnReq.getIssuer().getValue();
+                spEntityID = authnReq.getIssuer().getValue();
                 try {
                     String authnRequestStr = authnReq.toXMLString();
                     String[] logdata = { spEntityID, idpMetaAlias,
@@ -918,7 +919,7 @@ public class IDPSSOFederate {
                 if (!isValidSessionInRealm) {
                     if (authnReq != null && Boolean.TRUE.equals(authnReq.isPassive())) {
                         // Send an appropriate response to the passive request
-                        String spEntityID = authnReq.getIssuer().getValue();
+                        spEntityID = authnReq.getIssuer().getValue();
                         try {
                             IDPSSOUtil.sendNoPassiveResponse(request, response, idpMetaAlias, idpEntityID,
                                     realm, authnReq, relayState, spEntityID);
@@ -1008,7 +1009,7 @@ public class IDPSSOFederate {
                                 idpEntityID);
                         res.setInResponseTo(reqID);
                         StringBuffer returnedBinding = new StringBuffer();
-                        String spEntityID = request.getParameter(SP_ENTITY_ID);
+                        spEntityID = request.getParameter(SP_ENTITY_ID);
                         String acsURL = request.getParameter(ACS_URL);
                         String binding = request.getParameter(BINDING);
                         Integer index;
@@ -1033,6 +1034,58 @@ public class IDPSSOFederate {
                     SAML2Utils.debug.message(classMethod + "RequestID=" +
                         reqID);
                 }
+
+                //TODO
+                // Fix for Session Upgrade Bypass
+                IDPAuthnContextMapper idpAuthnContextMapper = null;
+                try {
+                    idpAuthnContextMapper = IDPSSOUtil.getIDPAuthnContextMapper(realm, idpEntityID);
+                } catch (SAML2Exception sme) {
+                    SAML2Utils.debug.error(classMethod, sme);
+                }
+                if (idpAuthnContextMapper == null) {
+                    SAML2Utils.debug.error(classMethod + "Unable to get IDPAuthnContextMapper from meta.");
+                    sendError(request, response, SAML2Constants.SERVER_FAULT, "UnableToGetIdpAuthnContextMapper", null,
+                            isFromECP, idpAdapter);
+                }
+                
+                IDPAuthnContextInfo idpAuthnContextInfo = null;
+                try {
+                    idpAuthnContextInfo = idpAuthnContextMapper.getIDPAuthnContextInfo(authnReq, idpEntityID, realm);
+                } catch (SAML2Exception sme) {
+                    SAML2Utils.debug.error(classMethod, sme);
+                }
+
+                if (idpAuthnContextInfo == null) {
+                    SAML2Utils.debug.message(classMethod + "{} Unable to find valid AuthnContext. Sending error Response.");
+                    try {
+                        Response res = SAML2Utils.getErrorResponse(authnReq, SAML2Constants.REQUESTER,
+                                SAML2Constants.NO_AUTHN_CONTEXT, null, idpEntityID);
+                        StringBuffer returnedBinding = new StringBuffer();
+                        String acsURL = IDPSSOUtil.getACSurl(spEntityID, realm, authnReq, request, returnedBinding);
+                        String acsBinding = returnedBinding.toString();
+                        IDPSSOUtil.sendResponse(request, response, acsBinding, spEntityID, idpEntityID, idpMetaAlias, realm,
+                        		relayState, acsURL, res, session);
+                    } catch (SAML2Exception sme) {
+                        SAML2Utils.debug.error(classMethod, sme);
+                        sendError(request, response, SAML2Constants.SERVER_FAULT, "UnableToGetIdpAuthnContextInfo", null,
+                                isFromECP, idpAdapter);
+                    }
+                    return;
+                }
+
+                /** 
+                 * Since Session Upgrade has been done at this stage, #isSessionUpgrade() should return false,
+                 * if not, it implies a possible security breach.
+                 */
+                boolean upgradeNeeded;
+                upgradeNeeded = isSessionUpgrade(idpAuthnContextInfo, session);
+                if (upgradeNeeded) {
+                    throw new SessionException("Session upgrade was skipped: Possible attempt to compromise security.");
+                }
+                // End of Fix
+                //TODO
+
                 boolean isSessionUpgrade = false;
 
                 if (IDPCache.isSessionUpgradeCache != null 
@@ -1064,7 +1117,7 @@ public class IDPSSOFederate {
                 }
                 
                 // generate assertion response
-                String spEntityID = authnReq.getIssuer().getValue();
+                spEntityID = authnReq.getIssuer().getValue();
                 NameIDPolicy policy = authnReq.getNameIDPolicy();
                 String nameIDFormat =
                     (policy == null) ? null : policy.getFormat();
@@ -1398,23 +1451,20 @@ public class IDPSSOFederate {
             int sessionAuthnLevel = 0;
 
             try {
-                sessionAuthnLevel = Integer.parseInt(
-                        SessionManager.getProvider().getProperty(
-                        session, SAML2Constants.AUTH_LEVEL)[0]);
-                SAML2Utils.debug.message(classMethod +
-                        "Current session Authentication Level: " +
-                        sessionAuthnLevel);
+                final String strAuthLevel = SessionManager.getProvider().getProperty(session,
+                        SAML2Constants.AUTH_LEVEL)[0];
+                if (strAuthLevel.contains(":")) {
+                    String[] realmAuthLevel = strAuthLevel.split(":");
+                    sessionAuthnLevel = Integer.parseInt(realmAuthLevel[1]);
+                } else {
+                    sessionAuthnLevel = Integer.parseInt(strAuthLevel);
+                }
+                SAML2Utils.debug.message(classMethod + "Current session Authentication Level: " + sessionAuthnLevel);
             } catch (SessionException sex) {
-                SAML2Utils.debug.error(classMethod +
-                        " Couldn't get the session Auth Level", sex);
+                SAML2Utils.debug.error(classMethod + " Couldn't get the session Auth Level", sex);
             }
 
-
-            if (authnLevel > sessionAuthnLevel) {
-                return true;
-            } else {
-                return false;
-            }
+            return (authnLevel > sessionAuthnLevel);
         } else {
             return true;
         }
