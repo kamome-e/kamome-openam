@@ -65,6 +65,7 @@ public class PersistentCookieAuthModule extends JaspiAuthModuleWrapper<JwtSessio
     private static final String COOKIE_MAX_LIFE_SETTING_KEY = "openam-auth-persistent-cookie-max-life";
     private static final String SECURE_COOKIE_KEY = "openam-auth-persistent-cookie-secure-cookie";
     private static final String HTTP_ONLY_COOKIE_KEY = "openam-auth-persistent-cookie-http-only-cookie";
+    private static final String COOKIE_NAME_KEY = "openam-auth-persistent-cookie-name"; 
 
     private static final String OPENAM_USER_CLAIM_KEY = "openam.usr";
     private static final String OPENAM_AUTH_TYPE_CLAIM_KEY = "openam.aty";
@@ -76,6 +77,7 @@ public class PersistentCookieAuthModule extends JaspiAuthModuleWrapper<JwtSessio
     private Integer maxTokenLife;
     private boolean secureCookie;
     private boolean httpOnlyCookie;
+    private String cookieName;
 
     private Principal principal;
 
@@ -126,10 +128,11 @@ public class PersistentCookieAuthModule extends JaspiAuthModuleWrapper<JwtSessio
         maxTokenLife = Integer.parseInt(maxLifeString) * MINUTES_IN_HOUR;
         secureCookie = CollectionHelper.getBooleanMapAttr(options, SECURE_COOKIE_KEY, true);
         httpOnlyCookie = CollectionHelper.getBooleanMapAttr(options, HTTP_ONLY_COOKIE_KEY, true);
+        cookieName = CollectionHelper.getMapAttr(options, COOKIE_NAME_KEY);
 
         try {
             return initialize(tokenIdleTime.toString(), maxTokenLife.toString(), getRequestOrg(),
-                    secureCookie, httpOnlyCookie);
+                    secureCookie, httpOnlyCookie, cookieName);
         } catch (SMSException e) {
             DEBUG.error("Error initialising Authentication Module", e);
             return null;
@@ -152,7 +155,7 @@ public class PersistentCookieAuthModule extends JaspiAuthModuleWrapper<JwtSessio
      * @throws SSOException If there is a problem getting the key alias.
      */
      private Map<String, Object> initialize(final String tokenIdleTime, final String maxTokenLife, final String realm,
-                                 boolean secureCookie, boolean httpOnlyCookie) throws SMSException, SSOException {
+                                 boolean secureCookie, boolean httpOnlyCookie, String cookieName) throws SMSException, SSOException {
         Map<String, Object> config = new HashMap<String, Object>();
         config.put(JwtSessionModule.KEY_ALIAS_KEY, getKeyAlias(realm));
         config.put(JwtSessionModule.PRIVATE_KEY_PASSWORD_KEY, amKeyProvider.getPrivateKeyPass());
@@ -163,7 +166,8 @@ public class PersistentCookieAuthModule extends JaspiAuthModuleWrapper<JwtSessio
         config.put(JwtSessionModule.MAX_TOKEN_LIFE_KEY, maxTokenLife);
         config.put(JwtSessionModule.SECURE_COOKIE_KEY, secureCookie);
         config.put(JwtSessionModule.HTTP_ONLY_COOKIE_KEY, httpOnlyCookie);
-
+        config.put(JwtSessionModule.SESSION_COOKIE_NAME_KEY, cookieName);
+        
         return config;
     }
 
@@ -183,6 +187,7 @@ public class PersistentCookieAuthModule extends JaspiAuthModuleWrapper<JwtSessio
                 setUserSessionProperty(JwtSessionModule.MAX_TOKEN_LIFE_KEY, maxTokenLife.toString());
                 setUserSessionProperty(SECURE_COOKIE_KEY, Boolean.toString(secureCookie));
                 setUserSessionProperty(HTTP_ONLY_COOKIE_KEY, Boolean.toString(httpOnlyCookie));
+                setUserSessionProperty(COOKIE_NAME_KEY, cookieName);
                 final Subject clientSubject = new Subject();
                 MessageInfo messageInfo = prepareMessageInfo(getHttpServletRequest(), getHttpServletResponse());
                 if (process(messageInfo, clientSubject, callbacks)) {
@@ -270,7 +275,9 @@ public class PersistentCookieAuthModule extends JaspiAuthModuleWrapper<JwtSessio
             final String realm = ssoToken.getProperty(SSO_TOKEN_ORGANIZATION_PROPERTY_KEY);
             boolean secureCookie = Boolean.parseBoolean(ssoToken.getProperty(SECURE_COOKIE_KEY));
             boolean httpOnlyCookie = Boolean.parseBoolean(ssoToken.getProperty(HTTP_ONLY_COOKIE_KEY));
-            return initialize(tokenIdleTime, maxTokenLife, realm, secureCookie, httpOnlyCookie);
+            String cookieName = ssoToken.getProperty(COOKIE_NAME_KEY);
+            
+            return initialize(tokenIdleTime, maxTokenLife, realm, secureCookie, httpOnlyCookie, cookieName);
         } catch (SSOException e) {
             DEBUG.error("Could not initialise the Auth Module", e);
             throw new AuthenticationException(e.getLocalizedMessage());
