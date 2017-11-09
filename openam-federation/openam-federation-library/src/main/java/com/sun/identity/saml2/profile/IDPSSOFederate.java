@@ -1044,8 +1044,7 @@ public class IDPSSOFederate {
                 }
                 if (idpAuthnContextMapper == null) {
                     SAML2Utils.debug.error(classMethod + "Unable to get IDPAuthnContextMapper from meta.");
-                    sendError(request, response, SAML2Constants.SERVER_FAULT, "UnableToGetIdpAuthnContextMapper", null,
-                            isFromECP, idpAdapter);
+                    sendError(request, response, SAML2Constants.SERVER_FAULT, "metaDataError", null, isFromECP, idpAdapter);
                 }
                 
                 IDPAuthnContextInfo idpAuthnContextInfo = null;
@@ -1067,8 +1066,7 @@ public class IDPSSOFederate {
                         		relayState, acsURL, res, session);
                     } catch (SAML2Exception sme) {
                         SAML2Utils.debug.error(classMethod, sme);
-                        sendError(request, response, SAML2Constants.SERVER_FAULT, "UnableToGetIdpAuthnContextInfo", null,
-                                isFromECP, idpAdapter);
+                        sendError(request, response, SAML2Constants.SERVER_FAULT, "UnableToGetAuthnReq", null, isFromECP, idpAdapter);
                     }
                     return;
                 }
@@ -1080,7 +1078,8 @@ public class IDPSSOFederate {
                 boolean upgradeNeeded;
                 upgradeNeeded = isSessionUpgrade(idpAuthnContextInfo, session);
                 if (upgradeNeeded) {
-                    throw new SessionException("Session upgrade was skipped: Possible attempt to compromise security.");
+                    SAML2Utils.debug.error(classMethod + "Session upgrade was skipped: Possible attempt to compromise security.");
+                    sendError(request, response, SAML2Constants.SERVER_FAULT, "metaDataError", null, isFromECP, idpAdapter);
                 }
                 // End of Fix
 
