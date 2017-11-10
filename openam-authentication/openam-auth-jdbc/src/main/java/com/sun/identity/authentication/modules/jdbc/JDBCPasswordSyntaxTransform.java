@@ -32,15 +32,16 @@ package com.sun.identity.authentication.modules.jdbc;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * This is the interface to implement if you don't store your password 
+ * This is the interface to implement if you don't store your password
  * in clear text.
  */
 public interface JDBCPasswordSyntaxTransform {
     /**
-     * This is the only method to implement if you don't store your password in 
+     * This is the only method to implement if you don't store your password in
      * cleartext.
      * Take the string the user gave you, and hash it or whatever
      */
     String transform(String inputPass) throws NoSuchAlgorithmException;
     byte[] transformCompare(String extPass, String inputPass) throws NoSuchAlgorithmException;
+    byte[] decryptionPassword(String extPass) throws NoSuchAlgorithmException;
 }

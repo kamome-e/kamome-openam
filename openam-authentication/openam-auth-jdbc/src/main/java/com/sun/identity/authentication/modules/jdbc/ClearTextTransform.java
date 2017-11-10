@@ -33,24 +33,24 @@ import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 
 import com.sun.identity.authentication.spi.AuthLoginException;
-   
+
 /**
  * A very simple test implementation of the JDBC Password Syntax Transform.
  */
 public class ClearTextTransform implements JDBCPasswordSyntaxTransform  {
-    /** 
-     * Creates a new instance of <code>ClearTextTransform</code>. 
+    /**
+     * Creates a new instance of <code>ClearTextTransform</code>.
      */
     public ClearTextTransform() {
     }
-    
-    /** 
-     * This simply returns the clear text format of the password. 
+
+    /**
+     * This simply returns the clear text format of the password.
      *
      * @param input Password before transform
      * @return Password after transform in this case the same thing.
      * @throws AuthLoginException
-     */  
+     */
     public String transform(String inputPass) throws NoSuchAlgorithmException {
         if (inputPass == null) {
             throw new NoSuchAlgorithmException(
@@ -59,8 +59,27 @@ public class ClearTextTransform implements JDBCPasswordSyntaxTransform  {
         return inputPass;
     }
 
+    /**
+     * @param extPass
+     * @param inputPass
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
     public byte[] transformCompare(String extPass, String inputPass) throws NoSuchAlgorithmException {
         if (extPass == null || inputPass == null) {
+            throw new NoSuchAlgorithmException(
+                "No input to the Clear Text Transform!");
+        }
+        return inputPass.getBytes(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * @param extPass
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
+    public byte[] decryptionPassword(String extPass) throws NoSuchAlgorithmException {
+        if (extPass == null) {
             throw new NoSuchAlgorithmException(
                 "No input to the Clear Text Transform!");
         }

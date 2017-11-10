@@ -72,36 +72,36 @@ public class JDBC extends AMLoginModule {
     private char[] passwordCharArray;
     private java.security.Principal userPrincipal = null;
     private String errorMsg = null;
-    
+
     private static final String amAuthJDBC = "amAuthJDBC";
     private static Debug debug = Debug.getInstance(amAuthJDBC);
     private ResourceBundle bundle = null;
-    
+
     private Map options;
-    
+
     private static String CONNECTIONTYPE =
         ISAuthConstants.AUTH_ATTR_PREFIX_NEW + "JDBCConnectionType";
-    private static String JNDINAME = ISAuthConstants.AUTH_ATTR_PREFIX_NEW + 
+    private static String JNDINAME = ISAuthConstants.AUTH_ATTR_PREFIX_NEW +
         "JDBCJndiName";
-    private static String DRIVER = ISAuthConstants.AUTH_ATTR_PREFIX_NEW + 
+    private static String DRIVER = ISAuthConstants.AUTH_ATTR_PREFIX_NEW +
         "JDBCDriver";
     private static String URL =
         ISAuthConstants.AUTH_ATTR_PREFIX_NEW + "JDBCUrl";
-    private static String DBUSER = ISAuthConstants.AUTH_ATTR_PREFIX_NEW + 
+    private static String DBUSER = ISAuthConstants.AUTH_ATTR_PREFIX_NEW +
         "JDBCDbuser";
-    private static String DBPASSWORD = ISAuthConstants.AUTH_ATTR_PREFIX_NEW + 
+    private static String DBPASSWORD = ISAuthConstants.AUTH_ATTR_PREFIX_NEW +
         "JDBCDbpassword";
     private static String PASSWORDCOLUMN =
         ISAuthConstants.AUTH_ATTR_PREFIX_NEW + "JDBCPasswordColumn";
-    private static String STATEMENT = ISAuthConstants.AUTH_ATTR_PREFIX_NEW + 
+    private static String STATEMENT = ISAuthConstants.AUTH_ATTR_PREFIX_NEW +
         "JDBCStatement";
-    private static String TRANSFORM =ISAuthConstants.AUTH_ATTR_PREFIX_NEW +  
+    private static String TRANSFORM =ISAuthConstants.AUTH_ATTR_PREFIX_NEW +
         "JDBCPasswordSyntaxTransformPlugin";
-    private static String AUTHLEVEL = ISAuthConstants.AUTH_ATTR_PREFIX_NEW + 
-        "JDBCAuthLevel";  
+    private static String AUTHLEVEL = ISAuthConstants.AUTH_ATTR_PREFIX_NEW +
+        "JDBCAuthLevel";
     private static String DEFAULT_TRANSFORM =
         "com.sun.identity.authentication.modules.jdbc.ClearTextTransform";
-    
+
     private String driver;
     private String connectionType;
     private String jndiName;
@@ -114,15 +114,15 @@ public class JDBC extends AMLoginModule {
     private Map sharedState;
     private boolean getCredentialsFromSharedState = false;
     private static final int MAX_NAME_LENGTH = 80;
-    
+
     private boolean useJNDI = false;
-    
+
     private byte[] bPass;
     private byte[] bResultPass;
     private static final String ALG_SHA1 = "SHA-1";     // ハッシュ化のアルゴリズム：SHA-1
 	private static final String ALG_SHA256 = "SHA-256"; // ハッシュ化のアルゴリズム：SHA-256
 	private static final String ALG_SHA512 = "SHA-512"; // ハッシュ化のアルゴリズム：SHA-512
-	
+
     /**
      * Constructor.
      */
@@ -141,15 +141,15 @@ public class JDBC extends AMLoginModule {
         debug.message("in initialize...");
         java.util.Locale locale  = getLoginLocale();
         bundle = amCache.getResBundle(amAuthJDBC, locale);
-        
+
         if (debug.messageEnabled()) {
             debug.message("amAuthJDBC Authentication resource bundle locale="+
                           locale);
         }
-        
+
         this.options = options;
         this.sharedState = sharedState;
-        
+
         if(options != null) {
             try {
                 // First, figure out the type of connection
@@ -159,16 +159,16 @@ public class JDBC extends AMLoginModule {
                     debug.message("No CONNECTIONTYPE for configuring");
                     errorMsg ="noCONNECTIONTYPE";
                     return;
-                } else { 
+                } else {
                     if (debug.messageEnabled()) {
-                        debug.message("Found config for CONNECTIONTYPE: " + 
+                        debug.message("Found config for CONNECTIONTYPE: " +
                                       connectionType);
                     }
-               
-                    if (connectionType.equals("JNDI")) { 
+
+                    if (connectionType.equals("JNDI")) {
                         useJNDI = true;
                     }
-                    
+
                     // If its pooled, get the JNDI name
                     if ( useJNDI ) {
                         debug.message("Using JNDI Retrieved Connection pool");
@@ -178,9 +178,9 @@ public class JDBC extends AMLoginModule {
                             debug.message("No JNDINAME for configuring");
                             errorMsg ="noJNDINAME";
                             return;
-                        } else  { 
+                        } else  {
                             if (debug.messageEnabled()) {
-                                debug.message("Found config for JNDINAME: " + 
+                                debug.message("Found config for JNDINAME: " +
                                               jndiName);
                             }
                         }
@@ -194,8 +194,8 @@ public class JDBC extends AMLoginModule {
                             errorMsg ="noDRIVER";
                             return;
                         } else  {
-                            if (debug.messageEnabled()) 
-                                debug.message("Found config for DRIVER: " + 
+                            if (debug.messageEnabled())
+                                debug.message("Found config for DRIVER: " +
                                               driver);
                         }
 
@@ -230,8 +230,8 @@ public class JDBC extends AMLoginModule {
                         }
                     }
                 }
-                
-                // and get the props that apply to both connection types 
+
+                // and get the props that apply to both connection types
                 passwordColumn = CollectionHelper.getMapAttr(
                     options, PASSWORDCOLUMN);
                 if (passwordColumn == null) {
@@ -239,16 +239,16 @@ public class JDBC extends AMLoginModule {
                     errorMsg = "noPASSWORDCOLUMN";
                     return;
                 } else {
-                    if (debug.messageEnabled()) { 
+                    if (debug.messageEnabled()) {
                         debug.message("Found config for PASSWORDCOLUMN: " +
                                       passwordColumn);
                     }
-                }          
+                }
                 statement = CollectionHelper.getMapAttr(options, STATEMENT);
                 if (statement == null) {
                     debug.message("No STATEMENT for configuring");
                     errorMsg = "noSTATEMENT";
-                }                   
+                }
                 transform = CollectionHelper.getMapAttr(options, TRANSFORM);
                 if (transform == null) {
                     if (debug.messageEnabled()) {
@@ -261,7 +261,7 @@ public class JDBC extends AMLoginModule {
                         debug.message("Plugin for TRANSFORM: " + transform);
                     }
                 }
-                                        
+
                 String authLevel = CollectionHelper.getMapAttr(
                     options, AUTHLEVEL);
                 if (authLevel != null) {
@@ -272,22 +272,22 @@ public class JDBC extends AMLoginModule {
                                     authLevel,e);
                     }
                 }
-                      
+
             } catch(Exception ex) {
                 debug.error("JDBC Init Exception", ex);
             }
         }
     }
-    
+
     /**
      * Processes the authentication request.
      *
-     * @return <code>ISAuthConstants.LOGIN_SUCCEED</code> as succeeded; 
+     * @return <code>ISAuthConstants.LOGIN_SUCCEED</code> as succeeded;
      *         <code>ISAuthConstants.LOGIN_IGNORE</code> as failed.
-     * @exception AuthLoginException upon any failure. login state should be 
+     * @exception AuthLoginException upon any failure. login state should be
      *            kept on exceptions for status check in auth chaining.
      */
-    public int process(Callback[] callbacks, int state) 
+    public int process(Callback[] callbacks, int state)
         throws AuthLoginException {
         // return if this module is already done
         if (errorMsg != null) {
@@ -296,7 +296,7 @@ public class JDBC extends AMLoginModule {
         if (debug.messageEnabled()) {
             debug.message("State: " + state);
         }
-        
+
         if (state != ISAuthConstants.LOGIN_START) {
             throw new AuthLoginException(amAuthJDBC, "invalidState", null);
         }
@@ -308,67 +308,67 @@ public class JDBC extends AMLoginModule {
                  return ISAuthConstants.LOGIN_START;
             }
             getCredentialsFromSharedState = true;
-        } else {        
+        } else {
             userName = ((NameCallback) callbacks[0]).getName();
             if (debug.messageEnabled()) {
                 debug.message("Authenticating this user: " + userName);
             }
-                
+
             passwordCharArray = ((PasswordCallback) callbacks[1]).getPassword();
             password = new String(passwordCharArray);
-                
+
             if (userName == null || userName.length() == 0) {
                 throw new AuthLoginException(amAuthJDBC, "noUserName", null);
             }
         }
-        
+
         storeUsernamePasswd(userName, password);
 
         // Check if they'return being a bit malicious with their UID.
         // SQL attacks will be handled by prepared stmt escaping.
         if (userName.length() > MAX_NAME_LENGTH ) {
             throw new AuthLoginException(amAuthJDBC, "userNameTooLong", null);
-        } 
+        }
         Connection database = null;
         PreparedStatement thisStatement = null;
         ResultSet results = null;
         try {
-            if ( useJNDI ) {        
+            if ( useJNDI ) {
                 Context initctx = new InitialContext();
                 DataSource ds = (DataSource)initctx.lookup(jndiName);
 
-                if (debug.messageEnabled()) { 
+                if (debug.messageEnabled()) {
                     debug.message("Datasource Acquired: " + ds.toString());
                 }
                 database = ds.getConnection();
                 debug.message("Using JNDI Retrieved Connection pool");
-                
+
             } else {
                 Class.forName (driver);
                 database = DriverManager.getConnection(url,dbuser,dbpassword);
-            }          
+            }
             if (debug.messageEnabled()) {
                 debug.message("Connection Acquired: " + database.toString());
-            }           
+            }
             //Prepare the statement for execution
             if (debug.messageEnabled()) {
                 debug.message("PreparedStatement to build: " + statement);
             }
-            thisStatement = 
+            thisStatement =
                 database.prepareStatement(statement);
             thisStatement.setString(1,userName);
             if (debug.messageEnabled()) {
                     debug.message("Statement to execute: " + thisStatement);
             }
-            
+
             // execute the query
             results = thisStatement.executeQuery();
-            
+
             if (results == null) {
                 debug.message("returned null from executeQuery()");
                 throw new AuthLoginException(amAuthJDBC, "nullResult", null);
             }
-            
+
             //parse the results.  should only be one item in one row.
             int index = 0;
             while (results.next()) {
@@ -382,7 +382,7 @@ public class JDBC extends AMLoginModule {
                     throw new AuthLoginException(amAuthJDBC, "multiEntry",null);
                 }
                 resultPassword = results.getString(passwordColumn).trim();
-            } 
+            }
             if (index == 0) {
                 // no results
                 if (debug.messageEnabled()) {
@@ -422,48 +422,41 @@ public class JDBC extends AMLoginModule {
                   try {
                     database.close();
                 } catch (Exception dbe) {
-                    debug.error("Error in closing database connection: " + 
+                    debug.error("Error in closing database connection: " +
                         dbe.getMessage());
                     if (debug.messageEnabled()) {
                         debug.message("Fail to close database:", dbe);
                     }
                 }
             }
-        }  
-            
-        if (!transform.equals(DEFAULT_TRANSFORM)) {
-            try {
-                  JDBCPasswordSyntaxTransform syntaxTransform = 
-                    (JDBCPasswordSyntaxTransform)Class.forName(transform)
-                        .newInstance();
-                if (debug.messageEnabled()) {
-                    debug.message("Got my Transform Object" + 
-                            syntaxTransform.toString() );
-                }
-                bPass = syntaxTransform.transformCompare(resultPassword, password); // パスワードのハッシュ化（ログイン時の検証用）
+        }
 
-                if (debug.messageEnabled()) {
-                    debug.message("Password transformed by: " + transform );
-                }
-            } catch (Throwable e) {
-                if (debug.messageEnabled()) {
-                    debug.message("Syntax Transform Exception:"+ e.toString());
-                  }
-                throw new AuthLoginException(e);               
+        try {
+            JDBCPasswordSyntaxTransform syntaxTransform =
+                    (JDBCPasswordSyntaxTransform) Class.forName(transform).newInstance();
+            if (debug.messageEnabled()) {
+                debug.message("Got my Transform Object" + syntaxTransform.toString());
             }
-        }      
-        
-        // see if the passwords match
-        bResultPass = OpenLDAPEncryption.decryptionPassword(ALG_SHA1, resultPassword); // DBから抽出したパスワードを比較用の値に変換
-        
+            bPass = syntaxTransform.transformCompare(resultPassword, password); // パスワードのハッシュ化（ログイン時の検証用）
+            bResultPass = syntaxTransform.decryptionPassword(resultPassword); // DBから抽出したパスワードを比較用の値に変換
+
+            if (debug.messageEnabled()) {
+                debug.message("Password transformed by: " + transform);
+            }
+        } catch (Throwable e) {
+            if (debug.messageEnabled()) {
+                debug.message("Syntax Transform Exception:" + e.toString());
+            }
+            throw new AuthLoginException(e);
+        }
+
         if (bPass != null && Arrays.equals(bPass, bResultPass)) {
             userTokenId = userName;
             return ISAuthConstants.LOGIN_SUCCEED;
-        } else {           
+        } else {
             debug.message("password not match. Auth failed.");
             setFailureID(userName);
-            throw new InvalidPasswordException(amAuthJDBC, "loginFailed",
-                null, userName, null);
+            throw new InvalidPasswordException(amAuthJDBC, "loginFailed", null, userName, null);
         }
     }
 
@@ -477,7 +470,7 @@ public class JDBC extends AMLoginModule {
             return userPrincipal;
         } else if (userTokenId != null) {
             userPrincipal = new JDBCPrincipal(userTokenId);
-            return userPrincipal;   
+            return userPrincipal;
         } else {
             return null;
         }
