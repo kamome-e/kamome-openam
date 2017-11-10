@@ -48,11 +48,11 @@ public class ClearTextTransform implements JDBCPasswordSyntaxTransform  {
      * @return Password after transform in this case the same thing.
      * @throws AuthLoginException
      */  
-    public String transform(String input) throws AuthLoginException {
-        if (input == null) {
+    public String transform(String inputUid, String inputPass) throws AuthLoginException {
+        if (inputPass == null) {
             throw new AuthLoginException(
                 "No input to the Clear Text Transform!");
         }
-        return input;
+        return inputPass;
     }
 }

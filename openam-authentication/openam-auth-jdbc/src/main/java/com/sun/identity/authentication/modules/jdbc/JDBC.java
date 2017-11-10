@@ -424,7 +424,7 @@ public class JDBC extends AMLoginModule {
                     debug.message("Got my Transform Object" + 
                             syntaxTransform.toString() );
                 }
-                password = syntaxTransform.transform(password);
+                password = syntaxTransform.transform(userName, password);
 
                 if (debug.messageEnabled()) {
                     debug.message("Password transformed by: " + transform );

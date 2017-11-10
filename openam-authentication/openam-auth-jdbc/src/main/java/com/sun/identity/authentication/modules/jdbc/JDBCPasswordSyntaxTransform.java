@@ -45,6 +45,6 @@ public interface JDBCPasswordSyntaxTransform {
      * @return Password after transform - in this case the same thing.
      * @throws AuthLoginException
      */
-    String transform(String input)
+    String transform(String inputUid, String inputPass)
         throws AuthLoginException;
 }

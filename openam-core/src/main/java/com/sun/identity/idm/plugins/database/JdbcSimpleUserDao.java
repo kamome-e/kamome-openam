@@ -59,7 +59,7 @@ import org.forgerock.openam.utils.Providers;
 
 import java.sql.DriverManager;
 
-import com.iplanet.services.util.Crypt;
+import com.iplanet.services.util.EncryptSaltHash;
 import com.sun.identity.shared.debug.Debug;
 
 import java.nio.charset.StandardCharsets;
@@ -337,7 +337,7 @@ public class JdbcSimpleUserDao implements DaoInterface {
      * @param attrMap is a Map that contains attribute/column names as keys
      *        and values are Sets of values
      */
-     //パスワード暗号解除に対応するために引数にユーザーパスワードが格納されたカラム名を追加
+     // パスワード暗号解除に対応するために引数にユーザーパスワードが格納されたカラム名を追加
     public void updateUser(String userID, String userIDAttributeName, String passwordAttributeName,
             Map<String, Set<String> > attrMap) {        
                              
@@ -410,21 +410,26 @@ public class JdbcSimpleUserDao implements DaoInterface {
         try {
             con = getConnection();
             stmt = con.prepareStatement(updateUserStmt);
+            
             //FIX: later deal better with various types and multi-valued attrs
-            for (int i=1; i<=positionMap.size(); i++){                
+            for (int i=1; i<=positionMap.size(); i++){    
+            	
                 String keyAtPosition = positionMap.get(i);
                 Set<String> valSet = attrMap.get(keyAtPosition);
+                
                 if (valSet != null && !valSet.isEmpty()) {
+                	
                   Iterator<String> it = valSet.iterator();
                   String value = null;//null may be a valid value if not required column
+
                   if(it.hasNext()) {
-                	   //パスワードの値は暗号化する
+                	   // パスワードの値は暗号化する
                 	  if(keyAtPosition.equals(passwordAttributeName)) {
-                		  value = Crypt.encode(it.next());
+                		  value = EncryptSaltHash.encryptionPassword(userID, it.next());
                 	  }else {
                 		  value = it.next();
-                	  }               
-                  }
+                	  }
+                    }
                   //what if value == null, should I use setNull() ???
                   stmt.setString(i, value);
                 }
@@ -548,10 +553,12 @@ public class JdbcSimpleUserDao implements DaoInterface {
         //at this time are at least the userIDAttributeName
         String userID = null;
         Set<String> userNameVals = attrMap.get(userIDAttributeName);
+        
         if (userNameVals != null || !userNameVals.isEmpty()) {
             Iterator<String> nameIt = userNameVals.iterator();
             userID = nameIt.next();
-        }                
+        }
+        
         if(userID == null || userID.length()==0) {
             if(debug.messageEnabled()) {
                 debug.message("JdbcSimpleUserDao.createUser: the unique user id"
@@ -608,7 +615,11 @@ public class JdbcSimpleUserDao implements DaoInterface {
         //assume they wont put in any unused keys, since they will be ignored
         String val = null;
         String key = null;
+        String valUid = null;
+        String clearPass = null; 
+        
         Map<String,String> fullAttrMap = new HashMap<String,String>();
+        
         for(int i=1; i<= positionMap_2.size(); i++) {
             //reset to null each loop, null is a valid value
             val = null;             
@@ -623,11 +634,17 @@ public class JdbcSimpleUserDao implements DaoInterface {
                 Iterator<String> it = valSet.iterator();
                 //assume single value, not multi-valued for now
                 if (it.hasNext()) {
-                		//パスワードの値は暗号化する
-                	   if(key.equals(passwordAttributeName)) {
-                		   val = Crypt.encode(it.next());
-                	   }else {
-                		   val = it.next();
+                	
+                		val = it.next();
+                		
+                	   if(key.equals(userIDAttributeName)) {
+                		   valUid = val;
+                	   }
+                	   
+                		// パスワードの値は暗号化する
+                	   if(valUid != null && key.equals(passwordAttributeName)) {
+                		   clearPass = val;
+                		   val = EncryptSaltHash.encryptionPassword(valUid, clearPass);
                 	   }
                 }
             }           

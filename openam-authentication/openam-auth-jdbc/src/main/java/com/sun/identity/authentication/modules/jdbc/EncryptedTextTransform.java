@@ -30,7 +30,7 @@
 package com.sun.identity.authentication.modules.jdbc;
 
 import com.sun.identity.authentication.spi.AuthLoginException;
-import com.iplanet.services.util.Crypt;
+import com.iplanet.services.util.EncryptSaltHash;
    
 /**
  * A very simple test implementation of the JDBC Password Syntax Transform.
@@ -49,14 +49,14 @@ public class EncryptedTextTransform implements JDBCPasswordSyntaxTransform  {
      * @return Password after transform in this case the same thing.
      * @throws AuthLoginException
      */  
-    public String transform(String input) throws AuthLoginException {
-        if (input == null) {
+    public String transform(String inputUid, String inputPass) throws AuthLoginException {
+        if (inputPass == null) {
             throw new AuthLoginException(
                 "No input to the Clear Text Transform!");
         }else {
-        	input = Crypt.encrypt(input);
+        	inputPass = EncryptSaltHash.encryptionPassword(inputUid, inputPass);
         }
         
-        return input;
+        return inputPass;
     }
 }
