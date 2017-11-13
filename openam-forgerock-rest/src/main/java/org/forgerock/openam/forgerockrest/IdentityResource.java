@@ -1201,6 +1201,7 @@ public final class IdentityResource implements CollectionResourceProvider {
 
             //check first if the password is modified as part of the update request, so if necessary, the password can
             //be removed from the IdentityDetails object.
+            /* 「古いパスワード」は保存されていないため、全ユーザーで古いパスワードなしでパスワード変更を可能にする
             if (!isAdmin(context)) {
                 for (String attrName : jsonValue.keys()) {
                     if ("userpassword".equalsIgnoreCase(attrName)) {
@@ -1220,6 +1221,7 @@ public final class IdentityResource implements CollectionResourceProvider {
                     }
                 }
             }
+            */
             newDtls = jsonValueToIdentityDetails(jsonValue);
             if (newDtls.getName() != null && !resourceId.equalsIgnoreCase(newDtls.getName())) {
                 throw new BadRequestException("id in path does not match id in request body");
