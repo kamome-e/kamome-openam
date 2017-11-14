@@ -83,6 +83,7 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="Copyright" content="Copyright &copy; 2010-2012 by ForgeRock, Inc. All Rights Reserved.">
+  <link rel="shortcut icon" href="<%= request.getContextPath() + "/com_sun_web_ui/images/favicon/favicon.ico" %>" type="image/x-icon" />
   <cc:stylesheet />
 </head>
 

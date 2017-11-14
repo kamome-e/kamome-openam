@@ -84,7 +84,7 @@ li {
 
 .logo /* brand logo (make sure you set the width and height too) */
 {
-    background-image:url(../images/forge-rock.png);
+    background-image:url(../images/kamome-sso.png);
     width: 226px;
     height: 110px;
     background-repeat:no-repeat;
@@ -105,7 +105,8 @@ li {
 
 .box /* the main content box */
 {
-    background: #ffffff url(../images/box-bg.png) 600px -300px no-repeat;
+    background: #ffffff url(../images/box-bg.png) right bottom no-repeat;
+    background-size:30%;
     padding-top: 20px;
     margin-bottom: 30px;
     border-radius: 0;

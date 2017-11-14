@@ -41,6 +41,7 @@
             <%
             String ServiceURI = (String) viewBean.getDisplayFieldValue(viewBean.SERVICE_URI);
             %>
+            <link rel="shortcut icon" href="<%= ServiceURI%>/com_sun_web_ui/images/favicon/favicon.ico" type="image/x-icon" />
             <link href="<%= ServiceURI%>/css/new_style.css" rel="stylesheet" type="text/css" />
             <!--[if IE 9]> <link href="<%= ServiceURI %>/css/ie9.css" rel="stylesheet" type="text/css"> <![endif]-->
             <!--[if lte IE 7]> <link href="<%= ServiceURI %>/css/ie7.css" rel="stylesheet" type="text/css"> <![endif]-->
