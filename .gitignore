@@ -1,11 +1,8 @@
-target
-dependency-reduced-pom.xml
+.classpath
+.project
+.settings
 /bin/
-.classpath
-.project
-.settings
-.classpath
-.project
-.settings
+dependency-reduced-pom.xml
 deps
 keystore.jks
+target
