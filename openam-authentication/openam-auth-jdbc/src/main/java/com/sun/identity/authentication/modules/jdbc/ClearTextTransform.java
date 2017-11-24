@@ -29,6 +29,9 @@
 
 package com.sun.identity.authentication.modules.jdbc;
 
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+
 import com.sun.identity.authentication.spi.AuthLoginException;
    
 /**
@@ -48,11 +51,19 @@ public class ClearTextTransform implements JDBCPasswordSyntaxTransform  {
      * @return Password after transform in this case the same thing.
      * @throws AuthLoginException
      */  
-    public String transform(String inputUid, String inputPass) throws AuthLoginException {
+    public String transform(String inputPass) throws NoSuchAlgorithmException {
         if (inputPass == null) {
-            throw new AuthLoginException(
+            throw new NoSuchAlgorithmException(
                 "No input to the Clear Text Transform!");
         }
         return inputPass;
+    }
+
+    public byte[] transformCompare(String extPass, String inputPass) throws NoSuchAlgorithmException {
+        if (extPass == null || inputPass == null) {
+            throw new NoSuchAlgorithmException(
+                "No input to the Clear Text Transform!");
+        }
+        return extPass.getBytes(StandardCharsets.UTF_8);
     }
 }

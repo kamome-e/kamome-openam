@@ -38,14 +38,24 @@ import com.sun.identity.authentication.spi.AMLoginModule;
 import com.sun.identity.authentication.spi.AuthLoginException;
 import com.sun.identity.authentication.spi.InvalidPasswordException;
 import com.sun.identity.authentication.util.ISAuthConstants;
+import com.iplanet.services.util.OpenLDAPEncryption;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.security.auth.Subject;
@@ -107,6 +117,12 @@ public class JDBC extends AMLoginModule {
     
     private boolean useJNDI = false;
     
+    private byte[] bPass;
+    private byte[] bResultPass;
+    private static final String ALG_SHA1 = "SHA-1";     // ハッシュ化のアルゴリズム：SHA-1
+	private static final String ALG_SHA256 = "SHA-256"; // ハッシュ化のアルゴリズム：SHA-256
+	private static final String ALG_SHA512 = "SHA-512"; // ハッシュ化のアルゴリズム：SHA-512
+	
     /**
      * Constructor.
      */
@@ -424,7 +440,7 @@ public class JDBC extends AMLoginModule {
                     debug.message("Got my Transform Object" + 
                             syntaxTransform.toString() );
                 }
-                password = syntaxTransform.transform(userName, password);
+                bPass = syntaxTransform.transformCompare(resultPassword, password); // パスワードのハッシュ化（ログイン時の検証用）
 
                 if (debug.messageEnabled()) {
                     debug.message("Password transformed by: " + transform );
@@ -435,9 +451,12 @@ public class JDBC extends AMLoginModule {
                   }
                 throw new AuthLoginException(e);               
             }
-        }
+        }      
+        
         // see if the passwords match
-        if (password != null && password.equals(resultPassword)) {
+        bResultPass = OpenLDAPEncryption.decryptionPassword(ALG_SHA1, resultPassword); // DBから抽出したパスワードを比較用の値に変換
+        
+        if (bPass != null && Arrays.equals(bPass, bResultPass)) {
             userTokenId = userName;
             return ISAuthConstants.LOGIN_SUCCEED;
         } else {           

@@ -29,7 +29,7 @@
 
 package com.sun.identity.authentication.modules.jdbc;
 
-import com.sun.identity.authentication.spi.AuthLoginException;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * This is the interface to implement if you don't store your password 
@@ -40,11 +40,7 @@ public interface JDBCPasswordSyntaxTransform {
      * This is the only method to implement if you don't store your password in 
      * cleartext.
      * Take the string the user gave you, and hash it or whatever
-     *
-     * @param input Password before transform
-     * @return Password after transform - in this case the same thing.
-     * @throws AuthLoginException
      */
-    String transform(String inputUid, String inputPass)
-        throws AuthLoginException;
+    String transform(String inputPass) throws NoSuchAlgorithmException;
+    byte[] transformCompare(String extPass, String inputPass) throws NoSuchAlgorithmException;
 }

@@ -1,62 +1,59 @@
-/**
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- *
- * Copyright (c) 2005 Sun Microsystems Inc. All Rights Reserved
- *
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the License). You may not use this file except in
- * compliance with the License.
- *
- * You can obtain a copy of the License at
- * https://opensso.dev.java.net/public/CDDLv1.0.html or
- * opensso/legal/CDDLv1.0.txt
- * See the License for the specific language governing
- * permission and limitations under the License.
- *
- * When distributing Covered Code, include this CDDL
- * Header Notice in each file and include the License file
- * at opensso/legal/CDDLv1.0.txt.
- * If applicable, add the following below the CDDL Header,
- * with the fields enclosed by brackets [] replaced by
- * your own identifying information:
- * "Portions Copyrighted [year] [name of copyright owner]"
- *
- * $Id: ClearTextTransform.java,v 1.2 2008/06/25 05:41:57 qcheng Exp $
- *
- */
-
-
 package com.sun.identity.authentication.modules.jdbc;
 
-import com.sun.identity.authentication.spi.AuthLoginException;
-import com.iplanet.services.util.EncryptSaltHash;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+
+import com.iplanet.services.util.OpenLDAPEncryption;
    
 /**
- * A very simple test implementation of the JDBC Password Syntax Transform.
+ * パスワード暗号化ロジック OpenLDAP方式(SSHA)
+ * かもめエンジニアリング 山本 2017.11.17
  */
 public class EncryptedTextTransform implements JDBCPasswordSyntaxTransform  {
+	
+	private static final String ALG_SHA1 = "SHA-1";     // ハッシュ化のアルゴリズム：SHA-1
+	private static final String ALG_SHA256 = "SHA-256"; // ハッシュ化のアルゴリズム：SHA-256
+	private static final String ALG_SHA512 = "SHA-512"; // ハッシュ化のアルゴリズム：SHA-512
+	
     /** 
      * Creates a new instance of <code>EncryptedTextTransform</code>. 
      */
     public EncryptedTextTransform() {
     }
     
-    /** 
-     * This simply returns the clear text format of the password. 
-     *
-     * @param input Password before transform
-     * @return Password after transform in this case the same thing.
-     * @throws AuthLoginException
-     */  
-    public String transform(String inputUid, String inputPass) throws AuthLoginException {
-        if (inputPass == null) {
-            throw new AuthLoginException(
-                "No input to the Clear Text Transform!");
-        }else {
-        	inputPass = EncryptSaltHash.encryptionPassword(inputUid, inputPass);
-        }
-        
-        return inputPass;
+    /**
+     * パスワードのハッシュ化（登録用）
+     * @param inputPass
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
+    public String transform(String inputPass) throws NoSuchAlgorithmException {
+    	
+    	// Salt(4byte)のランダム生成
+    	byte[] bRndSalt = OpenLDAPEncryption.generateSalt();
+    	
+    	// 入力したパスワードのハッシュ化
+    	byte[] hashedPass = OpenLDAPEncryption.encryptionPassword1(ALG_SHA1, inputPass, bRndSalt);
+    	String encPass = OpenLDAPEncryption.encryptionPassword2(ALG_SHA1, hashedPass, bRndSalt);
+    	
+    	return encPass;
+    }
+    
+    /**
+     * パスワードのハッシュ化（ログイン時の検証用）
+     * @param extPass
+     * @param inputPass
+     * @return
+     * @throws NoSuchAlgorithmException 
+     */
+    public byte[] transformCompare(String extPass, String inputPass) throws NoSuchAlgorithmException {
+    	
+    	// Saltの抽出
+    	byte[] bExtSalt = OpenLDAPEncryption.extractionSalt(ALG_SHA1, extPass);
+    	
+    	// 入力したパスワードの暗号化
+    	byte[] hashedPass = OpenLDAPEncryption.encryptionPassword1(ALG_SHA1, inputPass, bExtSalt);
+    	
+    	return hashedPass;
     }
 }

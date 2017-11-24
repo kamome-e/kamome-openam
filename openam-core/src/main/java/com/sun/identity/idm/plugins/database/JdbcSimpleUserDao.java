@@ -45,26 +45,16 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
-import org.forgerock.openam.utils.CipherProvider;
-import org.forgerock.openam.utils.Providers;
-
 import java.sql.DriverManager;
 
-import com.iplanet.services.util.EncryptSaltHash;
+import com.iplanet.services.util.OpenLDAPEncryption;
 import com.sun.identity.shared.debug.Debug;
 
 import java.nio.charset.StandardCharsets;
-
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
@@ -73,6 +63,10 @@ import java.security.NoSuchAlgorithmException;
  */
 public class JdbcSimpleUserDao implements DaoInterface {
     
+	private static final String ALG_SHA1 = "SHA-1";     // ハッシュ化のアルゴリズム：SHA-1
+	private static final String ALG_SHA256 = "SHA-256"; // ハッシュ化のアルゴリズム：SHA-256
+	private static final String ALG_SHA512 = "SHA-512"; // ハッシュ化のアルゴリズム：SHA-512
+	
     //member fields are protected scope, so that classes can extend this class
     //and inherit the fields and use them in their own methods if needed
     //for example an implementation could extend this and override the
@@ -337,7 +331,7 @@ public class JdbcSimpleUserDao implements DaoInterface {
      * @param attrMap is a Map that contains attribute/column names as keys
      *        and values are Sets of values
      */
-     // パスワード暗号解除に対応するために引数にユーザーパスワードが格納されたカラム名を追加
+     // パスワードハッシュ化に対応するため引数にユーザーパスワードが格納されたカラム名を追加
     public void updateUser(String userID, String userIDAttributeName, String passwordAttributeName,
             Map<String, Set<String> > attrMap) {        
                              
@@ -423,9 +417,15 @@ public class JdbcSimpleUserDao implements DaoInterface {
                   String value = null;//null may be a valid value if not required column
 
                   if(it.hasNext()) {
-                	   // パスワードの値は暗号化する
+                	   // パスワードの値はハッシュ化する
                 	  if(keyAtPosition.equals(passwordAttributeName)) {
-                		  value = EncryptSaltHash.encryptionPassword(userID, it.next());
+                		  
+                		  value = it.next();
+                		  
+                		  byte[] bSalt = OpenLDAPEncryption.generateSalt();
+                		  byte[] bValue = OpenLDAPEncryption.encryptionPassword1(ALG_SHA1, value, bSalt);
+                		  value = OpenLDAPEncryption.encryptionPassword2(ALG_SHA1, bValue, bSalt);
+                		  
                 	  }else {
                 		  value = it.next();
                 	  }
@@ -513,7 +513,7 @@ public class JdbcSimpleUserDao implements DaoInterface {
      *                or returns null if user already exists or unsuccessful.
      *
      */
-    //public String createUser(String userIDAttributeName, Map<String, Set<String> > attrMap) {
+     // パスワード暗号解除に対応するために引数にユーザーパスワードが格納されたカラム名を追加
     public String createUser(String userIDAttributeName, String passwordAttributeName, Map<String, Set<String> > attrMap) {
         if(debug.messageEnabled()) {
             debug.message("JdbcSimpleUserDao.create: called with parameters"
@@ -615,7 +615,6 @@ public class JdbcSimpleUserDao implements DaoInterface {
         //assume they wont put in any unused keys, since they will be ignored
         String val = null;
         String key = null;
-        String valUid = null;
         String clearPass = null; 
         
         Map<String,String> fullAttrMap = new HashMap<String,String>();
@@ -636,15 +635,26 @@ public class JdbcSimpleUserDao implements DaoInterface {
                 if (it.hasNext()) {
                 	
                 		val = it.next();
-                		
-                	   if(key.equals(userIDAttributeName)) {
-                		   valUid = val;
-                	   }
                 	   
-                		// パスワードの値は暗号化する
-                	   if(valUid != null && key.equals(passwordAttributeName)) {
+                		// パスワードの値はハッシュ化する
+                	   if(key.equals(passwordAttributeName)) {
                 		   clearPass = val;
-                		   val = EncryptSaltHash.encryptionPassword(valUid, clearPass);
+                		   byte[] bSalt = null;
+                		   
+							try {
+								bSalt = OpenLDAPEncryption.generateSalt();
+							} catch (NoSuchAlgorithmException e1) {
+								// TODO 自動生成された catch ブロック
+								e1.printStackTrace();
+							}
+							
+	                		try {
+	                			byte[] bVal = OpenLDAPEncryption.encryptionPassword1(ALG_SHA1, clearPass, bSalt);
+	                			val = OpenLDAPEncryption.encryptionPassword2(ALG_SHA1, bVal, bSalt);
+							} catch (NoSuchAlgorithmException e1) {
+								// TODO 自動生成された catch ブロック
+								e1.printStackTrace();
+							}
                 	   }
                 }
             }           
