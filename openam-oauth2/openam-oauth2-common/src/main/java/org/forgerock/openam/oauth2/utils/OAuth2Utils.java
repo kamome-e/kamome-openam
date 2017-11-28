@@ -859,11 +859,13 @@ public class OAuth2Utils {
 
             theID = results.iterator().next();
 
-            //if the client is deactivated return null
+            //if the client is deactivated throws Exception
             if (theID.isActive()){
                 return theID;
             } else {
-                return null;
+                OAuth2Utils.DEBUG.error("ScopeImpl.getIdentity()::Not able to get inactive user profile.");
+                throw OAuthProblemException.OAuthError.UNAUTHORIZED_CLIENT.handle(null,
+                        "Not able to get inactive user from OpenAM");
             }
         } catch (Exception e){
             OAuth2Utils.DEBUG.error("ClientVerifierImpl::Unable to get client AMIdentity: ", e);
