@@ -428,49 +428,63 @@ public class IdServicesImpl implements IdServices {
 
        Iterator it = configuredPluginClasses.iterator();
        int noOfSuccess = configuredPluginClasses.size();
+       
+       // it(Iterator)の要素数をカウントする
+       Iterator itCount = configuredPluginClasses.iterator();
+       int arrayCount = 0;
+       while (itCount.hasNext()) {
+    	   itCount.next();
+    	   arrayCount++;
+       }
+       
        IdRepo idRepo;
+       int count = 0;
+       
        while (it.hasNext()) {
            idRepo = (IdRepo) it.next();
-           try {
-
-               Map cMap = idRepo.getConfiguration(); // do stuff to map attr
-               // names.
-               Map mappedAttributes = mapAttributeNames(attrMap, cMap);
-               String representation = idRepo.create(token, type, name,
-                       mappedAttributes);
-               if (idRepo.getClass().getName()
-                       .equals(IdConstants.AMSDK_PLUGIN)) {
-                   amsdkdn = representation;
-               }
-           } catch (IdRepoUnsupportedOpException ide) {
-               if (idRepo != null && DEBUG.warningEnabled()) {
-                   DEBUG.warning(
+           // 要素数が2以上存在する場合、1回目の処理は行わない（LDAPデータベースへのユーザー登録を行わない）
+           if((arrayCount > 1 && count != 0) || arrayCount == 1) {
+        	   try {
+                   Map cMap = idRepo.getConfiguration(); // do stuff to map attr
+                   // names.
+                   Map mappedAttributes = mapAttributeNames(attrMap, cMap);
+                   String representation = idRepo.create(token, type, name,
+                           mappedAttributes);
+                   if (idRepo.getClass().getName()
+                           .equals(IdConstants.AMSDK_PLUGIN)) {
+                       amsdkdn = representation;
+                   }
+               } catch (IdRepoUnsupportedOpException ide) {
+                   if (idRepo != null && DEBUG.warningEnabled()) {
+                       DEBUG.warning(
+                           "IdServicesImpl.create: "
+                           + "Unable to create identity in the"
+                           + " following repository "
+                           + idRepo.getClass().getName() + ":: "
+                           + ide.getMessage());
+                   }
+                   noOfSuccess--;
+                   origEx = (origEx == null) ? ide : origEx;
+               } catch (IdRepoFatalException idf) {
+                   // fatal ..throw it all the way up
+                   DEBUG.error(
                        "IdServicesImpl.create: "
-                       + "Unable to create identity in the"
-                       + " following repository "
-                       + idRepo.getClass().getName() + ":: "
-                       + ide.getMessage());
+                       + "Create: Fatal Exception", idf);
+                   throw idf;
+               } catch (IdRepoException ide) {
+                   if (idRepo != null && DEBUG.warningEnabled()) {
+                       DEBUG.warning(
+                           "IdServicesImpl.create: "
+                           + "Unable to create identity in the following "
+                           + "repository "
+                           + idRepo.getClass().getName() + " :: "
+                           + ide.getMessage());
+                   }
+                   noOfSuccess--;
+                   origEx = (origEx == null) ? ide : origEx;
                }
-               noOfSuccess--;
-               origEx = (origEx == null) ? ide : origEx;
-           } catch (IdRepoFatalException idf) {
-               // fatal ..throw it all the way up
-               DEBUG.error(
-                   "IdServicesImpl.create: "
-                   + "Create: Fatal Exception", idf);
-               throw idf;
-           } catch (IdRepoException ide) {
-               if (idRepo != null && DEBUG.warningEnabled()) {
-                   DEBUG.warning(
-                       "IdServicesImpl.create: "
-                       + "Unable to create identity in the following "
-                       + "repository "
-                       + idRepo.getClass().getName() + " :: "
-                       + ide.getMessage());
-               }
-               noOfSuccess--;
-               origEx = (origEx == null) ? ide : origEx;
            }
+           count++;
        }
        AMIdentity id = new AMIdentity(token, name, type, amOrgName, amsdkdn);
        if (noOfSuccess == 0) {
@@ -533,44 +547,59 @@ public class IdServicesImpl implements IdServices {
        if (!name.equalsIgnoreCase(IdConstants.ANONYMOUS_USER)) {
            noOfSuccess--;
        }
+       
+       // it(Iterator)の要素数をカウントする
+       Iterator itCount = configuredPluginClasses.iterator();
+       int arrayCount = 0;
+       while (itCount.hasNext()) {
+    	   itCount.next();
+    	   arrayCount++;
+       }
+       
        IdRepo idRepo;
+       int count = 0;
+       
        while (it.hasNext()) {
            idRepo = (IdRepo) it.next();
-           try {
-               if (idRepo.getClass().getName()
-                   .equals(IdConstants.AMSDK_PLUGIN) && amsdkDN != null) {
-                   idRepo.delete(token, type, amsdkDN);
-               } else {
-                   idRepo.delete(token, type, name);
-               }
-           } catch (IdRepoUnsupportedOpException ide) {
-               if (DEBUG.warningEnabled()) {
-                   DEBUG.warning(
-                       "IdServicesImpl.delete: "
-                       + "Unable to delete identity in the following "
-                       + "repository " + idRepo.getClass().getName() + " :: "
-                       + ide.getMessage());
-               }
-               noOfSuccess--;
-               origEx = (origEx == null) ? ide : origEx;
-           } catch (IdRepoFatalException idf) {
-               // fatal ..throw it all the way up
-               DEBUG.error(
-                   "IdServicesImpl.delete: Fatal Exception ", idf);
-               throw idf;
-           } catch (IdRepoException ide) {
-               if (idRepo != null && DEBUG.warningEnabled()) {
-                   DEBUG.warning(
-                       "IdServicesImpl.delete: "
-                       + "Unable to delete identity in the following "
-                       + "repository " + idRepo.getClass().getName() + " :: "
-                       + ide.getMessage());
-               }
-               noOfSuccess--;
-               if (!ide.getErrorCode().equalsIgnoreCase("220")) {
-                   origEx = ide;
+             // 要素数が2以上存在する場合、1回目の処理は行わない（LDAPデータベースからのユーザー削除を行わない）
+           if((arrayCount > 1 && count != 0) || arrayCount == 1) {
+        	   try {
+                   if (idRepo.getClass().getName()
+                       .equals(IdConstants.AMSDK_PLUGIN) && amsdkDN != null) {
+                       idRepo.delete(token, type, amsdkDN);
+                   } else {
+                       idRepo.delete(token, type, name);
+                   }
+               } catch (IdRepoUnsupportedOpException ide) {
+                   if (DEBUG.warningEnabled()) {
+                       DEBUG.warning(
+                           "IdServicesImpl.delete: "
+                           + "Unable to delete identity in the following "
+                           + "repository " + idRepo.getClass().getName() + " :: "
+                           + ide.getMessage());
+                   }
+                   noOfSuccess--;
+                   origEx = (origEx == null) ? ide : origEx;
+               } catch (IdRepoFatalException idf) {
+                   // fatal ..throw it all the way up
+                   DEBUG.error(
+                       "IdServicesImpl.delete: Fatal Exception ", idf);
+                   throw idf;
+               } catch (IdRepoException ide) {
+                   if (idRepo != null && DEBUG.warningEnabled()) {
+                       DEBUG.warning(
+                           "IdServicesImpl.delete: "
+                           + "Unable to delete identity in the following "
+                           + "repository " + idRepo.getClass().getName() + " :: "
+                           + ide.getMessage());
+                   }
+                   noOfSuccess--;
+                   if (!ide.getErrorCode().equalsIgnoreCase("220")) {
+                       origEx = ide;
+                   }
                }
            }
+           count++;
        }
        if ((noOfSuccess <= 0) && (origEx != null)) {
            if (DEBUG.warningEnabled()) {
@@ -1678,64 +1707,79 @@ public class IdServicesImpl implements IdServices {
 
        Iterator it = configuredPluginClasses.iterator();
        int noOfSuccess = configuredPluginClasses.size();
+       
+       // it(Iterator)の要素数をカウントする
+       Iterator itCount = configuredPluginClasses.iterator();
+       int arrayCount = 0;
+       while (itCount.hasNext()) {
+    	   itCount.next();
+    	   arrayCount++;
+       }
+       
        IdRepo idRepo;
+       int count = 0;
+       
        while (it.hasNext()) {
            idRepo = (IdRepo) it.next();
-           try {
-               Map cMap = idRepo.getConfiguration();
-               // do stuff to map attr names.
-               Map mappedAttributes = mapAttributeNames(attributes, cMap);
-               if (idRepo.getClass().getName()
-                   .equals(IdConstants.AMSDK_PLUGIN) && amsdkDN != null) {
-                   if (isString) {
-                       idRepo.setAttributes(token, type, amsdkDN, mappedAttributes,
-                               isAdd);
+           // 要素数が2以上存在する場合、1回目の処理は行わない（LDAPデータベースからのユーザー削除を行わない）
+           if((arrayCount > 1 && count != 0) || arrayCount == 1) {
+        	   try {
+                   Map cMap = idRepo.getConfiguration();
+                   // do stuff to map attr names.
+                   Map mappedAttributes = mapAttributeNames(attributes, cMap);
+                   if (idRepo.getClass().getName()
+                       .equals(IdConstants.AMSDK_PLUGIN) && amsdkDN != null) {
+                       if (isString) {
+                           idRepo.setAttributes(token, type, amsdkDN, mappedAttributes,
+                                   isAdd);
+                       } else {
+                           idRepo.setBinaryAttributes(token, type, amsdkDN,
+                                   mappedAttributes, isAdd);
+                       }
                    } else {
-                       idRepo.setBinaryAttributes(token, type, amsdkDN,
-                               mappedAttributes, isAdd);
+                       if (isString) {
+                           idRepo.setAttributes(token, type, name, mappedAttributes,
+                                   isAdd);
+                       } else {
+                           idRepo.setBinaryAttributes(token, type, name,
+                                   mappedAttributes, isAdd);
+                       }
                    }
-               } else {
-                   if (isString) {
-                       idRepo.setAttributes(token, type, name, mappedAttributes,
-                               isAdd);
-                   } else {
-                       idRepo.setBinaryAttributes(token, type, name,
-                               mappedAttributes, isAdd);
+               } catch (IdRepoUnsupportedOpException ide) {
+                   if (idRepo != null && DEBUG.messageEnabled()) {
+                       DEBUG.message("IdServicesImpl.setAttributes: "
+                               + "Unable to set attributes in the following "
+                               + "repository "
+                               + idRepo.getClass().getName()
+                               + " :: " + ide.getMessage());
                    }
-               }
-           } catch (IdRepoUnsupportedOpException ide) {
-               if (idRepo != null && DEBUG.messageEnabled()) {
-                   DEBUG.message("IdServicesImpl.setAttributes: "
-                           + "Unable to set attributes in the following "
-                           + "repository "
-                           + idRepo.getClass().getName()
-                           + " :: " + ide.getMessage());
-               }
-               noOfSuccess--;
-               origEx = (origEx == null) ? ide :origEx;
-           } catch (IdRepoFatalException idf) {
-               // fatal ..throw it all the way up
-               DEBUG.error(
-                   "IdServicesImpl.setAttributes: Fatal Exception ", idf);
-               throw idf;
-           } catch (IdRepoException ide) {
-               if (idRepo != null && DEBUG.warningEnabled()) {
-                   DEBUG.warning(
-                       "IdServicesImpl.setAttributes: "
-                       + "Unable to modify identity in the "
-                       + "following repository "
-                       + idRepo.getClass().getName() + " :: "
-                       + ide.getMessage());
-               }
-               noOfSuccess--;
-               // 220 is entry not found. this error should have lower
-               // precedence than other error because we search thru
-               // all the ds and this entry might exist in one of the other ds.
-               if (!"220".equalsIgnoreCase(ide.getErrorCode())
-                       || (origEx == null)) {
-                   origEx = ide;
+                   noOfSuccess--;
+                   origEx = (origEx == null) ? ide :origEx;
+               } catch (IdRepoFatalException idf) {
+                   // fatal ..throw it all the way up
+                   DEBUG.error(
+                       "IdServicesImpl.setAttributes: Fatal Exception ", idf);
+                   throw idf;
+               } catch (IdRepoException ide) {
+                   if (idRepo != null && DEBUG.warningEnabled()) {
+                       DEBUG.warning(
+                           "IdServicesImpl.setAttributes: "
+                           + "Unable to modify identity in the "
+                           + "following repository "
+                           + idRepo.getClass().getName() + " :: "
+                           + ide.getMessage());
+                   }
+                   noOfSuccess--;
+                   // 220 is entry not found. this error should have lower
+                   // precedence than other error because we search thru
+                   // all the ds and this entry might exist in one of the other ds.
+                   if (!"220".equalsIgnoreCase(ide.getErrorCode())
+                           || (origEx == null)) {
+                       origEx = ide;
+                   }
                }
            }
+           count++;
        }
        if (noOfSuccess == 0) {
            if (DEBUG.warningEnabled()) {
