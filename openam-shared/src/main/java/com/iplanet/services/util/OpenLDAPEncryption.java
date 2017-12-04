@@ -13,7 +13,7 @@ import java.util.Base64;
  * かもめエンジニアリング 山本 2017.11.17
  * 
  * 暗号化ロジック
- * 1：ランダムでSaltを生成 ※4byte
+ * 1：ランダムでSaltを生成
  * 2：(byte化した)パスワード + (byte化した)Salt
  * 3：ハッシュ化(SHA-1)
  * 4：Base64でエンコード
@@ -22,7 +22,7 @@ import java.util.Base64;
  */
 public class OpenLDAPEncryption {
 	
-	private static final int DIGIT_SALT = 4; // Saltのbyte数
+	private static final int DIGIT_SALT = 16; // Saltのbyte数
 	
 	private static final int DIGIT_HASH_SHA1 = 20;   // ハッシュ値のbyte数：20byte
 	private static final int DIGIT_HASH_SHA256 = 32; // ハッシュ値のbyte数：32byte
@@ -36,41 +36,42 @@ public class OpenLDAPEncryption {
 	private static final String SHOW_ALG_SSHA256 = "{SSHA256}"; // アルゴリズムの表記方法：SSHA256
 	private static final String SHOW_ALG_SSHA512 = "{SSHA512}"; // アルゴリズムの表記方法：SSHA512
 	
-	private static int p_digit_hash = 0;     // ハッシュ値のbyte数
-	private static String p_alg = null;      // ハッシュ化のアルゴリズム
-	private static String p_show_alg = null; // アルゴリズムの表記方法
-	
 	/**
 	 * ハッシュ化アルゴリズムの設定 ※引数がどのアルゴリズムにも該当しない場合はSSHAに強制的に設定
 	 * @param alg
 	 */
-	private static void initAlgorithm(String alg) {
+	private static Object[] initAlgorithm(String alg) {
+		
+		Object algData[];
+		algData = new Object[3];
 		
 		switch (alg) {
 		  case ALG_SHA1:
-			  p_digit_hash = DIGIT_HASH_SHA1;
-			  p_alg = ALG_SHA1;
-			  p_show_alg = SHOW_ALG_SSHA;
+			  algData[0] = DIGIT_HASH_SHA1;
+			  algData[1] = ALG_SHA1;
+			  algData[2] = SHOW_ALG_SSHA;
 			  break;
 			  
 		  case ALG_SHA256:
-			  p_digit_hash = DIGIT_HASH_SHA256;
-			  p_alg = ALG_SHA256;
-			  p_show_alg = SHOW_ALG_SSHA256;
+			  algData[0] = DIGIT_HASH_SHA256;
+			  algData[1] = ALG_SHA256;
+			  algData[2] = SHOW_ALG_SSHA256;
 			  break;
 			  
 		  case ALG_SHA512:
-			  p_digit_hash = DIGIT_HASH_SHA512;
-			  p_alg = ALG_SHA512;
-			  p_show_alg = SHOW_ALG_SSHA512;
+			  algData[0] = DIGIT_HASH_SHA512;
+			  algData[1] = ALG_SHA512;
+			  algData[2] = SHOW_ALG_SSHA512;
 			  break;
 			  
 		  default:
-			  p_digit_hash = DIGIT_HASH_SHA1;
-			  p_alg = ALG_SHA1;
-			  p_show_alg = SHOW_ALG_SSHA;
+			  algData[0] = DIGIT_HASH_SHA1;
+			  algData[1] = ALG_SHA1;
+			  algData[2] = SHOW_ALG_SSHA;
 			  break;
 		}
+		
+		return algData;
 	}
 
 	/**
@@ -79,29 +80,30 @@ public class OpenLDAPEncryption {
 	 * @param getPass
 	 * @return
 	 */
-	public static byte[] extractionSalt(String alg, String getPass) {
+	public byte[] extractionSalt(String alg, String getPass) {
 		
-		initAlgorithm(alg); // ハッシュ化アルゴリズムの設定
+		Object algData[];
+		algData = initAlgorithm(alg); // ハッシュ化アルゴリズムの設定
 		
 		// DBから取得したパスワードをBase64でデコード
-		String sNoSalt = getPass.replace(p_show_alg, ""); // 先頭のアルゴリズム表記を削除
+		String sNoSalt = getPass.replace(algData[2].toString(), ""); // 先頭のアルゴリズム表記を削除
 		byte[] bNoSalt = sNoSalt.getBytes(StandardCharsets.UTF_8); // 文字列をバイトに変換
 		byte[] b64DecPass = Base64.getDecoder().decode(bNoSalt); // Base64でデコード
 		
 		// Saltを抜き出す
-		byte[] bSalt = Arrays.copyOfRange(b64DecPass, p_digit_hash, b64DecPass.length);
+		byte[] bSalt = Arrays.copyOfRange(b64DecPass, Integer.parseInt(algData[0].toString()), b64DecPass.length);
 		
 		return bSalt;
 	}
 	
 	/**
-	 * Salt(4byte)のランダム生成
+	 * Saltのランダム生成
 	 * @return
 	 * @throws NoSuchAlgorithmException 
 	 */
-	public static byte[] generateSalt() throws NoSuchAlgorithmException {
+	public byte[] generateSalt() throws NoSuchAlgorithmException {
 		
-		// byte型で4バイト分のランダムなデータを生成
+		// byte型で設定したバイト長のランダムなデータを生成
 		byte[] bRndSalt = new byte[DIGIT_SALT];
 		SecureRandom secRandom = SecureRandom.getInstance("SHA1PRNG");
     	secRandom.nextBytes(bRndSalt);
@@ -116,9 +118,10 @@ public class OpenLDAPEncryption {
 	 * @return
 	 * @throws NoSuchAlgorithmException
 	 */
-	public static byte[] encryptionPassword1(String alg, String sInputPass, byte[] bRndSalt) throws NoSuchAlgorithmException {
+	public byte[] encryptionPassword1(String alg, String sInputPass, byte[] bRndSalt) throws NoSuchAlgorithmException {
 		
-		initAlgorithm(alg); // ハッシュ化アルゴリズムの設定
+		Object algData[];
+		algData = initAlgorithm(alg); // ハッシュ化アルゴリズムの設定
 		
 		// パスワード、生成したSaltの順で結合
 		byte[] bInputPass = sInputPass.getBytes(StandardCharsets.UTF_8); // 文字列をバイトに変換
@@ -127,7 +130,7 @@ public class OpenLDAPEncryption {
     	System.arraycopy(bRndSalt, 0, bPassSalt, bInputPass.length, bRndSalt.length);
     	
     	// 結合した値をハッシュ化
-    	MessageDigest md = MessageDigest.getInstance(p_alg);
+    	MessageDigest md = MessageDigest.getInstance(algData[1].toString());
     	md.update(bPassSalt);
     	byte[] bHashed = md.digest(); // ハッシュ化されたパスワード
     	
@@ -141,9 +144,10 @@ public class OpenLDAPEncryption {
 	 * @param bRndSalt
 	 * @return
 	 */
-	public static String encryptionPassword2(String alg, byte[] bHashedPass, byte[] bRndSalt) {
+	public String encryptionPassword2(String alg, byte[] bHashedPass, byte[] bRndSalt) {
 		
-		initAlgorithm(alg); // ハッシュ化アルゴリズムの設定
+		Object algData[];
+		algData = initAlgorithm(alg); // ハッシュ化アルゴリズムの設定
 		
 		// ハッシュ化した値と生成したSaltを結合
     	byte[] bHasedSalt = new byte[bHashedPass.length + bRndSalt.length];
@@ -155,7 +159,7 @@ public class OpenLDAPEncryption {
     	
     	// 出力する暗号化パスワードのフォーマットを整える
     	String s64HasedSalt = new String(b64HasedSalt, StandardCharsets.UTF_8); // バイトを文字列に変換
-    	String sEncPass = p_show_alg + s64HasedSalt; // アルゴリズムを先頭に表記
+    	String sEncPass = algData[2].toString() + s64HasedSalt; // アルゴリズムを先頭に表記
     	
     	return sEncPass;
 	}
@@ -166,18 +170,19 @@ public class OpenLDAPEncryption {
 	 * @param sExtPass
 	 * @return
 	 */
-	public static byte[] decryptionPassword(String alg, String sExtPass) {
+	public byte[] decryptionPassword(String alg, String sExtPass) {
 		
-		initAlgorithm(alg); // ハッシュ化アルゴリズムの設定
+		Object algData[];
+		algData = initAlgorithm(alg); // ハッシュ化アルゴリズムの設定
 		
 		// Base64からデコード
-		sExtPass = sExtPass.replace(p_show_alg, ""); // 先頭のアルゴリズム表記を削除
+		sExtPass = sExtPass.replace(algData[2].toString(), ""); // 先頭のアルゴリズム表記を削除
 		byte[] bExtPass64 = sExtPass.getBytes(StandardCharsets.UTF_8); // 文字列をバイトに変換
 		byte[] bExtPass = Base64.getDecoder().decode(bExtPass64);
 		
 		// デコードされたデータの最後尾にあるSaltを削除
-		byte[] bNoSalt = new byte[p_digit_hash];
-		System.arraycopy(bExtPass, 0, bNoSalt, 0, p_digit_hash);
+		byte[] bNoSalt = new byte[Integer.parseInt(algData[0].toString())];
+		System.arraycopy(bExtPass, 0, bNoSalt, 0, Integer.parseInt(algData[0].toString()));
 		
 		return bNoSalt;
 	}
