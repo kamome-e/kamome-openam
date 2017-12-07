@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Calendar;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import javax.servlet.http.HttpServletRequest;
@@ -210,12 +209,6 @@ public abstract class AjaxPage extends Page {
         String localizedValue = null;
         try {
             localizedValue = Locale.getString(rb, i18nKey, debug);
-            final String copyRightKey = "product.copyrights";
-            if (copyRightKey.equalsIgnoreCase(i18nKey) && localizedValue != null) {
-                Calendar calendar = Calendar.getInstance();
-                int year = calendar.get(Calendar.YEAR);
-                localizedValue = localizedValue.replace("{0}", String.valueOf(year));
-            }
         } catch (MissingResourceException mre) {
             // do nothing
         }
