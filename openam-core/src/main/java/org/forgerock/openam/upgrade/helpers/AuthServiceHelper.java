@@ -36,7 +36,6 @@ import org.forgerock.openam.upgrade.UpgradeException;
  */
 public class AuthServiceHelper extends AbstractUpgradeHelper {
     // new modules
-    private final static String SECURID = "com.sun.identity.authentication.modules.securid.SecurID";
     private final static String ADAPTIVE = "org.forgerock.openam.authentication.modules.adaptive.Adaptive";
     private final static String OAUTH2 = "org.forgerock.openam.authentication.modules.oauth2.OAuth";
     private final static String OATH = "org.forgerock.openam.authentication.modules.oath.OATH";
@@ -69,7 +68,7 @@ public class AuthServiceHelper extends AbstractUpgradeHelper {
 
         Set<String> defaultValues = existingAttr.getDefaultValues();
 
-        if (defaultValues.contains(SECURID) && defaultValues.contains(ADAPTIVE) && defaultValues.contains(OAUTH2)
+        if (defaultValues.contains(ADAPTIVE) && defaultValues.contains(OAUTH2)
                 && defaultValues.contains(OATH) && defaultValues.contains(DEVICE_PRINT)
                 && defaultValues.contains(PERSISTENT_COOKIE) && defaultValues.contains(SCRIPTED)
                 && !defaultValues.contains(SAFEWORD) && !defaultValues.contains(UNIX)) {
@@ -77,7 +76,6 @@ public class AuthServiceHelper extends AbstractUpgradeHelper {
             return null;
         }
 
-        defaultValues.add(SECURID);
         defaultValues.add(ADAPTIVE);
         defaultValues.add(OAUTH2);
         defaultValues.add(OATH);
