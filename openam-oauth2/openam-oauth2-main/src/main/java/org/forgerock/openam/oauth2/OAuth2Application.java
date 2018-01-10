@@ -49,6 +49,7 @@ import org.restlet.data.Reference;
 import org.restlet.data.MediaType;
 import org.restlet.routing.Router;
 import org.restlet.security.Verifier;
+import com.iplanet.services.naming.WebtopNaming;
 
 /**
  * Sets up the OAuth 2 provider end points and their handlers
@@ -77,7 +78,7 @@ public class OAuth2Application extends Application {
         root.attach(OAuth2Utils.getTokenInfoPath(getContext()), ValidationServerResource.class);
 
         //connect client register
-        Reference validationServerRef = new Reference(OAuth2Utils.getDeploymentURL(Request.getCurrent())+ "/oauth2" + OAuth2Utils.getTokenInfoPath(getContext()));
+        Reference validationServerRef = new Reference(WebtopNaming.getLocalServer() + "/oauth2" + OAuth2Utils.getTokenInfoPath(getContext()));
         AccessTokenValidator<BearerToken> validator =
                 new ValidationServerResource(getContext(), validationServerRef);
         TokenVerifier tokenVerifier = new BearerTokenVerifier(validator);
@@ -88,7 +89,7 @@ public class OAuth2Application extends Application {
         root.attach("/connect/register", authenticator);
 
         //connect userinfo
-        validationServerRef = new Reference(OAuth2Utils.getDeploymentURL(Request.getCurrent())+ "/oauth2" + OAuth2Utils.getTokenInfoPath(getContext()));
+        validationServerRef = new Reference(WebtopNaming.getLocalServer() + "/oauth2" + OAuth2Utils.getTokenInfoPath(getContext()));
         validator =
                 new ValidationServerResource(getContext(), validationServerRef);
         tokenVerifier = new BearerTokenVerifier(validator);
