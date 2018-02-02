@@ -40,9 +40,14 @@ import org.forgerock.openam.oauth2.provider.OAuth2TokenStore;
 import org.forgerock.openam.oauth2.provider.Scope;
 import org.forgerock.openam.oauth2.utils.OAuth2Utils;
 import org.restlet.Request;
+import org.forgerock.json.jose.utils.Utils;
+import org.forgerock.json.jose.jwt.JwtHeader;
 
 import java.security.SignatureException;
 import java.util.*;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 
 /**
  * This is the default scope implementation class. This class by default
@@ -200,7 +205,42 @@ public class ScopeImpl implements Scope {
                 throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(),
                         "Cant sign JWT");
             }
-            map.put("id_token", signedJwt.build());
+            
+            // update at 2018.02.02 header algorithm "none" --- sta
+            String headerAlgorithm = null;
+            try {
+                Class<JwtHeader> c = JwtHeader.class;
+                Method method = c.getDeclaredMethod( "getAlgorithmString" );
+                method.setAccessible( true );
+                headerAlgorithm = (String)method.invoke( signedJwt.getHeader());
+            } catch (Exception e) {
+                OAuth2Utils.DEBUG.error("ScopeImpl.extraDataToReturnForTokenEndpoint()::Unable to sign JWT", e);
+                throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(), "Cant sign JWT");
+             }
+            
+            if ("none".equals(headerAlgorithm)) {
+                String jwsPayload = null;
+                try  {
+                    Field fieldPayload = null;
+                    fieldPayload = SignedJwt.class.getDeclaredField("payload");
+                    fieldPayload.setAccessible(true);
+                    jwsPayload =  fieldPayload.get(signedJwt).toString();
+                } catch (Exception e) {
+                    OAuth2Utils.DEBUG.error("ScopeImpl.extraDataToReturnForTokenEndpoint()::Unable to sign JWT", e);
+                    throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(), "Cant sign JWT");
+                }
+                
+                String jwsHeader = signedJwt.getHeader().build();
+                String encodedHeader = Utils.base64urlEncode(jwsHeader);
+                String encodedClaims = Utils.base64urlEncode(jwsPayload);
+                String signingInput = encodedHeader + "." + encodedClaims;
+                String id_token = signingInput + ".";
+                map.put("id_token", id_token);
+            } else {
+                map.put("id_token", signedJwt.build());
+            }
+           // update at 2018.02.02 --- end
+        
         }
         //END OpenID Connect
         return map;

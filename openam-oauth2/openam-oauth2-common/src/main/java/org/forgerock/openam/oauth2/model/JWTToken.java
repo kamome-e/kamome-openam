@@ -31,6 +31,7 @@ import org.forgerock.json.jose.builders.JwtBuilderFactory;
 import org.forgerock.json.jose.jwe.EncryptedJwt;
 import org.forgerock.json.jose.jwe.EncryptionMethod;
 import org.forgerock.json.jose.jwe.JweAlgorithm;
+import org.forgerock.openam.oauth2.model.JwsAlgorithmOAuth2;
 import org.forgerock.json.jose.jws.JwsAlgorithm;
 import org.forgerock.json.jose.jws.JwsHeader;
 import org.forgerock.json.jose.jws.SignedJwt;
@@ -90,14 +91,16 @@ public class JWTToken extends CoreToken implements Token {
         AMIdentity id = OAuth2Utils.getClientIdentity(clientID, getRealm());
         ClientApplication clientApplication = new ClientApplicationImpl(id);
         String algorithm = clientApplication.getIDTokenSignedResponseAlgorithm();
-        JwsAlgorithm jwsAlgorithm = JwsAlgorithm.getJwsAlgorithm(algorithm);
+        // update at 2018.02.02 header algorithm "none" --- sta
+         JwsAlgorithmOAuth2  jwsAlgorithm = JwsAlgorithmOAuth2.getJwsAlgorithmOath2(algorithm);
+        // update at 2018.02.02 header algorithm "none" --- end
         if (jwsAlgorithm == null){
             OAuth2Utils.DEBUG.error("JWTToken.sign()::Unable to find jws algorithm for: " + algorithm);
             throw new SignatureException();
         }
         JwsHeader header = new JwsHeader();
         header.setAlgorithm(jwsAlgorithm);
-        header.setContentType("JWT");
+//        header.setContentType("JWT");  del at 2018.02.02
         return new SignedJwt(header, jwtClaimsSet, pk);
     }
 
