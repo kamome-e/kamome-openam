@@ -26,7 +26,7 @@
 
 --%>
 <%--
-   Portions Copyrighted 2011-2017 ForgeRock AS
+   Portions Copyrighted 2011-2018 ForgeRock AS
    Portions Copyrighted 2012 Open Source Solution Technology Corporation
 --%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -118,7 +118,7 @@
         </div>
         <div class="footer alt-color">
             <div class="grid_6 suffix_3">
-                <p>Copyright &copy; 2010-2017, ForgeRock AS. All rights reserved. Licensed for use under the Common 
+                <p>Copyright &copy; 2010-2018, ForgeRock AS. All rights reserved. Licensed for use under the Common 
                     Development and Distribution License (CDDL), see http://www.forgerock.com/license/CDDLv1.0.html for 
                     details. This software is based on the OpenSSO/OpenAM open source project and the source includes the 
                     copyright works of other authors, granted for use under the CDDL. This distribution may include other 
