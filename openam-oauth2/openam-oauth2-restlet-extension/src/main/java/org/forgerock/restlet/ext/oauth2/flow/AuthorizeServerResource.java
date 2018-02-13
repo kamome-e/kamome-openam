@@ -319,41 +319,47 @@ public class AuthorizeServerResource extends AbstractFlow {
 
     protected boolean savedConsent(String userid, String clientId, Set<String> scopes) {
         OAuth2ProviderSettings settings = OAuth2Utils.getSettingsProvider(getRequest());
+        // 2018.02.09 upd --sta 
+        // SharedConsentAttributeNameが null の場合、エラーメッセージを出力する
         String attribute = settings.getSharedConsentAttributeName();
-
-        AMIdentity id = OAuth2Utils.getIdentity(userid, OAuth2Utils.getRealm(getRequest()));
-        Set<String> attributeSet = null;
-
-        if (id != null) {
-            try {
-                attributeSet = id.getAttribute(attribute);
-            } catch (Exception e) {
-                OAuth2Utils.DEBUG.error("AuthorizeServerResource.saveConsent(): Unable to get profile attribute", e);
-                return false;
+        if (attribute != null) {
+            AMIdentity id = OAuth2Utils.getIdentity(userid, OAuth2Utils.getRealm(getRequest()));
+            Set<String> attributeSet = null;
+    
+            if (id != null) {
+                try {
+                    attributeSet = id.getAttribute(attribute);
+                } catch (Exception e) {
+                    OAuth2Utils.DEBUG.error("AuthorizeServerResource.saveConsent(): Unable to get profile attribute", e);
+                    return false;
+                }
             }
+    
+            //check the values of the attribute set vs the scope and client requested
+            //attribute set is in the form of client_id|scope1 scope2 scope3
+            for (String consent : attributeSet) {
+                int loc = consent.indexOf(" ");
+                String consentClientId = consent.substring(0, loc);
+                String[] scopesArray = null;
+                if (loc + 1 < consent.length()) {
+                    scopesArray = consent.substring(loc + 1, consent.length()).split(" ");
+                }
+                Set<String> consentScopes = null;
+                if (scopesArray != null && scopesArray.length > 0) {
+                    consentScopes = new HashSet<String>(Arrays.asList(scopesArray));
+                } else {
+                    consentScopes = new HashSet<String>();
+                }
+    
+                //if both the client and the scopes are identical to the saved consent then approve
+                if (clientId.equals(consentClientId) && scopes.equals(consentScopes)) {
+                    return true;
+                }
+            }
+        } else {
+            OAuth2Utils.DEBUG.error("No saved consent attribute defined in realm:" + OAuth2Utils.getRealm(getRequest()));
         }
-
-        //check the values of the attribute set vs the scope and client requested
-        //attribute set is in the form of client_id|scope1 scope2 scope3
-        for (String consent : attributeSet) {
-            int loc = consent.indexOf(" ");
-            String consentClientId = consent.substring(0, loc);
-            String[] scopesArray = null;
-            if (loc + 1 < consent.length()) {
-                scopesArray = consent.substring(loc + 1, consent.length()).split(" ");
-            }
-            Set<String> consentScopes = null;
-            if (scopesArray != null && scopesArray.length > 0) {
-                consentScopes = new HashSet<String>(Arrays.asList(scopesArray));
-            } else {
-                consentScopes = new HashSet<String>();
-            }
-
-            //if both the client and the scopes are identical to the saved consent then approve
-            if (clientId.equals(consentClientId) && scopes.equals(consentScopes)) {
-                return true;
-            }
-        }
+     // 2018.02.09 upd --end
 
         return false;
     }
@@ -362,26 +368,33 @@ public class AuthorizeServerResource extends AbstractFlow {
         AMIdentity id = OAuth2Utils.getIdentity(userId, OAuth2Utils.getRealm(getRequest()));
         OAuth2ProviderSettings settings = OAuth2Utils.getSettingsProvider(getRequest());
         String consentAttribute = settings.getSharedConsentAttributeName();
-        try {
-
-            //get the current set of consents and add our new consent to it.
-            Set<String> consents = new HashSet<String>(id.getAttribute(consentAttribute));
-            StringBuilder sb = new StringBuilder();
-            if (scopes == null || scopes.isEmpty()) {
-                sb.append(clientId.trim()).append(" ");
-            } else {
-                sb.append(clientId.trim()).append(" ").append(scopes.trim());
+        // 2018.02.09 upd --sta 
+        // SharedConsentAttributeNameが null の場合、エラーメッセージを出力する
+        if (consentAttribute != null) {
+            try {
+    
+                //get the current set of consents and add our new consent to it.
+                Set<String> consents = new HashSet<String>(id.getAttribute(consentAttribute));
+                StringBuilder sb = new StringBuilder();
+                if (scopes == null || scopes.isEmpty()) {
+                    sb.append(clientId.trim()).append(" ");
+                } else {
+                    sb.append(clientId.trim()).append(" ").append(scopes.trim());
+                }
+                consents.add(sb.toString());
+    
+                //update the user profile with our new consent settings
+                Map<String, Set<String>> attrs = new HashMap<String, Set<String>>();
+                attrs.put(consentAttribute, consents);
+                id.setAttributes(attrs);
+                id.store();
+            } catch (Exception e) {
+                OAuth2Utils.DEBUG.error("AuthorizeServerResource.saveConsent(): Unable to save consent ", e);
             }
-            consents.add(sb.toString());
-
-            //update the user profile with our new consent settings
-            Map<String, Set<String>> attrs = new HashMap<String, Set<String>>();
-            attrs.put(consentAttribute, consents);
-            id.setAttributes(attrs);
-            id.store();
-        } catch (Exception e) {
-            OAuth2Utils.DEBUG.error("AuthorizeServerResource.saveConsent(): Unable to save consent ", e);
+        } else {
+            OAuth2Utils.DEBUG.error("No saved consent attribute defined in realm:" + OAuth2Utils.getRealm(getRequest()));
         }
+        // 2018.02.09 upd --end
     }
 
     private boolean validResponseTypes(Set<String> responseTypesRequested) {
