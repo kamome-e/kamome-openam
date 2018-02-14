@@ -61,6 +61,7 @@ import java.lang.reflect.Field;
  */
 public class ScopeImpl implements Scope {
     private static final String MULTI_ATTRIBUTE_SEPARATOR = ",";
+    private static final String OPENID_SCOPE = "openid";
 
     private static Map<String, Object> scopeToUserUserProfileAttributes;
 
@@ -162,7 +163,7 @@ public class ScopeImpl implements Scope {
                 for (String scope : scopes){
                     try {
                         Set<String> attributes = id.getAttribute(scope);
-                        if (attributes != null || !attributes.isEmpty()) {
+                        if (attributes != null && !attributes.isEmpty()) {
                             Iterator<String> iter = attributes.iterator();
                             StringBuilder builder = new StringBuilder();
                             while (iter.hasNext()) {
@@ -192,7 +193,7 @@ public class ScopeImpl implements Scope {
 
         //OpenID Connect
         // if an openid scope return the id_token
-        if (scope != null && scope.contains("openid")){
+        if (scope != null && scope.contains(OPENID_SCOPE)){
             DefaultOAuthTokenStoreImpl store = InjectorHolder.getInstance(DefaultOAuthTokenStoreImpl.class);
             CoreToken jwtToken = store.createJWT(token.getRealm(),
                     token.getUserID(),
@@ -284,6 +285,9 @@ public class ScopeImpl implements Scope {
         //add the subject identifier to the response
         response.put("sub", token.getUserID());
         for(String scope: scopes){
+            if (scope.equals(OPENID_SCOPE)) {
+                continue;
+            }
 
             //get the attribute associated with the scope
             Object attributes = scopeToUserUserProfileAttributes.get(scope);
