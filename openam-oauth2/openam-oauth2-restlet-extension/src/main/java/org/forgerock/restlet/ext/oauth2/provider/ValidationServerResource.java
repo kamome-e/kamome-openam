@@ -24,39 +24,44 @@
 
 package org.forgerock.restlet.ext.oauth2.provider;
 
+import java.io.IOException;
 import java.security.AccessController;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.iplanet.sso.SSOToken;
-import com.sun.identity.security.AdminTokenAction;
-import com.sun.identity.sm.ServiceConfig;
-import com.sun.identity.sm.ServiceConfigManager;
-import com.sun.identity.shared.OAuth2Constants;
-import org.forgerock.openam.oauth2.model.CoreToken;
-import org.forgerock.openam.oauth2.model.BearerToken;
-import org.forgerock.openam.oauth2.provider.OAuth2TokenStore;
-import org.forgerock.openam.oauth2.utils.OAuth2Utils;
 import org.forgerock.openam.oauth2.exceptions.OAuthProblemException;
+import org.forgerock.openam.oauth2.model.BearerToken;
+import org.forgerock.openam.oauth2.model.CoreToken;
+import org.forgerock.openam.oauth2.provider.OAuth2TokenStore;
+import org.forgerock.openam.oauth2.provider.Scope;
+import org.forgerock.openam.oauth2.utils.OAuth2Utils;
 import org.forgerock.restlet.ext.oauth2.consumer.AccessTokenExtractor;
 import org.forgerock.restlet.ext.oauth2.consumer.AccessTokenValidator;
 import org.forgerock.restlet.ext.oauth2.consumer.BearerTokenExtractor;
 import org.restlet.Client;
 import org.restlet.Context;
-import org.restlet.Request;
 import org.restlet.Response;
-import org.restlet.data.*;
+import org.restlet.data.CacheDirective;
+import org.restlet.data.Form;
+import org.restlet.data.Protocol;
+import org.restlet.data.Reference;
+import org.restlet.data.Status;
+import org.restlet.engine.header.Header;
+import org.restlet.engine.header.HeaderConstants;
 import org.restlet.ext.jackson.JacksonRepresentation;
 import org.restlet.representation.Representation;
 import org.restlet.resource.ClientResource;
 import org.restlet.resource.Get;
 import org.restlet.resource.ResourceException;
 import org.restlet.resource.ServerResource;
-import org.forgerock.openam.oauth2.provider.Scope;
+import org.restlet.util.Series;
+
+import com.iplanet.sso.SSOToken;
+import com.sun.identity.security.AdminTokenAction;
+import com.sun.identity.shared.OAuth2Constants;
+import com.sun.identity.sm.ServiceConfig;
+import com.sun.identity.sm.ServiceConfigManager;
 
 /**
  * Validates the token and returns to the subject the tokeninfo and scope evaluation if it is used.
@@ -174,36 +179,70 @@ public class ValidationServerResource extends ServerResource implements
         return new JacksonRepresentation<Map>(response);
     }
 
+    private void setConnectionClose(ClientResource clientResource) {
+        @SuppressWarnings("unchecked")
+        Series<Header> headers = (Series<Header>) clientResource.getRequestAttributes().get(HeaderConstants.ATTRIBUTE_HEADERS);
+        if (headers == null) {
+            headers = new Series<Header>(Header.class);
+            clientResource.getRequestAttributes().put(HeaderConstants.ATTRIBUTE_HEADERS, headers);
+        }
+        headers.add(HeaderConstants.HEADER_CONNECTION, "close");
+    }
+
     @Override
     public BearerToken verify(BearerToken token) throws OAuthProblemException {
         Reference reference = new Reference(validationServerRef);
         reference.addQueryParameter(OAuth2Constants.Params.ACCESS_TOKEN, token.getTokenID());
-        Client client = new Client(new Context(), Protocol.HTTP);
-        ClientResource clientResource = new ClientResource(reference.toUri());
-        clientResource.setNext(client);
-        clientResource.get();
+        Client client = null;
+        Response response = null;
         try {
+            client = new Client(new Context(), Protocol.HTTP);
+            ClientResource clientResource = new ClientResource(reference.toUri()) {
+                @Override
+                public void doError(Status errorStatus) {
+                    // HTTPステータス・コードがエラーとなった場合に呼び出される処理をオーバーライドする。
+                    // デフォルトの処理ではここで例外を投げるが、ここでは何もせず
+                    // 呼び出し元でエラーハンドリングを行うように処理を変更する。
+                    // ここで例外を投げてしまうとレスポンスを消費する機会がないため
+                    // コネクションが閉じられずソケットのCLOSE_WAITが残ってしまうため。
+                    // （呼び出し元ではエラーの場合もレスポンスを消費する必要がある）
+                }
+            };
+            setConnectionClose(clientResource);
+            clientResource.setNext(client);
+            clientResource.get();
+
             // Actually handle the call
-            Response response = clientResource.getResponse();
-
-            // Throws OAuthProblemException
-            Map remoteToken = BearerTokenExtractor.extractToken(response);
-
-            Object o = remoteToken.get(OAuth2Constants.Token.OAUTH_ACCESS_TOKEN);
-            if (o != null){
-                return (BearerToken) tokenStore.readAccessToken(o.toString());
+            response = clientResource.getResponse();
+            if (response.getStatus().isError()) {
+                throw new ResourceException(response.getStatus());
             }
 
-            return null;
-        } catch (OAuthProblemException e) {
-            OAuth2Utils.DEBUG.error("ValidationServerResource::Error occurred during token verify", e);
-            throw e;
-        } catch (ResourceException e) {
-            OAuth2Utils.DEBUG.error("ValidationServerResource::Error occurred during token verify", e);
-            throw OAuthProblemException.OAuthError.ACCESS_DENIED.handle(null, e.getMessage());
-        }
-        
-        finally {
+            try {
+                // Throws OAuthProblemException
+                Map remoteToken = BearerTokenExtractor.extractToken(response);
+
+                Object o = remoteToken.get(OAuth2Constants.Token.OAUTH_ACCESS_TOKEN);
+                if (o != null){
+                    return (BearerToken) tokenStore.readAccessToken(o.toString());
+                }
+
+                return null;
+            } catch (OAuthProblemException e) {
+                OAuth2Utils.DEBUG.error("ValidationServerResource::Error occurred during token verify", e);
+                throw e;
+            } catch (ResourceException e) {
+                OAuth2Utils.DEBUG.error("ValidationServerResource::Error occurred during token verify", e);
+                throw OAuthProblemException.OAuthError.ACCESS_DENIED.handle(null, e.getMessage());
+            }
+        } finally {
+            if (response != null) {
+                try {
+                    response.getEntity().exhaust();
+                } catch (IOException e) {
+                    OAuth2Utils.DEBUG.error("ValidationServerResource::Error occurred while exhausting the content of the response", e);
+                }
+            }
             if (client != null) {
                 try {
                     client.stop();
@@ -212,7 +251,7 @@ public class ValidationServerResource extends ServerResource implements
                             " Restlet client", e);
                 }
             }
-        }      
+        }
     }
 
     private String getPluginClass(String realm) throws OAuthProblemException {
