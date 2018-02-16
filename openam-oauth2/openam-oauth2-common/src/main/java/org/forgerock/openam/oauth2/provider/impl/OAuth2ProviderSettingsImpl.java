@@ -26,7 +26,9 @@ package org.forgerock.openam.oauth2.provider.impl;
 
 import com.iplanet.sso.SSOToken;
 import com.sun.identity.security.AdminTokenAction;
+import com.sun.identity.shared.Constants;
 import com.sun.identity.shared.OAuth2Constants;
+import com.sun.identity.shared.configuration.SystemPropertiesManager;
 import com.sun.identity.sm.DNMapper;
 import com.sun.identity.sm.ServiceConfig;
 import com.sun.identity.sm.ServiceListener;
@@ -35,6 +37,7 @@ import java.util.Collections;
 import org.forgerock.openam.oauth2.exceptions.OAuthProblemException;
 import org.forgerock.openam.oauth2.provider.OAuth2ProviderSettings;
 import org.forgerock.openam.oauth2.utils.OAuth2Utils;
+import org.forgerock.openam.utils.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.AccessController;
@@ -188,7 +191,16 @@ public class OAuth2ProviderSettingsImpl implements OAuth2ProviderSettings {
 
 	private void initializeClass(HttpServletRequest request,String realm){
 
-        deploymentUrl = OAuth2Utils.getDeploymentURL(request);
+    	// 「設定→サーバーおよびサイト→サーバー名→高度」に設定されている値を取得
+        deploymentUrl = SystemPropertiesManager.get(Constants.OAUTH2_DEPLOYMENT_URL);
+        if (StringUtils.isEmpty(deploymentUrl)) {
+        	// サーバーに紐づくサイトからプライマリURLを取得
+        	deploymentUrl = OAuth2Utils.getSitePrimaryURL();
+        }
+        if (StringUtils.isEmpty(deploymentUrl)) {
+        	// リクエストからURLを生成
+            deploymentUrl = OAuth2Utils.getDeploymentURL(request);
+        }
         this.realm = realm;
         SSOToken token = (SSOToken) AccessController.doPrivileged(AdminTokenAction.getInstance());
         ServiceConfigManager serviceConfigManager = null;
@@ -467,10 +479,7 @@ public class OAuth2ProviderSettingsImpl implements OAuth2ProviderSettings {
             String message = "OAuth2Utils::Unable to get provider setting for : "+
                     OAuth2Constants.OAuth2ProviderService.SAVED_CONSENT_ATTRIBUTE;
             OAuth2Utils.DEBUG.error(message);
-            // 2018.02.09 upd savedConsentAttributeがnullの場合、
-            // Exceptionをthrowせず、エラーメッセージを出力してnullを返却する
-//            throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(null, message);
-            return null;
+            throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(null, message);
         }
     }
 

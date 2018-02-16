@@ -1355,4 +1355,9 @@ public interface Constants {
      * Property to define the default time limit for LDAP operations performed by the Netscape LDAP SDK.
      */
     public static final String DEFAULT_LDAP_TIME_LIMIT = "org.forgerock.openam.ldap.default.time.limit";
+
+    /**
+     * Property string for deployment URL.
+     */
+    public static final String OAUTH2_DEPLOYMENT_URL = "org.openam.oauth2.deploymentURL";
 }

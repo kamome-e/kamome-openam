@@ -39,8 +39,11 @@ import java.security.SignatureException;
 import java.util.*;
 
 import com.iplanet.am.util.SystemProperties;
+import com.iplanet.services.naming.WebtopNaming;
 import com.iplanet.sso.SSOToken;
 import com.iplanet.sso.SSOTokenManager;
+import com.sun.identity.common.configuration.ServerConfiguration;
+import com.sun.identity.common.configuration.SiteConfiguration;
 import com.sun.identity.idm.*;
 import com.sun.identity.log.LogRecord;
 import com.sun.identity.log.Logger;
@@ -63,6 +66,7 @@ import org.forgerock.openam.oauth2.provider.OAuth2ProviderSettings;
 import org.forgerock.openam.oauth2.provider.OAuth2TokenStore;
 import org.forgerock.openam.oauth2.exceptions.OAuthProblemException;
 import org.forgerock.openam.oauth2.provider.impl.OAuth2ProviderSettingsImpl;
+import org.forgerock.openam.utils.StringUtils;
 import org.restlet.Context;
 import org.restlet.Request;
 import org.restlet.data.Form;
@@ -724,8 +728,19 @@ public class OAuth2Utils {
      * @return deployment URI of the OAuth2 server
      */
     public static String getDeploymentURL(Request request){
-        HttpServletRequest httpRequest = ServletUtils.getRequest(request);
-        return getDeploymentURL(httpRequest);
+    	// 「設定→サーバーおよびサイト→サーバー名→高度」に設定されている値を取得
+        String deploymentUrl = SystemPropertiesManager.get(Constants.OAUTH2_DEPLOYMENT_URL);
+        if (StringUtils.isEmpty(deploymentUrl)) {
+        	// サーバーに紐づくサイトからプライマリURLを取得
+        	deploymentUrl = getSitePrimaryURL();
+        }
+        if (StringUtils.isEmpty(deploymentUrl)) {
+        	// リクエストからURLを生成
+            HttpServletRequest httpRequest = ServletUtils.getRequest(request);
+        	deploymentUrl = getDeploymentURL(httpRequest);
+        }
+
+        return deploymentUrl;
     }
 
     /**
@@ -747,6 +762,20 @@ public class OAuth2Utils {
                 .append(request.getServerPort())
                 .append(deploymentURI);
         return sb.toString();
+    }
+
+    /**
+     * Returns a site name of which server belongs to.
+     */
+    public static String getSitePrimaryURL() {
+    	String primaryURL = null;
+    	try {
+	    	String localServer = WebtopNaming.getLocalServer();
+	    	SSOToken token = (SSOToken) AccessController.doPrivileged(AdminTokenAction.getInstance());
+		    String siteName = ServerConfiguration.getServerSite(token, localServer);
+		    primaryURL = SiteConfiguration.getSitePrimaryURL(token, siteName);
+    	} catch (Exception e) {}
+    	return primaryURL;
     }
 
     /**
