@@ -31,7 +31,9 @@ import org.restlet.resource.Get;
 import org.restlet.resource.ServerResource;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class OpenIDConnectConfiguration extends ServerResource {
 
@@ -53,9 +55,24 @@ public class OpenIDConnectConfiguration extends ServerResource {
         response.put("jwks_uri", settings.getJWKSUri());
         response.put("registration_endpoint", settings.getClientRegistrationEndpoint());
         response.put("claims_supported", settings.getSupportedClaims());
-        response.put("response_types_supported", settings.getResponseTypes());
+        response.put("response_types_supported", getResponseTypes(settings.getResponseTypes()));
         response.put("subject_types_supported", settings.getSubjectTypesSupported());
         response.put("id_token_signing_alg_values_supported", settings.getTheIDTokenSigningAlgorithmsSupported());
         return new JsonRepresentation(response);
+    }
+
+    /**
+     * 2018.02.19 add
+     * レスポンスタイプに"|"区切りでプラグイン名が含まれるため、"|"以降の文字列を削る
+     * 
+     * @param responseTypeSet
+     * @return
+     */
+    private Set<String> getResponseTypes(Set<String> responseTypeSet) {
+    	Set<String> responseTypes = new HashSet<String>();
+    	for (String responseType : responseTypeSet) {
+    		responseTypes.add(responseType.substring(0, responseType.indexOf("|")));
+    	}
+        return responseTypes;
     }
 }

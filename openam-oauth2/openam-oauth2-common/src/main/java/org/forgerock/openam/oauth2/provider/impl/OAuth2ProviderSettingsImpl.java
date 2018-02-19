@@ -452,12 +452,7 @@ public class OAuth2ProviderSettingsImpl implements OAuth2ProviderSettings {
     @Override
     public Set<String> getResponseTypes() {
         if ((providerConfiguration != null) && (providerConfiguration.responseTypes != null)) {
-        	// "|"区切りの形式なので、"|"以降の文字列を削る
-        	Set<String> responseTypes = new HashSet<String>();
-        	for (String responseType : providerConfiguration.responseTypes) {
-        		responseTypes.add(responseType.substring(0, responseType.indexOf("|")));
-        	}
-            return responseTypes;
+        	return providerConfiguration.responseTypes;
         } else {
             String message = "OAuth2Utils::Unable to get provider setting for : "+
                     OAuth2Constants.OAuth2ProviderService.RESPONSE_TYPE_LIST;
