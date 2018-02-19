@@ -34,6 +34,8 @@ import com.sun.identity.sm.ServiceConfig;
 import com.sun.identity.sm.ServiceListener;
 import com.sun.identity.sm.ServiceConfigManager;
 import java.util.Collections;
+import java.util.HashSet;
+
 import org.forgerock.openam.oauth2.exceptions.OAuthProblemException;
 import org.forgerock.openam.oauth2.provider.OAuth2ProviderSettings;
 import org.forgerock.openam.oauth2.utils.OAuth2Utils;
@@ -450,7 +452,12 @@ public class OAuth2ProviderSettingsImpl implements OAuth2ProviderSettings {
     @Override
     public Set<String> getResponseTypes() {
         if ((providerConfiguration != null) && (providerConfiguration.responseTypes != null)) {
-            return providerConfiguration.responseTypes;
+        	// "|"区切りの形式なので、"|"以降の文字列を削る
+        	Set<String> responseTypes = new HashSet<String>();
+        	for (String responseType : providerConfiguration.responseTypes) {
+        		responseTypes.add(responseType.substring(0, responseType.indexOf("|")));
+        	}
+            return responseTypes;
         } else {
             String message = "OAuth2Utils::Unable to get provider setting for : "+
                     OAuth2Constants.OAuth2ProviderService.RESPONSE_TYPE_LIST;
