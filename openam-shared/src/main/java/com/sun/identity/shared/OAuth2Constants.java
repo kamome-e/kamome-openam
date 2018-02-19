@@ -674,6 +674,7 @@ public class OAuth2Constants {
         public static final String NONCE = "nonce";
         public static final String SAVE_CONSENT= "save_consent";
         public static final String SSO_TOKEN_ID = "ssoTokenId";
+        public static final String CSRF = "csrf";
         /**
          * The display mode in which to render the dialog. The default is
          * {@code page} on the www subdomain and {@code wap} on the m subdomain.

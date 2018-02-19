@@ -27,6 +27,7 @@ package org.forgerock.restlet.ext.oauth2.flow;
 import java.io.IOException;
 import java.util.*;
 
+import com.iplanet.sso.SSOToken;
 import com.sun.identity.shared.OAuth2Constants;
 
 import org.apache.commons.lang.StringUtils;
@@ -455,6 +456,11 @@ public abstract class AbstractFlow extends ServerResource {
         data.put("display_name", ESAPI.encoder().encodeForHTML(displayName));
         data.put("display_description", ESAPI.encoder().encodeForHTML(displayDescription));
         data.put("display_scope", encodeListForHTML(displayScope));
+        // 2018.02.19 add OPENAM-8575 OAuth2.0認証画面 CSRF脆弱性対策 --- sta
+        SSOToken token = OAuth2Utils.getSSOToken(getRequest());
+        data.put("csrf",  token.getTokenID().toString());
+        // 2018.02.19 add -- end
+        
         return data;
     }
 

@@ -18,6 +18,7 @@ package org.forgerock.restlet.ext.oauth2.flow;
 
 
 import com.iplanet.am.util.SystemProperties;
+import com.iplanet.sso.SSOToken;
 import com.sun.identity.idm.AMIdentity;
 import com.sun.identity.shared.OAuth2Constants;
 import java.util.Arrays;
@@ -43,6 +44,8 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
 
 public class AuthorizeServerResource extends AbstractFlow {
 
@@ -118,6 +121,10 @@ public class AuthorizeServerResource extends AbstractFlow {
         } else if (savedConsent && !openIDPromptParameter.promptConsent()) {
             Map<String, Object> attrs = getRequest().getAttributes();
             attrs.put(OAuth2Constants.Custom.DECISION, OAuth2Constants.Custom.ALLOW);
+            // 2018.02.19 add CSRF脆弱性対策によるSavedConsent不具合対応
+            SSOToken ssoToken = OAuth2Utils.getSSOToken(getRequest());
+            attrs.put(OAuth2Constants.Custom.CSRF, ssoToken.getTokenID().toString());
+            // 2018.02.19 add -- end
             getRequest().setAttributes(attrs);
             Representation rep = new JsonRepresentation(new HashMap());
             return represent(rep);
@@ -129,6 +136,18 @@ public class AuthorizeServerResource extends AbstractFlow {
 
     @Post("form:json")
     public Representation represent(Representation entity) {
+        
+         // 2018.02.19 add OPENAM-8575 OAuth2.0認証画面 CSRF脆弱性対策 --- sta
+        Charset UTF_8_CHARSET = Charset.forName("UTF-8");
+        SSOToken ssoToken = OAuth2Utils.getSSOToken(getRequest());
+        String csrfValue = OAuth2Utils.getRequestParameter(getRequest(), OAuth2Constants.Custom.CSRF, String.class);
+        if ( csrfValue == null || 
+                (ssoToken != null &&  !MessageDigest.isEqual(ssoToken.getTokenID().toString().getBytes(UTF_8_CHARSET), csrfValue.getBytes(UTF_8_CHARSET)) )) {
+            OAuth2Utils.DEBUG.error("Session id from consent request does not match users session");
+            throw OAuthProblemException.OAuthError.BAD_REQUEST.handle(getRequest(), "bad_request");
+        }
+        // 2018.02.19 add -- end
+
         resourceOwner = getAuthenticatedResourceOwner();
         client = validateRemoteClient();
         sessionClient =

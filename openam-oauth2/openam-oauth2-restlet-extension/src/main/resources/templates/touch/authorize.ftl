@@ -70,6 +70,7 @@
             <!-- Required parameters -->
             <input type="hidden" name="response_type" value="${response_type}"/>
             <input type="hidden" name="client_id" value="${client_id}"/>
+            <input type="hidden" name="csrf" value="${csrf}" />
             Save Consent: <input type="checkbox" name="save_consent" />
             <!-- Custom parameters -->
             <!--input type="hidden" name="decision" value="allow"/>
