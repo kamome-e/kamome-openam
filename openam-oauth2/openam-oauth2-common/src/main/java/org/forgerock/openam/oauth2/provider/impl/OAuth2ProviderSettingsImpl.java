@@ -481,7 +481,10 @@ public class OAuth2ProviderSettingsImpl implements OAuth2ProviderSettings {
             String message = "OAuth2Utils::Unable to get provider setting for : "+
                     OAuth2Constants.OAuth2ProviderService.SAVED_CONSENT_ATTRIBUTE;
             OAuth2Utils.DEBUG.error(message);
-            throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(null, message);
+            // 2018.02.09 upd savedConsentAttributeがnullの場合、
+            // Exceptionをthrowせず、エラーメッセージを出力してnullを返却する
+//            throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(null, message);
+            return null;
         }
     }
 
@@ -493,7 +496,10 @@ public class OAuth2ProviderSettingsImpl implements OAuth2ProviderSettings {
             String message = "OAuth2Utils::Unable to get provider setting for : "+
                     OAuth2Constants.OAuth2ProviderService.JKWS_URI;
             OAuth2Utils.DEBUG.error(message);
-            throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(null, message);
+            // 2018.02.09 upd savedConsentAttributeがnullの場合、
+            // Exceptionをthrowせず、エラーメッセージを出力してブランクを返却する
+//            throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(null, message);
+            return "";
         }
     }
 
