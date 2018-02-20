@@ -32,11 +32,11 @@ public enum JwsAlgorithmOAuth2 implements Algorithm {
     /** No digital signature or MAC value included. */
     none("none", JwsAlgorithmType.NONE),
     /** HMAC using SHA-256 hash algorithm. */
-    HS256("HmacSHA256", JwsAlgorithmType.HMAC),
+    HS256("HS256", JwsAlgorithmType.HMAC),
     /** HMAC using SHA-384 hash algorithm. */
-    HS384("HmacSHA384", JwsAlgorithmType.HMAC),
+    HS384("HS384", JwsAlgorithmType.HMAC),
     /** HMAC using SHA-512 hash algorithm. */
-    HS512("HmacSHA512", JwsAlgorithmType.HMAC);
+    HS512("HS512", JwsAlgorithmType.HMAC);
 
     private final String algorithm;
     private final JwsAlgorithmType algorithmType;

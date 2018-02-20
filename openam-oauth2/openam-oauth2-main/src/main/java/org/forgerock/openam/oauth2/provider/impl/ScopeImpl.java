@@ -30,6 +30,8 @@ import com.sun.identity.idm.*;
 import com.sun.identity.shared.OAuth2Constants;
 import org.forgerock.json.jose.jws.JwsAlgorithm;
 import org.forgerock.json.jose.jws.SignedJwt;
+import org.forgerock.json.jose.jws.SigningManager;
+import org.forgerock.json.jose.jws.handlers.SigningHandler;
 import org.forgerock.json.jose.jwt.JwtClaimsSet;
 import org.forgerock.openam.ext.cts.repo.DefaultOAuthTokenStoreImpl;
 import org.forgerock.openam.oauth2.exceptions.OAuthProblemException;
@@ -40,6 +42,7 @@ import org.forgerock.openam.oauth2.provider.OAuth2TokenStore;
 import org.forgerock.openam.oauth2.provider.Scope;
 import org.forgerock.openam.oauth2.utils.OAuth2Utils;
 import org.restlet.Request;
+import org.forgerock.util.encode.Base64url;
 import org.forgerock.json.jose.utils.Utils;
 import org.forgerock.json.jose.jwt.JwtHeader;
 
@@ -216,31 +219,41 @@ public class ScopeImpl implements Scope {
             } catch (Exception e) {
                 OAuth2Utils.DEBUG.error("ScopeImpl.extraDataToReturnForTokenEndpoint()::Unable to sign JWT", e);
                 throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(), "Cant sign JWT");
-             }
-            
-            if ("none".equals(headerAlgorithm)) {
-                String jwsPayload = null;
-                try  {
-                    Field fieldPayload = null;
-                    fieldPayload = SignedJwt.class.getDeclaredField("payload");
-                    fieldPayload.setAccessible(true);
-                    jwsPayload =  fieldPayload.get(signedJwt).toString();
-                } catch (Exception e) {
-                    OAuth2Utils.DEBUG.error("ScopeImpl.extraDataToReturnForTokenEndpoint()::Unable to sign JWT", e);
-                    throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(), "Cant sign JWT");
-                }
-                
-                String jwsHeader = signedJwt.getHeader().build();
-                String encodedHeader = Utils.base64urlEncode(jwsHeader);
-                String encodedClaims = Utils.base64urlEncode(jwsPayload);
-                String signingInput = encodedHeader + "." + encodedClaims;
-                String id_token = signingInput + ".";
-                map.put("id_token", id_token);
-            } else {
-                map.put("id_token", signedJwt.build());
             }
-           // update at 2018.02.02 --- end
-        
+
+            // update at 2018.02.20 algorithm type "HS256,HS384,HS512"
+//            if ("none".equals(headerAlgorithm)) {
+            String jwsPayload = null;
+            try  {
+                Field fieldPayload = null;
+                fieldPayload = SignedJwt.class.getDeclaredField("payload");
+                fieldPayload.setAccessible(true);
+                jwsPayload =  fieldPayload.get(signedJwt).toString();
+            } catch (Exception e) {
+                OAuth2Utils.DEBUG.error("ScopeImpl.extraDataToReturnForTokenEndpoint()::Unable to sign JWT", e);
+                throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(), "Cant sign JWT");
+            }
+
+            String jwsHeader = signedJwt.getHeader().build();
+            String encodedHeader = Utils.base64urlEncode(jwsHeader);
+            String encodedClaims = Utils.base64urlEncode(jwsPayload);
+            String signingInput = encodedHeader + "." + encodedClaims;
+            String id_token = signingInput + ".";
+
+            if (!"none".equals(headerAlgorithm)) {
+                SigningManager signingManager = new SigningManager();
+                SigningHandler signingHandler = signingManager.getSigningHandler(signedJwt.getHeader().getAlgorithm());
+                byte[] signature = signingHandler.sign(signedJwt.getHeader().getAlgorithm(), OAuth2Utils.getServerKeyPair(Request.getCurrent()).getPrivate(), signingInput);
+                id_token = id_token + Base64url.encode(signature);
+            }
+
+            map.put("id_token", id_token);
+//            } else {
+//                map.put("id_token", signedJwt.build());
+//            }
+            // update at 2018.02.20 algorithm type "HS256,HS384,HS512"
+            // update at 2018.02.02 --- end
+
         }
         //END OpenID Connect
         return map;
