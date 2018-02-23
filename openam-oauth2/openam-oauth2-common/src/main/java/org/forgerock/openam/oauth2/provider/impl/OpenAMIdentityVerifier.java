@@ -27,6 +27,9 @@ package org.forgerock.openam.oauth2.provider.impl;
 import com.iplanet.sso.SSOException;
 import com.iplanet.sso.SSOTokenManager;
 import com.sun.identity.shared.OAuth2Constants;
+import com.sun.identity.shared.ldap.LDAPDN;
+import com.sun.identity.sm.SMSEntry;
+
 import org.forgerock.openam.oauth2.exceptions.OAuthProblemException;
 import org.forgerock.openam.oauth2.openid.OpenIDPromptParameter;
 import org.forgerock.openam.oauth2.provider.AbstractIdentityVerifier;
@@ -47,6 +50,7 @@ import org.restlet.routing.Redirector;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.AccessDeniedException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -108,7 +112,34 @@ public class OpenAMIdentityVerifier extends AbstractIdentityVerifier<OpenAMUser>
             OAuth2Utils.DEBUG.warning("Error authenticating user against OpenAM: ", e);
         }
 
-        if (token != null){
+        if (token != null) {
+            try {
+                String auth2Realm = OAuth2Utils.getRealm(request);
+                if (!"/".equals(auth2Realm) && auth2Realm.startsWith("/")) {
+                    auth2Realm = auth2Realm.substring(1);
+                }
+                String tokenRealm = "";
+                String orgDN = token.getProperty("Organization");
+                if (orgDN != null) {
+                    tokenRealm = LDAPDN.explodeDN(orgDN, false)[0];
+                    if (tokenRealm.equalsIgnoreCase(SMSEntry.getRootSuffix())) {
+                        tokenRealm = "/";
+                    } else {
+                        int orgIndex = tokenRealm.indexOf(SMSEntry.ORGANIZATION_RDN + SMSEntry.EQUALS);
+                        if (orgIndex == -1) {
+                            tokenRealm = "/";
+                        } else {
+                            tokenRealm = tokenRealm.substring(orgIndex + 2, tokenRealm.length());
+                        }
+                    }
+                }
+                if (!auth2Realm.equals(tokenRealm)) {
+                    throw new Exception("Incorrect realm was accessed");
+                }
+            } catch (Exception e) {
+                OAuth2Utils.DEBUG.error(e.getMessage());
+                throw OAuthProblemException.OAuthError.BAD_REQUEST.handle(request);
+            }
 
             if (openIDPromptParameter.promptLogin()){
                 try {
