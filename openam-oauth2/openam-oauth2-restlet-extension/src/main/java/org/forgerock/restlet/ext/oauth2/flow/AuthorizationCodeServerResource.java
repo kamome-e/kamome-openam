@@ -97,6 +97,9 @@ public class AuthorizationCodeServerResource extends AbstractFlow {
         } else if (!code.getClientID().equalsIgnoreCase(client.getClient().getClientId())) {
             OAuth2Utils.DEBUG.error("AuthorizationCodeServerResource::Authorization code client_id doesn't match authorized client_id");
             throw OAuthProblemException.OAuthError.INVALID_GRANT.handle(getRequest());
+        } else if (!code.getRealm().equalsIgnoreCase(OAuth2Utils.getRealm(getRequest()))) {
+            OAuth2Utils.DEBUG.error("AuthorizationCodeServerResource::Authorization code realm doesn't match authorized realm");
+            throw OAuthProblemException.OAuthError.INVALID_GRANT.handle(getRequest());
         } else {
             if (code.isExpired()) {
                 OAuth2Utils.DEBUG.error("AuthorizationCodeServerResource::Authorization code expired.");
