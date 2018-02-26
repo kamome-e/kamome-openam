@@ -72,7 +72,7 @@ public class RedirectUrlValidator<T> {
 
         try {
             final URI uri = new URI(url);
-            if (!uri.isAbsolute()) {
+            if (!uri.isAbsolute() && !url.startsWith("//")) {
                 if (DEBUG.messageEnabled()) {
                     DEBUG.message(url + " is a relative URI, the goto URL is considered valid");
                 }
