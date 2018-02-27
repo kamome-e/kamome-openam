@@ -101,6 +101,7 @@ import com.sun.identity.shared.encode.URLEncDec;
 import com.sun.identity.shared.whitelist.URLPatternMatcher;
 import com.sun.identity.shared.xml.XMLUtils;
 import org.forgerock.openam.utils.IOUtils;
+import org.forgerock.openam.utils.StringUtils;
 import org.owasp.esapi.ESAPI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -1596,9 +1597,13 @@ public class SAML2Utils extends SAML2SDKUtils {
         if (debug.messageEnabled()) {
             debug.message("SAML2Utils.getRemoteServiceURL: id = " + id);
         }
-        
+
+        if (StringUtils.isEmpty(id)) {
+            return null;
+        }
+
         String serverID = extractServerId(id);
-        
+
         try {
             String localServerID = SystemConfigurationUtil.getServerID(
                 server_protocol, server_host, int_server_port, server_uri);
