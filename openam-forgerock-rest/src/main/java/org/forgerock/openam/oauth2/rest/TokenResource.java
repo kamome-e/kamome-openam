@@ -108,6 +108,12 @@ public class TokenResource implements CollectionResourceProvider {
     @Override
     public void deleteInstance(ServerContext context, String resourceId, DeleteRequest request,
                                ResultHandler<Resource> handler){
+        
+        // 2018.03.05 BUG-FIX-128 管理者tokenエンドポイントへのアクセス制限
+        final ResourceException exp =
+            new NotSupportedException("Delete is not supported for resource instances");
+        handler.handleError(exp);
+        
         //only admin can delete
         AMIdentity uid = null;
         try {
@@ -177,6 +183,12 @@ public class TokenResource implements CollectionResourceProvider {
 
     @Override
     public void queryCollection(ServerContext context, QueryRequest queryRequest, QueryResultHandler handler){
+        
+        // 2018.03.05 BUG-FIX-128 管理者tokenエンドポイントへのアクセス制限
+        final ResourceException exp =
+            new NotSupportedException("Search is not supported for resource instances");
+        handler.handleError(exp);
+        
         try{
             JsonValue response = null;
             Resource resource;
@@ -233,7 +245,12 @@ public class TokenResource implements CollectionResourceProvider {
     @Override
     public void readInstance(ServerContext context, String resourceId, ReadRequest request,
                              ResultHandler<Resource> handler){
-
+        
+        // 2018.03.05 BUG-FIX-128 管理者tokenエンドポイントへのアクセス制限
+        final ResourceException exp =
+            new NotSupportedException("Read is not supported for resource instances");
+        handler.handleError(exp);
+        
         AMIdentity uid = null;
         String username = null;
         try {
