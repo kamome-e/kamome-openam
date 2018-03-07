@@ -183,6 +183,11 @@ public class OAuth2Constants {
          */
         public static final String REALM = "realm";
 
+        /**
+         * Parameter usage location: OpenId Connect End Session request
+         */
+        public static final String END_SESSION_ID_TOKEN_HINT = "id_token_hint";
+
     }
 
     public class CoreTokenParams{
@@ -798,7 +803,8 @@ public class OAuth2Constants {
         public static final String IAT =  "iat";
         public static final String ATH = "ath";
         public static final String NONCE = "nonce";
-        public static final String OPS = "ops";
+        public static final String OPS = "org.forgerock.openidconnect.ops";
+        public static final String LEGACY_OPS = "ops";
 
     }
 }

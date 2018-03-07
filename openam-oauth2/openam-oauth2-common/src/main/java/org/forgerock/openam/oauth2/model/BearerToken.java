@@ -86,12 +86,13 @@ public class BearerToken extends CoreToken {
      *            The amount of time in seconds this token will expire in
      */
     public BearerToken(String id, String userID, SessionClient client,
-                       String realm, Set<String> scope, long expireTime, String issued, String nonce) {
+                       String realm, Set<String> scope, long expireTime, String issued, String nonce, String ssoTokenId) {
         super(id, userID, realm, expireTime, OAuth2Constants.Bearer.BEARER, OAuth2Constants.Token.OAUTH_CODE_TYPE, nonce, null);
         super.put(OAuth2Constants.CoreTokenParams.SCOPE, scope);
         super.put(OAuth2Constants.CoreTokenParams.CLIENT_ID, OAuth2Utils.stringToSet(client.getClientId()));
         super.put(OAuth2Constants.CoreTokenParams.REDIRECT_URI, OAuth2Utils.stringToSet(client.getRedirectUri()));
         super.put(OAuth2Constants.CoreTokenParams.ISSUED, OAuth2Utils.stringToSet(issued));
+        super.put(OAuth2Constants.Custom.SSO_TOKEN_ID, OAuth2Utils.stringToSet(ssoTokenId));
     }
 
     /**

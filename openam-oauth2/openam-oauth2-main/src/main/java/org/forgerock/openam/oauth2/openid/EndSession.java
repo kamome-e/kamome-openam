@@ -23,10 +23,10 @@
  */
 package org.forgerock.openam.oauth2.openid;
 
+import org.codehaus.jackson.annotate.JsonValue;
 import com.iplanet.sso.SSOToken;
 import com.iplanet.sso.SSOTokenManager;
 import com.sun.identity.shared.OAuth2Constants;
-import org.codehaus.jackson.annotate.JsonValue;
 import org.forgerock.json.jose.common.JwtReconstruction;
 import org.forgerock.json.jose.jws.SignedJwt;
 import org.forgerock.json.jose.jwt.JwtClaimsSet;
@@ -37,6 +37,7 @@ import org.restlet.resource.Get;
 import org.restlet.resource.ServerResource;
 
 public class EndSession extends ServerResource {
+
     private SSOTokenManager ssoTokenManager = null;
 
     public EndSession () {
@@ -54,16 +55,19 @@ public class EndSession extends ServerResource {
 
     @Get
     public Representation endSession() {
-        String id_token = OAuth2Utils.getRequestParameter(getRequest(), "id_token", String.class);
+        String id_token = OAuth2Utils.getRequestParameter(getRequest(), OAuth2Constants.Params.END_SESSION_ID_TOKEN_HINT, String.class);
         if (id_token == null || id_token.isEmpty()){
-            OAuth2Utils.DEBUG.warning("No id_token parameter supplied to the endSession endpoint");
-            throw OAuthProblemException.OAuthError.BAD_REQUEST.handle(null, "The endSesison endpoint requires an id_token parameter");
+            OAuth2Utils.DEBUG.warning("No id_token_hint parameter supplied to the endSession endpoint");
+            throw OAuthProblemException.OAuthError.BAD_REQUEST.handle(null, "The endSesison endpoint requires an id_token_hint parameter");
         }
         JwtReconstruction jwtReconstruction = new JwtReconstruction();
         SignedJwt jwt = jwtReconstruction.reconstructJwt(id_token, SignedJwt.class);
 
         JwtClaimsSet claims = jwt.getClaimsSet();
         String sessionId = (String) claims.getClaim(OAuth2Constants.JWTTokenParams.OPS);
+        if (sessionId == null) {
+            sessionId = (String) claims.getClaim(OAuth2Constants.JWTTokenParams.LEGACY_OPS);
+        }
 
         destroySession(sessionId);
         return null;

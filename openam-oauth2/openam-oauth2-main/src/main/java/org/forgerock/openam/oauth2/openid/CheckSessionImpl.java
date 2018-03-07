@@ -93,6 +93,9 @@ public class CheckSessionImpl implements CheckSession {
         }
         try {
             String sessionID = (String) jwt.getClaimsSet().getClaim(OAuth2Constants.JWTTokenParams.OPS);
+            if (sessionID == null) {
+                sessionID = (String) jwt.getClaimsSet().getClaim(OAuth2Constants.JWTTokenParams.LEGACY_OPS);
+            }
             SSOToken ssoToken = ssoTokenManager.createSSOToken(sessionID);
             return ssoTokenManager.isValidToken(ssoToken);
         } catch (Exception e){

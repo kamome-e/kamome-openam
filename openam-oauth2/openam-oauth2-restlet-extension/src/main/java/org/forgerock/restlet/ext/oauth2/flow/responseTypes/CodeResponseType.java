@@ -44,7 +44,8 @@ public class CodeResponseType implements ResponseType {
                 (String)data.get(OAuth2Constants.CoreTokenParams.USERNAME),
                 new SessionClientImpl((String)data.get(OAuth2Constants.CoreTokenParams.CLIENT_ID),
                         (String)data.get(OAuth2Constants.CoreTokenParams.REDIRECT_URI)),
-                (String)data.get(OAuth2Constants.Custom.NONCE));
+                (String)data.get(OAuth2Constants.Custom.NONCE),
+                (String)data.get(OAuth2Constants.Custom.SSO_TOKEN_ID));
 
     }
 

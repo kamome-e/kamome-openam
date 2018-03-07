@@ -123,8 +123,9 @@ public class AuthorizationCodeServerResource extends AbstractFlow {
             Map<String, String> data = new HashMap<String, String>();
             String nonce = code.getNonce();
             data.put(OAuth2Constants.Custom.NONCE, nonce);
-            data.put(OAuth2Constants.Custom.SSO_TOKEN_ID, getRequest().getCookies().getValues(
-                    SystemProperties.get("com.iplanet.am.cookie.name")));
+            data.put(OAuth2Constants.Custom.SSO_TOKEN_ID, code.getSessionId());
+//            data.put(OAuth2Constants.Custom.SSO_TOKEN_ID, getRequest().getCookies().getValues(
+//                    SystemProperties.get("com.iplanet.am.cookie.name")));
             response.putAll(executeExtraDataScopePlugin(data, token));
 
             String scope_before =

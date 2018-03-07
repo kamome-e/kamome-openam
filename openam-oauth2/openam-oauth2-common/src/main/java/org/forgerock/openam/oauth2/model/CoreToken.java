@@ -139,6 +139,19 @@ public class CoreToken extends JsonValue implements Token {
     }
 
     /**
+     * Gets the session id used to create the authorisation code
+     *
+     * @return The session id.
+     */
+    public String getSessionId() {
+        Set<String> value = this.getParameter(OAuth2Constants.Custom.SSO_TOKEN_ID);
+        if (value != null && !value.isEmpty()){
+            return value.iterator().next();
+        }
+        return null;
+    }
+
+    /**
      * Gets the parent token
      * @return the id of the parent token
      */
