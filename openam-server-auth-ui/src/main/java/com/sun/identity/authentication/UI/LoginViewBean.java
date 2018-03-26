@@ -246,6 +246,8 @@ public class LoginViewBean extends AuthViewBeanBase {
             return new StaticTextField(this, HTML_TITLE_NEWORG, "");
         } else if (name.equals(HTML_TITLE_MAXSESSIONS)) {
             return new StaticTextField(this, HTML_TITLE_MAXSESSIONS, "");
+        } else if (name.equals(HTML_TITLE_LOGIN_FAILED)) {
+            return new StaticTextField(this, HTML_TITLE_LOGIN_FAILED, "");
         } else {
             return super.createChild(name);
         }
@@ -314,6 +316,10 @@ public class LoginViewBean extends AuthViewBeanBase {
                         errorTemplate = AuthUtils.getErrorVal(	 
                               AMAuthErrorCode.AUTH_TIMEOUT,	 
                               AuthUtils.ERROR_TEMPLATE);	 
+                        
+                        // 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込む add-sta
+                        setDisplayMessageAndTemplate();
+                        // 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込む upd-end
 	 
                         ISLocaleContext localeContext = new ISLocaleContext();	 
                         localeContext.setLocale(request);	 
@@ -447,6 +453,9 @@ public class LoginViewBean extends AuthViewBeanBase {
                     errorCode = AMAuthErrorCode.AUTH_TIMEOUT;
                     ErrorMessage = AuthUtils.getErrorVal(
 		        AMAuthErrorCode.AUTH_TIMEOUT,AuthUtils.ERROR_MESSAGE);
+                    // 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込む add-sta
+                    setDisplayMessageAndTemplate();
+                    // 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込む add-end
                 }
             }
             java.util.Locale locale =
@@ -835,6 +844,8 @@ public class LoginViewBean extends AuthViewBeanBase {
                 rb.getString("htmlTitle_NewOrg"));
             setDisplayFieldValue(HTML_TITLE_MAXSESSIONS,
                 rb.getString("htmlTitle_MaxSessions"));
+            setDisplayFieldValue(HTML_TITLE_LOGIN_FAILED,
+                    rb.getString("htmlTitle_LoginFailed"));
         } else {
             loginDebug.message("In beginDisplay ... rb is NULL");
             /*
@@ -1174,6 +1185,9 @@ public class LoginViewBean extends AuthViewBeanBase {
                 	errorTemplate = AuthUtils.getErrorVal(
                               AMAuthErrorCode.AUTH_TIMEOUT,
                               AuthUtils.ERROR_TEMPLATE);
+                	// 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込む add-sta
+                    setDisplayMessageAndTemplate();
+                    // 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込む upd-end
                 	return;
                 }            
                 
@@ -1208,6 +1222,11 @@ public class LoginViewBean extends AuthViewBeanBase {
                 	errorTemplate = AuthUtils.getErrorVal(
                               AMAuthErrorCode.AUTH_TIMEOUT,
                               AuthUtils.ERROR_TEMPLATE);
+                	
+                	// 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込む add-sta
+                    setDisplayMessageAndTemplate();
+                    // 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込む add-end
+                	
                 	return;
                 }
             }
@@ -1941,6 +1960,10 @@ public class LoginViewBean extends AuthViewBeanBase {
             errorTemplate = AuthUtils.getErrorTemplate(errorCode);
         }
         
+        // 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込むadd-sta
+        setDisplayMessageAndTemplate();
+        // 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込む add-end
+        
         // handle InternalSession timeout
         if (loginURL != null && errorCode.equals("110") && loginURL.isEmpty()) {
             setDisplayFieldValue(LOGIN_URL, AuthUtils.constructLoginURL(request));
@@ -2290,6 +2313,28 @@ public class LoginViewBean extends AuthViewBeanBase {
         }
         return null;
     }
+    
+    
+    // 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込む add-sta
+    /**
+     * Returns the errorCode
+     * @return errorCode  for current context
+     */
+    public String getDisplayMessage() {
+        return DisplayMessage;
+    }
+
+    private void setDisplayMessageAndTemplate() {
+        int splitIndex = errorTemplate.indexOf(JSP_EXTENSION);
+        if (splitIndex != -1) {
+            String resourceKey = errorTemplate.substring(0, splitIndex);
+            DisplayMessage = AuthUtils.getErrorVal(   
+                    resourceKey,  AuthUtils.ERROR_MESSAGE);    
+        }
+        //エラーテンプレートを1本化するため、設定し直す
+        errorTemplate = AuthUtils.getErrorVal(ERR_JSP_TEMPLATE, AuthUtils.ERROR_MESSAGE);          
+    }
+    // 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込む add-end
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -2484,6 +2529,12 @@ public class LoginViewBean extends AuthViewBeanBase {
 
     public static final String SSO_REDIRECT = "/SSORedirect";
     public static final String SSO_POST = "/SSOPOST";
+    
+    /** Display message */
+    public String DisplayMessage = "";
+    public static final String JSP_EXTENSION = ".jsp";
+    public static final String ERR_JSP_TEMPLATE = "login_error_template";
+    public static final String HTML_TITLE_LOGIN_FAILED = "htmlTitle_LoginFailed";
     ////////////////////////////////////////////////////////////////////////////
     // Instance variables
     ////////////////////////////////////////////////////////////////////////////
