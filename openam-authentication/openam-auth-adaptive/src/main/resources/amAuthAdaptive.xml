@@ -84,6 +84,21 @@
                         <Value>false</Value>
                     </DefaultValues>
                 </AttributeSchema>
+                
+                <AttributeSchema name="openam-auth-adaptive-use-x-forwarded-for"
+                cosQualifier="default"
+                type="single"
+                syntax="boolean"
+                i18nKey="a550">
+                    <BooleanValues>
+                        <BooleanTrueValue i18nKey="i18nTrue">true</BooleanTrueValue>
+                        <BooleanFalseValue i18nKey="i18nFalse">false</BooleanFalseValue>
+                    </BooleanValues>
+                    <DefaultValues>
+                        <Value>false</Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                
                 <AttributeSchema name="openam-auth-adaptive-ip-range-check"
                 cosQualifier="default"
                 type="single"
@@ -597,6 +612,21 @@
                         <Value>false</Value>
                     </DefaultValues>
                 </AttributeSchema>
+                
+                <AttributeSchema name="openam-auth-adaptive-use-x-forwarded-for"
+                cosQualifier="default"
+                type="single"
+                syntax="boolean"
+                i18nKey="a550">
+                    <BooleanValues>
+                        <BooleanTrueValue i18nKey="i18nTrue">true</BooleanTrueValue>
+                        <BooleanFalseValue i18nKey="i18nFalse">false</BooleanFalseValue>
+                    </BooleanValues>
+                    <DefaultValues>
+                        <Value>false</Value>
+                    </DefaultValues>
+                </AttributeSchema>
+                
                 <AttributeSchema name="openam-auth-adaptive-ip-range-check"
                 cosQualifier="default"
                 type="single"

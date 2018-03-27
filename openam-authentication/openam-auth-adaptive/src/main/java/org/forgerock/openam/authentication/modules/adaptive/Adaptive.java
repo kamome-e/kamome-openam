@@ -139,6 +139,7 @@ public class Adaptive extends AMLoginModule implements AMPostAuthProcessInterfac
     private static final String REQ_HEADER_VALUE = "openam-auth-adaptive-req-header-value";
     private static final String REQ_HEADER_SCORE = "openam-auth-adaptive-req-header-score";
     private static final String REQ_HEADER_INVERT = "openam-auth-adaptive-req-header-invert";
+    private static final String USE_X_FORWARDED_FOR = "openam-auth-adaptive-use-x-forwarded-for";
     private static Debug debug = Debug.getInstance(ADAPTIVE);
     private static LookupService lookupService = null;
     private String userUUID = null;
@@ -202,6 +203,7 @@ public class Adaptive extends AMLoginModule implements AMPostAuthProcessInterfac
     private static final String IP_START = "IPStart";
     private static final String IP_END = "IPEnd";
     private static final String IP_TYPE = "Type";
+    private boolean isUseXForwardedFor = false;
 
     @Override
     public void init(Subject subject, Map sharedState, Map options) {
@@ -268,7 +270,17 @@ public class Adaptive extends AMLoginModule implements AMPostAuthProcessInterfac
         debug.message(ADAPTIVE + ": Login Attempt User = " + userName);
 
         amAuthIdentity = getIdentity(userName);
+        
         clientIP = ClientUtils.getClientIPAddress(getHttpServletRequest());
+        
+        // 2018.03.27 70 X-Fowarded-Forによるログインの制限 add - sta
+        if (isUseXForwardedFor) {
+            String xForwardedFor = getHttpServletRequest().getHeader("X-Forwarded-for");
+            if (xForwardedFor != null) {
+                clientIP = xForwardedFor;
+            }
+        }        
+        // 2018.03.27 70 X-Fowarded-Forによるログインの制限 add - end
 
         if (amAuthIdentity == null) {
             debug.message(ADAPTIVE + ": amAuthIdentity NULL : " + userName);
@@ -982,7 +994,9 @@ public class Adaptive extends AMLoginModule implements AMPostAuthProcessInterfac
 
     private void initParams(Map options) {
         adaptiveThreshold = getOptionAsInteger(options, ADAPTIVETHRESHOLD);
-
+        // 2018.03.27 70 X-Fowarded-Forによるログインの制限 add - sta
+        isUseXForwardedFor = getOptionAsBoolean(options, USE_X_FORWARDED_FOR);
+        // 2018.03.27 70 X-Fowarded-Forによるログインの制限 add - end
         authFailureCheck = getOptionAsBoolean(options, AUTH_FAILURE_CHECK);
         authFailureScore = getOptionAsInteger(options, AUTH_FAILURE_SCORE);
         authFailureInvert = getOptionAsBoolean(options, AUTH_FAILURE_INVERT);

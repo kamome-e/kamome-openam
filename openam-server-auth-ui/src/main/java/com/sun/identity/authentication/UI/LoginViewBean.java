@@ -2325,14 +2325,16 @@ public class LoginViewBean extends AuthViewBeanBase {
     }
 
     private void setDisplayMessageAndTemplate() {
-        int splitIndex = errorTemplate.indexOf(JSP_EXTENSION);
-        if (splitIndex != -1) {
-            String resourceKey = errorTemplate.substring(0, splitIndex);
-            DisplayMessage = AuthUtils.getErrorVal(   
-                    resourceKey,  AuthUtils.ERROR_MESSAGE);    
+        if (errorTemplate != null) {
+            int splitIndex = errorTemplate.indexOf(JSP_EXTENSION);
+            if (splitIndex != -1) {
+                String resourceKey = errorTemplate.substring(0, splitIndex);
+                DisplayMessage = AuthUtils.getErrorVal(   
+                        resourceKey,  AuthUtils.ERROR_MESSAGE);    
+            }
+            //エラーテンプレートを1本化するため、設定し直す
+            errorTemplate = AuthUtils.getErrorVal(ERR_JSP_TEMPLATE, AuthUtils.ERROR_MESSAGE);
         }
-        //エラーテンプレートを1本化するため、設定し直す
-        errorTemplate = AuthUtils.getErrorVal(ERR_JSP_TEMPLATE, AuthUtils.ERROR_MESSAGE);          
     }
     // 2018.03.26 OPENAM_BUG_FIX-143 共通化したエラー画面を本流に取り込む add-end
 
