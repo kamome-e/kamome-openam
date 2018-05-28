@@ -284,7 +284,7 @@ public class IDPSSOUtil {
                 relayState,
                 SAML2Constants.IDP_ROLE);
 
-        if ((authnReq == null) && (session == null)) {
+        if ((authnReq == null) && (session == null || !isValidSessionInRealm(realm, session))) {
             // idp initiated and not logged in yet, need to authenticate
             try {
                 redirectAuthentication(request, response, authnReq,
@@ -3058,6 +3058,35 @@ public class IDPSSOUtil {
             throw new SAML2Exception(SAML2Utils.bundle.getString("metaDataError"));
         }
         return spSSODescriptor;
+    }
+
+    /**
+     * Check that the authenticated session belongs to the same realm where the IDP is defined.
+     *
+     * @param realm The realm where the IdP is defined.
+     * @param session The Session object of the authenticated user.
+     * @return true If the session was initiated in the same realm as the session's realm.
+     */
+    public static boolean isValidSessionInRealm(String realm, Object session) {
+        String classMethod = "IDPSSOUtil.isValidSessionInRealm: ";
+        boolean isValidSessionInRealm = false;
+        try {
+            // A user can only be authenticated in one realm
+            String sessionRealm = SAML2Utils.getSingleValuedSessionProperty(session, SAML2Constants.ORGANIZATION);
+            if (sessionRealm != null && !sessionRealm.isEmpty()) {
+                if (realm.equalsIgnoreCase(sessionRealm)) {
+                    isValidSessionInRealm = true;
+                } else {
+                    if (SAML2Utils.debug.warningEnabled()) {
+                        SAML2Utils.debug.warning(classMethod + "Invalid realm for the session:" + sessionRealm
+                                + ", while the realm of the IdP is:" + realm);
+                    }
+                }
+            }
+        } catch (SessionException ex) {
+            SAML2Utils.debug.error(classMethod + "Could not retrieve the session information", ex);
+        }
+        return isValidSessionInRealm;
     }
 
 }
