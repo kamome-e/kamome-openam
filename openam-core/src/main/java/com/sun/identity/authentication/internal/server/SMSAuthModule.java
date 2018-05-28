@@ -56,6 +56,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListMap;
+
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
@@ -70,17 +72,17 @@ import com.sun.identity.shared.ldap.util.DN;
 public class SMSAuthModule implements LoginModule {
 
     // Static variables
-    private static boolean initialized;
+    private static volatile boolean initialized = false;
 
-    private static boolean loadedInternalUsers;
+    private static volatile boolean loadedInternalUsers = false;
 
-    private static boolean registeredCallbackHandler;
+    private static volatile boolean registeredCallbackHandler = false;
 
-    private static Map users;
+    private static final Map<String, String> users = new ConcurrentSkipListMap<>(String.CASE_INSENSITIVE_ORDER);
 
-    private static Map userNameToDN;
+    private static final Map<String, String> userNameToDN = new ConcurrentSkipListMap<>(String.CASE_INSENSITIVE_ORDER);
 
-    private static Debug debug = Debug.getInstance("amAuthInternalSMModule");
+    private static final Debug debug = Debug.getInstance("amAuthInternalSMModule");
 
     // Instance variables
     AuthSubject subject;
@@ -121,7 +123,7 @@ public class SMSAuthModule implements LoginModule {
             // Copy the shared state and remove password for debugging
             Map ss = new HashMap(sharedState);
             boolean passwordPresent = (ss
-                    .remove(ISAuthConstants.SHARED_STATE_PASSWORD) == null) 
+                    .remove(ISAuthConstants.SHARED_STATE_PASSWORD) == null)
                     ? false
                     : true;
             debug.message("SMSAuthModule::initialize called "
@@ -139,19 +141,19 @@ public class SMSAuthModule implements LoginModule {
             initialize();
         }
     }
-    
+
     public static void initialize() {
         if (debug.messageEnabled()) {
             debug.message("SMSAuthModule.initialize() Initializing "
                     + "Username and password from serverconfig.xml");
         }
-        
+
         // reset so that internal users set will be reloaded later in time.
         loadedInternalUsers = false;
-        
+
         // initialize caches.
-        users = new CaseInsensitiveHashMap();
-        userNameToDN = new CaseInsensitiveHashMap();
+        users.clear();
+        userNameToDN.clear();
 
         // Get internal user names and passwords from serverconfig.xml
         // %%% Might have to get them directory from DSConfigMgr %%%
@@ -231,7 +233,7 @@ public class SMSAuthModule implements LoginModule {
                 String cachedUserDN = (String) userNameToDN.get(username);
                 if (cachedUserDN != null) {
                     String normalizedUserDN = DNUtils.normalizeDN(userDN);
-                    if ((normalizedUserDN == null) || 
+                    if ((normalizedUserDN == null) ||
                         !normalizedUserDN.equals(DNUtils.
                         normalizeDN(cachedUserDN))) {
                         debug.message("SMSAuthModule::login() Invalid User DN");
@@ -255,7 +257,7 @@ public class SMSAuthModule implements LoginModule {
                     cachedUserDN = (String) userNameToDN.get(username);
                     if (cachedUserDN != null) {
                         String normalizedUserDN = DNUtils.normalizeDN(userDN);
-                        if ((normalizedUserDN == null) || 
+                        if ((normalizedUserDN == null) ||
                             !normalizedUserDN.equals(DNUtils.
                             normalizeDN(cachedUserDN))) {
                             if (debug.messageEnabled()) {
@@ -412,6 +414,7 @@ public class SMSAuthModule implements LoginModule {
             if (serviceName.equalsIgnoreCase(IDREPO_SERVICE)) {
                 // Force the loading of internal users
                 loadedInternalUsers = false;
+                users.clear();
             }
         }
 
