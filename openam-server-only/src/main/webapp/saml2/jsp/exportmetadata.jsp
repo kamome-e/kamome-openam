@@ -1,8 +1,8 @@
 <%--
    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
-  
+
    Copyright (c) 2008 Sun Microsystems Inc. All Rights Reserved
-  
+
    The contents of this file are subject to the terms
    of the Common Development and Distribution License
    (the License). You may not use this file except in
@@ -33,15 +33,16 @@
         page import="com.sun.identity.saml2.meta.SAML2MetaUtils" %><%@
         page import="java.util.List" %><%@
         page import="org.owasp.esapi.ESAPI" %><%@
-        page import="com.sun.identity.saml.common.SAMLUtils" %><%
-    // This JSP is used to export standard entity metadata, 
+        page import="com.sun.identity.saml.common.SAMLUtils" %><%@
+        page import="com.sun.identity.shared.debug.Debug" %><%
+    // This JSP is used to export standard entity metadata,
     // there are three supported query parameters:
     //    * role     -- role of the entity: sp, idp or any
-    //    * realm    -- realm of the entity 
+    //    * realm    -- realm of the entity
     //    * entityid -- ID of the entity to be exported
     //    * sign     -- sign the metadata if the value is "true"
     // If none of the query parameter is specified, it will try to export
-    // the first hosted SP metadata under root realm. If there is no hosted 
+    // the first hosted SP metadata under root realm. If there is no hosted
     // SP under the root realm, the first hosted IDP under root realm will
     // be exported. If there is no hosted SP or IDP, an error message will
     // be displayed.
@@ -53,7 +54,7 @@
         if ((role == null) || (role.length() == 0)) {
             // default role is any if not specified
             role = "any";
-        } 
+        }
         String realm = request.getParameter("realm");
         if ((realm == null) || (realm.length() == 0)) {
             // default to root realm
@@ -66,7 +67,7 @@
             // find first available one
             List providers;
             if ("sp".equals(role)) {
-                providers = manager. 
+                providers = manager.
                     getAllHostedServiceProviderEntities(realm);
             } else if ("idp".equals(role)) {
                 providers = manager.
@@ -92,19 +93,19 @@
             metaXML = SAML2MetaUtils.exportStandardMeta(realm, entityID,
                 sign);
             if (metaXML == null) {
-                errorMsg = "No metadata for entity \"" 
-                           + ESAPI.encoder().encodeForHTML(entityID) 
-                           + "\" under realm \"" 
+                errorMsg = "No metadata for entity \""
+                           + ESAPI.encoder().encodeForHTML(entityID)
+                           + "\" under realm \""
                            + ESAPI.encoder().encodeForHTML(realm)
                            + "\" found.";
             }
         }
     } catch (Exception e) {
-        e.printStackTrace();
+        Debug.getInstance("libSAML2").error("An error occurred while retrieving metadata", e);
         errorMsg = e.getMessage();
     }
     if (errorMsg != null) {
-        out.print("ERROR : " + errorMsg);
+        out.print("ERROR : " + ESAPI.encoder().encodeForHTML(errorMsg));
     } else {
         response.setContentType("text/xml");
         response.setHeader("Pragma", "no-cache");
