@@ -28,6 +28,8 @@
  */
 package com.sun.identity.authentication.client;
 
+import static java.util.Arrays.asList;
+
 import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -38,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
+import java.util.Objects;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -116,7 +119,6 @@ import com.sun.identity.policy.PolicyUtils;
 import com.sun.identity.policy.plugins.AuthSchemeCondition;
 import com.sun.identity.shared.encode.Base64;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 
 public class AuthClientUtils {
 
@@ -196,12 +198,12 @@ public class AuthClientUtils {
 
     private static final String distAuthCluster =
         SystemProperties.get(Constants.DISTAUTH_CLUSTER, "");
-    
-    private static ArrayList distAuthClusterList = new ArrayList();     
-    
+
+    private static ArrayList distAuthClusterList = new ArrayList();
+
     private static final String distAuthSites =
         SystemProperties.get(Constants.AM_DISTAUTH_SITES, "");
-    
+
     private static Map<String, Set<String>> distAuthSitesMap = new HashMap();
     private static final List<String> RETAINED_HTTP_REQUEST_HEADERS = new ArrayList<String>();
     private static final List<String> RETAINED_HTTP_HEADERS = new ArrayList<String>();
@@ -239,7 +241,7 @@ public class AuthClientUtils {
             utilDebug.message("AuthClientUtils: setCookieToAllDomains = "+
                     setCookieToAllDomains);
         }
-        
+
         if(distAuthCluster.length() != 0){
             try {
                 if (utilDebug.messageEnabled()) {
@@ -248,10 +250,10 @@ public class AuthClientUtils {
                         + "Cluster List is: " + distAuthCluster);
                 }
                 if (distAuthCluster.indexOf(",") != -1) {
-                    StringTokenizer distAuthServersList = 
+                    StringTokenizer distAuthServersList =
                         new StringTokenizer(distAuthCluster, ",");
                     while (distAuthServersList.hasMoreTokens()) {
-                        String distAuthServer = 
+                        String distAuthServer =
                             distAuthServersList.nextToken().trim();
                         distAuthClusterList.add(distAuthServer);
                     }
@@ -259,11 +261,11 @@ public class AuthClientUtils {
                     distAuthClusterList.add(distAuthCluster.trim());
                 }
             } catch (Exception e) {
-            	utilDebug.error("AuthClientUtils.static(): " + 
+            	utilDebug.error("AuthClientUtils.static(): " +
                     e.toString());
-            }        	
+            }
         }
-        
+
         if (distAuthSites.length() != 0) {
             try {
                 if (utilDebug.messageEnabled()) {
@@ -272,24 +274,24 @@ public class AuthClientUtils {
                         + "Dist Auth Site list is: " + distAuthSites);
                 }
                 if (distAuthSites.indexOf(",") != -1) {
-                    StringTokenizer distAuthSitesList = 
+                    StringTokenizer distAuthSitesList =
                         new StringTokenizer(distAuthSites, ",");
-                    
+
                     while (distAuthSitesList.hasMoreTokens()) {
-                        String distAuthServer = 
+                        String distAuthServer =
                             distAuthSitesList.nextToken().trim();
-                        
+
                         if (distAuthServer.indexOf("=") != -1) {
-                            String distAuthServerName = 
+                            String distAuthServerName =
                                     distAuthServer.substring(0, distAuthServer.indexOf("="));
                             String distAuthSiteName =
                                     distAuthServer.substring(distAuthServer.indexOf("=") + 1);
                             Set<String> distAuthSet = distAuthSitesMap.get(distAuthSiteName);
-                            
+
                             if (distAuthSet == null) {
                                 distAuthSet = new HashSet<String>();
                             }
-                            
+
                             distAuthSet.add(distAuthServerName);
                             distAuthSitesMap.put(distAuthSiteName, distAuthSet);
                         } else {
@@ -302,7 +304,7 @@ public class AuthClientUtils {
                     }
                 } else {
                     if (distAuthSites.indexOf("=") != -1) {
-                        String distAuthServerName = 
+                        String distAuthServerName =
                                 distAuthSites.substring(0, distAuthSites.indexOf("="));
                         String distAuthSiteName =
                                 distAuthSites.substring(distAuthSites.indexOf("=") + 1);
@@ -317,10 +319,10 @@ public class AuthClientUtils {
                     }
                 }
             } catch (Exception ex) {
-                utilDebug.error("AuthClientUtils.static(): " + 
+                utilDebug.error("AuthClientUtils.static(): " +
                     ex.toString());
             }
-            
+
             if (utilDebug.messageEnabled()) {
                 utilDebug.message("AuthClientUtils.static(): " +
                         "dist auth server to site: " + distAuthSitesMap);
@@ -351,19 +353,19 @@ public class AuthClientUtils {
      * Needs to be protected to allow subclass AuthUtils
      */
     protected AuthClientUtils() {
-    }        
+    }
 
     private static List<String> getHeaderNameListForProperty(String property) {
         String value = SystemProperties.get(property);
         if (value != null) {
-            return Arrays.asList(value.toLowerCase().split(","));
+            return asList(value.toLowerCase().split(","));
         }
         return Collections.EMPTY_LIST;
     }
 
     public static Hashtable parseRequestParameters(
         HttpServletRequest request) {
-    	
+
         return (decodeHash(request));
     }
 
@@ -389,9 +391,9 @@ public class AuthClientUtils {
                 continue;
             }
             if (name.equalsIgnoreCase("SunQueryParamsString")) {
-                // This will normally be the case when browser back button is 
-                // used and the form is posted again with the base64 encoded 
-                // parameters            	
+                // This will normally be the case when browser back button is
+                // used and the form is posted again with the base64 encoded
+                // parameters
                 if (!value.isEmpty()){
                     value = getBase64DecodedValue(value);
                     if (utilDebug.messageEnabled()) {
@@ -405,9 +407,9 @@ public class AuthClientUtils {
                             String parameter = str.substring(0,index);
                             String parameterValue = str.substring(index + 1);
                             putDecodedValue(data, parameter, parameterValue, encoding);
-                        } 
-                    }          
-            	}            	
+                        }
+                    }
+            	}
             } else if (name.equals(RedirectUrlValidator.GOTO) || name.equals(RedirectUrlValidator.GOTO_ON_FAIL)){
                 // Again this will be the case when browser back
                 // button is used and the form is posted with the
@@ -421,13 +423,13 @@ public class AuthClientUtils {
                         utilDebug.message("AuthUtils::decodeHash base 64 decoded '" + name + "'='{" + value + "}'");
                     }
                 }
-                putDecodedValue(data, name, value, encoding);           	   
+                putDecodedValue(data, name, value, encoding);
             } else {
                 putDecodedValue(data, name, value, encoding);
             }
         }// while
         return (data);
-    }           
+    }
 
     /**
      * Returns the Logout cookie.
@@ -486,7 +488,7 @@ public class AuthClientUtils {
             utilDebug.message("cookieName='" + cookieName + "', cookieValue='" + cookieValue + "', cookieDomain='" + cookieDomain + "'");
         }
         return (createCookie(cookieName,cookieValue,cookieDomain));
-    }    
+    }
 
     public static String getQueryOrgName(HttpServletRequest request,
         String org) {
@@ -502,7 +504,7 @@ public class AuthClientUtils {
             utilDebug.message("queryOrg is :" + queryOrg);
         }
         return (queryOrg);
-    }   
+    }
 
 
     // print cookies in the request
@@ -515,11 +517,11 @@ public class AuthClientUtils {
             return;
         }
         for (int i = 0; i < ck.length; ++i) {
-            if (utilDebug.messageEnabled()) {	
+            if (utilDebug.messageEnabled()) {
                 utilDebug.message("Received Cookie: '" + ck[i].getName() + "'='{" + ck[i].getValue() + "}'");
             }
         }
-    }    
+    }
 
     public static void printHash(Hashtable reqParameters) {
         try {
@@ -613,7 +615,7 @@ public class AuthClientUtils {
                         createPersistentCookie(cookieName, "LOGOUT", 0, null));
             }
         }
-    }          
+    }
 
     /* return the the error message for the error code */
     public static String getErrorMessage(String errorCode) {
@@ -623,14 +625,14 @@ public class AuthClientUtils {
     /* return the the error template for the error code */
     public static String getErrorTemplate(String errorCode) {
         return (getErrorVal(errorCode,ERROR_TEMPLATE));
-    } 
+    }
 
     public static boolean checkForCookies(HttpServletRequest req) {
 
         // came here if cookie not found , return false
         return (CookieUtils.getCookieValueFromReq(req,getAuthCookieName()) != null
                  || CookieUtils.getCookieValueFromReq(req,getCookieName()) !=null);
-    }       
+    }
 
     // Get Original Redirect URL for Auth to redirect the Login request
     public static String getOrigRedirectURL(HttpServletRequest request,
@@ -647,11 +649,11 @@ public class AuthClientUtils {
                 String origRedirectURL = ssoToken.getProperty("successURL");
                 String gotoURL = request.getParameter("goto");
                 if (utilDebug.messageEnabled()) {
-                    utilDebug.message("Original successURL : " 
+                    utilDebug.message("Original successURL : "
                                       + origRedirectURL);
                     utilDebug.message("Request gotoURL : " + gotoURL);
                 }
-                if ((gotoURL != null) && (gotoURL.length() != 0) && 
+                if ((gotoURL != null) && (gotoURL.length() != 0) &&
                     (!gotoURL.equalsIgnoreCase("null"))) {
                     String encoded = request.getParameter("encoded");
                     if (encoded != null && encoded.equals("true")) {
@@ -669,7 +671,7 @@ public class AuthClientUtils {
             return (null);
         }
         return (null);
-    }     
+    }
 
     /**
      * Adds Logout cookie to URL.
@@ -708,7 +710,7 @@ public class AuthClientUtils {
         }
 
         return (logoutURL);
-    }                 
+    }
 
     /**
      * Returns the Session ID for the request.
@@ -763,7 +765,7 @@ public class AuthClientUtils {
             utilDebug.message("AuthUtils:returning sessionID:" + sessionID);
         }
         return (sessionID);
-    }    
+    }
 
     /**
      * Returns <code>true</code> if the request has the
@@ -822,7 +824,7 @@ public class AuthClientUtils {
             } else if (indexType == AuthContext.IndexType.SERVICE) {
                 indexName = ssoToken.getProperty("Service");
             } else if (indexType == AuthContext.IndexType.MODULE_INSTANCE) {
-                indexName = 
+                indexName =
                     getLatestIndexName(ssoToken.getProperty("AuthType"));
             } else if (indexType == AuthContext.IndexType.LEVEL) {
                 indexName = ssoToken.getProperty("AuthLevel");
@@ -1108,7 +1110,7 @@ public class AuthClientUtils {
     /**
      * return the requested property for default client
      */
-    public static String getDefaultProperty(String property) {        
+    public static String getDefaultProperty(String property) {
         try {
             return (defaultClient.getProperty(property));
         } catch (Exception ce) {
@@ -1185,7 +1187,7 @@ public class AuthClientUtils {
     public static boolean isGenericHTMLClient(String clientType) {
         String type = getProperty(clientType, "genericHTML");
         return (type == null) || "true".equals(type);
-    }    
+    }
 
     /* return true if cookiSupport is true or cookieDetection
      * mode has been detected .This is used to determine
@@ -1319,7 +1321,7 @@ public class AuthClientUtils {
 
         if(utilDebug.messageEnabled()){
         	utilDebug.message("AuthClientUtils.getlbCookieName() loadBalanceCookieName is:"
-                + loadBalanceCookieName);        	
+                + loadBalanceCookieName);
         }
         return loadBalanceCookieName;
     }
@@ -1397,7 +1399,7 @@ public class AuthClientUtils {
         }
 
         if (utilDebug.messageEnabled()) {
-            utilDebug.message("AuthClientUtils:getCookieDomainsForReq returns " + domains); 
+            utilDebug.message("AuthClientUtils:getCookieDomainsForReq returns " + domains);
         }
         return domains;
     }
@@ -1707,8 +1709,8 @@ public class AuthClientUtils {
                 utilDebug.message("constructLoginURL:parameter: "+parameter);
             }
             if(!ignoreParameter(parameter)){
-                // This will nornally be the case when browser back button is 
-                // used and the form is posted again with the base64 encoded 
+                // This will nornally be the case when browser back button is
+                // used and the form is posted again with the base64 encoded
                 // parameters
                 if (parameter.equalsIgnoreCase("SunQueryParamsString")) {
                     String queryParams = request.getParameter(parameter);
@@ -1721,7 +1723,7 @@ public class AuthClientUtils {
                             utilDebug.message("constructLoginURL: value: " + queryParams);
                         }
                         // This function will encode all the parameters in
-                        // SunQueryParamsString 
+                        // SunQueryParamsString
                         queryParams = URLencodedSunQueryParamsString(queryParams,encoding);
                     }
                     queryString.append(queryParams);
@@ -1737,7 +1739,7 @@ public class AuthClientUtils {
                            if(utilDebug.messageEnabled()) {
                                utilDebug.message("constructLoginURL: Base64 decoded parameter='" + value + "'");
                            }
-                       } 
+                       }
                        queryString.append(URLEncDec.encode(parameter)).append("=")
                        .append(URLEncDec.encode(getCharDecodedField(value, encoding)));
                     }
@@ -1756,9 +1758,9 @@ public class AuthClientUtils {
         }
         return loginURL.toString();
     }
-    
+
     /**
-     * This method takes in a String representing query parameters, and 
+     * This method takes in a String representing query parameters, and
      * URL encodes "sunamcompositeadvice" parameter out of it.
      */
      private static String URLencodedCompositeAdvice(String queryParams) {
@@ -1779,9 +1781,9 @@ public class AuthClientUtils {
          sb.append(URLEncDec.encode(value));
          return sb.toString();
      }
-     
+
      /**
-     * This method takes in a String representing base64 decoded 
+     * This method takes in a String representing base64 decoded
      * SunQueryParamsString and URL encodes all the parameters
      * included in its value
      */
@@ -1806,10 +1808,10 @@ public class AuthClientUtils {
                   if(st.hasMoreTokens()){
                       sb.append("&");
                   }
-              } 
-          }          
+              }
+          }
           return sb.toString();
-      }     
+      }
 
     // Get Original Redirect URL for Auth to redirect the Login request
     public static SSOToken getExistingValidSSOToken(SessionID sessID) {
@@ -1866,7 +1868,7 @@ public class AuthClientUtils {
         if ((resProperty != null) && (resProperty.length() != 0)) {
             int commaIndex = resProperty.indexOf(MSG_DELIMITER);
             if (commaIndex != -1) {
-                templateName = 
+                templateName =
                     resProperty.substring(commaIndex+1,resProperty.length());
                 errorMsg = resProperty.substring(0,commaIndex);
             } else {
@@ -1925,7 +1927,7 @@ public class AuthClientUtils {
             }
             String cookieName = getlbCookieName();
             String cookieValue = getlbCookieValue();
-            lbCookie = 
+            lbCookie =
                 createPersistentCookie(
                     cookieName, cookieValue, -1, cookieDomain);
             return (lbCookie);
@@ -2025,7 +2027,7 @@ public class AuthClientUtils {
     public static String getDefaultFileName(
         HttpServletRequest request,
         String fileName,
-        java.util.Locale locale, 
+        java.util.Locale locale,
         ServletContext servletContext) {
 
         String strlocale = "";
@@ -2241,9 +2243,9 @@ public class AuthClientUtils {
 
             if (utilDebug.messageEnabled()) {
                 utilDebug.message("Calling ResourceLookup: filename = '" + fileName
-                				  + "', defaultOrg = '" + fileRoot 
+                				  + "', defaultOrg = '" + fileRoot
                                   + "', locale = '" + localeName
-                                  + "', filePath = '" + filePath 
+                                  + "', filePath = '" + filePath
                                   + "', orgPath = '" + orgFilePath + "'");
             }
 
@@ -2306,7 +2308,7 @@ public class AuthClientUtils {
             utilDebug.message("orgDN = '" + orgDN + "'");
         }
         return orgDN;
-    }          
+    }
 
     /**
      * Parses the policy condition advice and checks for realm advices
@@ -2397,7 +2399,7 @@ public class AuthClientUtils {
                 int uriIndex = cookieURL.indexOf(serviceURI);
                 String tmpCookieURL = cookieURL;
                 if (uriIndex != -1) {
-                    tmpCookieURL = cookieURL.substring(0,uriIndex) + 
+                    tmpCookieURL = cookieURL.substring(0,uriIndex) +
                         SystemProperties.get(Constants.
                         AM_SERVICES_DEPLOYMENT_DESCRIPTOR);
                 }
@@ -2429,37 +2431,37 @@ public class AuthClientUtils {
         }
         return (isLocalServer(tmpCookieURL + serviceURI, true));
     }
-    
+
     public static boolean isServerMemberOfLocalSite(String cookieURL) {
         boolean isSiteMember = false;
-        
+
         try {
             if (!distAuthSitesMap.isEmpty()) {
                 String localSiteID = WebtopNaming.getSiteID(WebtopNaming.getAMServerID());
-                
+
                 if (localSiteID == null) {
                     if (utilDebug.warningEnabled()) {
                         utilDebug.warning("AuthClientUtils::isServerMemberOfLocalSite:" +
                                 "unable to determine local site id: " + WebtopNaming.getAMServerID());
                     }
-                    
+
                     return false;
                 }
-                
+
                 String localSiteName = WebtopNaming.getSiteNameById(localSiteID);
-                
+
                 if (localSiteName != null) {
                     Set distAuthForSite = distAuthSitesMap.get(localSiteName);
-                    
+
                     if (distAuthForSite == null) {
                         if (utilDebug.warningEnabled()) {
                             utilDebug.warning("AuthClientUtils::isServerMemberOfLocalSite:" +
                                 "unable to determine distAuthForSite: " + localSiteName);
                         }
-                    
-                        return false;   
+
+                        return false;
                     }
-                    
+
                     if (distAuthForSite.contains(cookieURL)) {
                         isSiteMember = true;
 
@@ -2478,7 +2480,7 @@ public class AuthClientUtils {
         } catch (Exception ex) {
             utilDebug.error("AuthClientUtils::isServerMemberOfLocalSite: ", ex);
         }
-        
+
         return isSiteMember;
     }
 
@@ -2538,8 +2540,9 @@ public class AuthClientUtils {
             // If we don't do this the server might going to deny the request because of invalid domain access.
             conn.setRequestProperty("Host", request.getHeader("host"));
 
+            List<Cookie> cookies = removeLocalLoadBalancingCookie(asList(request.getCookies()));
             // replay cookies
-            strCookies = getCookiesString(request);
+            strCookies = getCookiesString(cookies);
             if (strCookies != null) {
                 if (utilDebug.messageEnabled()) {
                     utilDebug.message("Sending cookies : " + strCookies);
@@ -2587,7 +2590,7 @@ public class AuthClientUtils {
                     if (queryParams.containsKey(entry.getKey())) {
                         // TODO: do we need to care about params that can be both in GET and POST?
                     } else {
-                        postParams.put(entry.getKey(), new HashSet<String>(Arrays.asList(entry.getValue())));
+                        postParams.put(entry.getKey(), new HashSet<String>(asList(entry.getValue())));
                     }
                 }
 
@@ -2609,7 +2612,7 @@ public class AuthClientUtils {
             // Receiving input from Original Auth server...
             utilDebug.message("RECEIVING DATA ... ");
             if (utilDebug.messageEnabled()) {
-                utilDebug.message("Response Code = '" + conn.getResponseCode() + "', Response Message = '" 
+                utilDebug.message("Response Code = '" + conn.getResponseCode() + "', Response Message = '"
                                   + conn.getResponseMessage() + "'");
             }
 
@@ -2691,6 +2694,22 @@ public class AuthClientUtils {
         return (origRequestData);
     }
 
+    /**
+     * Filter the load balancing cookie if it points to this server to avoid potential infinite redirect loop.
+     */
+    private static List<Cookie> removeLocalLoadBalancingCookie(final List<Cookie> cookies) {
+        final String lblCookieName = getlbCookieName();
+        final String lblCookieValue = getlbCookieValue();
+        final List<Cookie> filteredCookies = new ArrayList<>();
+        for (final Cookie cookie : cookies) {
+            if (!Objects.equals(cookie.getName(), lblCookieName)
+                    && !Objects.equals(cookie.getValue(), lblCookieValue)) {
+                filteredCookies.add(cookie);
+            }
+        }
+        return filteredCookies;
+    }
+
     private static boolean isSameServer(URL url1, URL url2) {
         int port1 = url1.getPort() != -1 ? url1.getPort() : url1.getDefaultPort();
         int port2 = url2.getPort() != -1 ? url2.getPort() : url2.getDefaultPort();
@@ -2750,25 +2769,21 @@ public class AuthClientUtils {
     }
 
     // Get cookies string from HTTP request object
-    private static String getCookiesString(HttpServletRequest request) {
-        Cookie cookies[] = request.getCookies();
+    private static String getCookiesString(List<Cookie> cookies) {
         StringBuilder cookieStr = null;
         String strCookies = null;
         // Process Cookies
         if (cookies != null) {
-            for (int nCookie = 0; nCookie < cookies.length; nCookie++) {
+            for (final Cookie cookie : cookies) {
                 if (utilDebug.messageEnabled()) {
-                    utilDebug.message("Cookie name = '" + cookies[nCookie].getName()
-                    		+ ", Cookie value = '" + cookies[nCookie].getValue() + "'");
+                    utilDebug.message("Cookie name='{" + cookie.getName() + "}', value='{" + cookie.getValue() + "}'");
                 }
                 if (cookieStr == null) {
                     cookieStr = new StringBuilder();
                 } else {
                     cookieStr.append(";");
                 }
-                cookieStr.append(cookies[nCookie].getName())
-                .append("=")
-                .append(cookies[nCookie].getValue());
+                cookieStr.append(cookie.getName()).append("=").append(cookie.getValue());
             }
         }
         if (cookieStr != null) {
@@ -2801,10 +2816,10 @@ public class AuthClientUtils {
                         createCookie(cookieName,cookieValue,null));
             }
         }
-    } 
+    }
 
     /**
-     * Sets the redirectBackUrlCookie to be set as OpenSSO 
+     * Sets the redirectBackUrlCookie to be set as OpenSSO
      * server URL when redirecting to external web site during authentication
      * process.
      * @param cookieName auth context associated with lb cookie
@@ -2812,7 +2827,7 @@ public class AuthClientUtils {
      * @param response <code>true</code> if it is persistent
      * @throws AuthException if it fails to create this cookie
      */
-    public static void setRedirectBackServerCookie(String cookieName, 
+    public static void setRedirectBackServerCookie(String cookieName,
             String cookieValue, HttpServletRequest request,
             HttpServletResponse response) throws AuthException {
 
@@ -2883,9 +2898,9 @@ public class AuthClientUtils {
             }
         }
         return (buff.toString());
-    } 
+    }
 
-    /** 
+    /**
      * Returns the Base64 decoded value.
      * @param encodedStr Base64 encoded string
      * @return a String the Base64 decoded string value
@@ -2899,13 +2914,13 @@ public class AuthClientUtils {
             } catch (RuntimeException rtex) {
                 utilDebug.warning("getBase64DecodedValue:RuntimeException");
             } catch (java.io.UnsupportedEncodingException ueex) {
-                utilDebug.warning("getBase64DecodedValue:" + 
+                utilDebug.warning("getBase64DecodedValue:" +
                     "UnsupportedEncodingException");
             }
         }
 
         if (utilDebug.messageEnabled()) {
-            utilDebug.message("getBase64DecodedValue:returnValue : " 
+            utilDebug.message("getBase64DecodedValue:returnValue : "
                 + returnValue);
         }
         return (returnValue);
@@ -2958,7 +2973,7 @@ public class AuthClientUtils {
 
          return persistCookie;
      }
-    
+
 
     /**
      * Returns true if the request has the ForceAuth=<code>true</code>
@@ -3015,8 +3030,8 @@ public class AuthClientUtils {
         }
         return returnForcedAuth;
     }
-    
-    /** 
+
+    /**
      * Returns the service URI
      * @return a String the Service URI
      */
@@ -3037,9 +3052,9 @@ public class AuthClientUtils {
                 hostUrlCookieValue = WebtopNaming.getServerFromID(siteID);
                 String uri = SystemProperties.get(
                         Constants.AM_SERVICES_DEPLOYMENT_DESCRIPTOR);
-                hostUrlCookieValue = hostUrlCookieValue.substring(0, 
+                hostUrlCookieValue = hostUrlCookieValue.substring(0,
                         (hostUrlCookieValue.length() - uri.length()));
-            } catch(ServerEntryNotFoundException e) { 
+            } catch(ServerEntryNotFoundException e) {
                 utilDebug.message("AuthClientUtils.setHostUrlCookie:", e);
             }
 
@@ -3054,14 +3069,14 @@ public class AuthClientUtils {
                 hostUrlCookieValue   = authServerProtocol + "://" +
                         authServer + ":" + authServerPort;
             }
-            
+
             if (utilDebug.messageEnabled()) {
                 utilDebug.message("AuthClientUtils.setHostUrlCookie: " +
                     "hostUrlCookieName = " + hostUrlCookieName +
                     ", hostUrlCookieDomain = " + hostUrlCookieDomain +
                     ", hostUrlCookieValue = " + hostUrlCookieValue);
             }
-            
+
             // Create Cookie
             try {
                 Cookie cookie = createCookie(hostUrlCookieName,
@@ -3086,14 +3101,14 @@ public class AuthClientUtils {
             }
         }
     }
-    
+
     public static boolean isDistAuthServerTrusted(String distAuthServerLoginURL){
         return distAuthClusterList.contains(distAuthServerLoginURL);
     }
-    
+
     /**
-     * Returns the resource URL. The method checks value for "resourceURL" 
-     * parameter first, if not present, checks value for "goto" parameter. 
+     * Returns the resource URL. The method checks value for "resourceURL"
+     * parameter first, if not present, checks value for "goto" parameter.
      * If none exists, returns null.
      * @param request HttpServletRequest object
      * @return resourceURL based on the query parameters, returns null if
@@ -3103,7 +3118,7 @@ public class AuthClientUtils {
         String resourceUrl = request.getParameter(
             ISAuthConstants.RESOURCE_URL_PARAM);
         if (resourceUrl == null) {
-            resourceUrl = 
+            resourceUrl =
                 request.getParameter(ISAuthConstants.GOTO_PARAM);
         }
         return resourceUrl;
@@ -3157,7 +3172,7 @@ public class AuthClientUtils {
         }
         return envParameters;
     }
-   
+
     /**
      * Returns unescaped text. This method replaces "&#124;" with "|".
      *
@@ -3194,7 +3209,7 @@ public class AuthClientUtils {
         }
         return text;
     }
-    
+
     /**
      * Returns the data from Realm qualified data. This could be authentication
      * scheme or authentication level or service.
