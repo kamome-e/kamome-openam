@@ -1,4 +1,4 @@
-/**
+/*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
  * Copyright (c) 2006 Sun Microsystems Inc. All Rights Reserved
@@ -55,6 +55,7 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
 import com.iplanet.dpro.session.exceptions.StoreException;
+import com.sun.identity.plugin.datastore.DataStoreProviderException;
 import com.sun.identity.saml2.common.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -114,7 +115,7 @@ import org.forgerock.openam.utils.ClientUtils;
 import java.security.PrivateKey;
 
 /**
- * This class is used by a service provider (SP) to process the response from  
+ * This class is used by a service provider (SP) to process the response from
  * an identity provider for the SP's Assertion Consumer Service.
  *
  * @supported.api
@@ -136,7 +137,7 @@ public class SPACSUtils {
      *    This is the case for artifact profile.
      * 3. using http method post. This is the case for post profile.
      * </pre>
-     * 
+     *
      * @param request http servlet request
      * @param response http servlet response
      * @param orgName realm or organization name the service provider resides in
@@ -161,9 +162,9 @@ public class SPACSUtils {
                 orgName, hostEntityId, SAML2Constants.ACS_SERVICE,
                 SAML2Constants.HTTP_ARTIFACT))
             {
-                SAMLUtils.sendError(request, response, 
+                SAMLUtils.sendError(request, response,
                     response.SC_BAD_REQUEST,
-                    "unsupportedBinding", 
+                    "unsupportedBinding",
                     SAML2Utils.bundle.getString("unsupportedBinding"));
                 throw new SAML2Exception(
                     SAML2Utils.bundle.getString("unsupportedBinding"));
@@ -177,9 +178,9 @@ public class SPACSUtils {
                     orgName, hostEntityId, SAML2Constants.ACS_SERVICE,
                     SAML2Constants.PAOS))
                 {
-                SAMLUtils.sendError(request, response, 
+                SAMLUtils.sendError(request, response,
                     response.SC_BAD_REQUEST,
-                    "unsupportedBinding", 
+                    "unsupportedBinding",
                     SAML2Utils.bundle.getString("unsupportedBinding"));
                 throw new SAML2Exception(
                     SAML2Utils.bundle.getString("unsupportedBinding"));
@@ -191,9 +192,9 @@ public class SPACSUtils {
                     orgName, hostEntityId, SAML2Constants.ACS_SERVICE,
                     SAML2Constants.HTTP_POST))
                 {
-                    SAMLUtils.sendError(request, response, 
+                    SAMLUtils.sendError(request, response,
                         response.SC_BAD_REQUEST,
-                        "unsupportedBinding", 
+                        "unsupportedBinding",
                         SAML2Utils.bundle.getString("unsupportedBinding"));
                     throw new SAML2Exception(
                         SAML2Utils.bundle.getString("unsupportedBinding"));
@@ -203,9 +204,9 @@ public class SPACSUtils {
             }
         } else {
             // not supported
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_METHOD_NOT_ALLOWED,
-                "notSupportedHTTPMethod", 
+                "notSupportedHTTPMethod",
                 SAML2Utils.bundle.getString("notSupportedHTTPMethod"));
             throw new SAML2Exception(
                         SAML2Utils.bundle.getString("notSupportedHTTPMethod"));
@@ -218,10 +219,10 @@ public class SPACSUtils {
     }
 
     /**
-     * Retrieves <code>SAML Response</code> from http Get. 
+     * Retrieves <code>SAML Response</code> from http Get.
      * It first uses parameter resID to retrieve <code>Response</code>. This is
      * the case after local login;
-     * If resID is not defined, it then uses <code>SAMLart</code> http 
+     * If resID is not defined, it then uses <code>SAMLart</code> http
      * parameter to retrieve <code>Response</code>.
      */
     private static ResponseInfo getResponseFromGet(
@@ -252,7 +253,7 @@ public class SPACSUtils {
                                 LogUtil.RESPONSE_NOT_FOUND_FROM_CACHE,
                                 data,
                                 null);
-                SAMLUtils.sendError(request, response, 
+                SAMLUtils.sendError(request, response,
                     response.SC_INTERNAL_SERVER_ERROR, "SSOFailed",
                     SAML2Utils.bundle.getString("SSOFailed"));
                 throw new SAML2Exception(
@@ -277,7 +278,7 @@ public class SPACSUtils {
         }
 
         return new ResponseInfo(getResponseFromArtifact(samlArt, hostEntityId,
-            request, response, orgName, metaManager), 
+            request, response, orgName, metaManager),
             SAML2Constants.HTTP_ARTIFACT, null);
     }
 
@@ -322,7 +323,7 @@ public class SPACSUtils {
                         LogUtil.IDP_META_NOT_FOUND,
                         data,
                         null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR,
                 "failedToGetIDPSSODescriptor", se.getMessage());
             throw se;
@@ -350,7 +351,7 @@ public class SPACSUtils {
                                 idpEntityID,
                                 SAML2Constants.IDP_ROLE,
                                 SAML2Constants.WANT_ARTIFACT_RESOLVE_SIGNED);
-                                                        
+
             if (needArtiResolveSigned != null &&
                 needArtiResolveSigned.equals("true")) {
                 // or save it somewhere?
@@ -394,7 +395,7 @@ public class SPACSUtils {
                         LogUtil.CANNOT_CREATE_ARTIFACT_RESOLVE,
                         data,
                         null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR,
                 "errorCreateArtifactResolve",
                 SAML2Utils.bundle.getString("errorCreateArtifactResolve"));
@@ -407,14 +408,14 @@ public class SPACSUtils {
                         LogUtil.CANNOT_GET_SOAP_RESPONSE,
                         data,
                         null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR,
                 "errorInSOAPCommunication",
                 SAML2Utils.bundle.getString("errorInSOAPCommunication"));
             throw new SAML2Exception(se.getMessage());
         }
 
-        Response result = getResponseFromSOAP(resMsg, resolve, request, 
+        Response result = getResponseFromSOAP(resMsg, resolve, request,
             response, idpEntityID, idp, orgName, hostEntityId, sm);
         String[] data = {hostEntityId, idpEntityID,
                         art.getArtifactValue(), ""};
@@ -470,7 +471,7 @@ public class SPACSUtils {
                         LogUtil.IDP_NOT_FOUND,
                         data,
                         null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR,
                 "cannotFindIDP", se.getMessage());
             throw se;
@@ -525,7 +526,7 @@ public class SPACSUtils {
                                 LogUtil.ARTIFACT_RESOLUTION_URL_NOT_FOUND,
                                 data,
                                 null);
-                    SAMLUtils.sendError(request, response, 
+                    SAMLUtils.sendError(request, response,
                         response.SC_INTERNAL_SERVER_ERROR,
                         "cannotFindArtifactResolutionUrl",
                         SAML2Utils.bundle.getString(
@@ -568,10 +569,10 @@ public class SPACSUtils {
                         LogUtil.SOAP_ERROR,
                         data,
                         null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR,
                 "soapError", se.getMessage());
-            throw se; 
+            throw se;
         }
         ArtifactResponse artiResp = null;
         try {
@@ -587,7 +588,7 @@ public class SPACSUtils {
                         LogUtil.CANNOT_INSTANTIATE_ARTIFACT_RESPONSE,
                         data,
                         null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR,
                 "failedToCreateArtifactResponse", se.getMessage());
             throw se;
@@ -599,7 +600,7 @@ public class SPACSUtils {
                         LogUtil.MISSING_ARTIFACT_RESPONSE,
                         data,
                         null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR,
                 "missingArtifactResponse",
                 SAML2Utils.bundle.getString("missingArtifactResponse"));
@@ -623,7 +624,7 @@ public class SPACSUtils {
                 idp, idpEntityID, SAML2Constants.IDP_ROLE);
             if (!artiResp.isSigned() || !artiResp.isSignatureValid(cert)) {
                 if (SAML2Utils.debug.messageEnabled()) {
-                   SAML2Utils.debug.message(method 
+                   SAML2Utils.debug.message(method
                         + "ArtifactResponse's signature is invalid.");
                 }
                 String[] data = {idpEntityID};
@@ -631,7 +632,7 @@ public class SPACSUtils {
                         LogUtil.ARTIFACT_RESPONSE_INVALID_SIGNATURE,
                         data,
                         null);
-                SAMLUtils.sendError(request, response, 
+                SAMLUtils.sendError(request, response,
                     response.SC_INTERNAL_SERVER_ERROR, "invalidSignature",
                     SAML2Utils.bundle.getString("invalidSignature"));
                 throw new SAML2Exception(
@@ -642,7 +643,7 @@ public class SPACSUtils {
         String inResponseTo = artiResp.getInResponseTo();
         if (inResponseTo == null || !inResponseTo.equals(resolve.getID())) {
             if (SAML2Utils.debug.messageEnabled()) {
-                SAML2Utils.debug.message(method 
+                SAML2Utils.debug.message(method
                     + "ArtifactResponse's InResponseTo is invalid.");
             }
             String[] data = {idpEntityID};
@@ -650,7 +651,7 @@ public class SPACSUtils {
                         LogUtil.ARTIFACT_RESPONSE_INVALID_INRESPONSETO,
                         data,
                         null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR, "invalidInResponseTo",
                 SAML2Utils.bundle.getString("invalidInResponseTo"));
             throw new SAML2Exception(
@@ -660,7 +661,7 @@ public class SPACSUtils {
         Issuer idpIssuer = artiResp.getIssuer();
         if (idpIssuer == null || !idpIssuer.getValue().equals(idpEntityID)) {
             if (SAML2Utils.debug.messageEnabled()) {
-                SAML2Utils.debug.message(method 
+                SAML2Utils.debug.message(method
                     + "ArtifactResponse's Issuer is invalid.");
             }
             String[] data = {idpEntityID};
@@ -668,7 +669,7 @@ public class SPACSUtils {
                         LogUtil.ARTIFACT_RESPONSE_INVALID_ISSUER,
                         data,
                         null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR, "invalidIssuer",
                 SAML2Utils.bundle.getString("invalidIssuer"));
             throw new SAML2Exception(
@@ -684,7 +685,7 @@ public class SPACSUtils {
             String statusCode =
                 (status == null)?"":status.getStatusCode().getValue();
             if (SAML2Utils.debug.messageEnabled()) {
-                SAML2Utils.debug.message(method 
+                SAML2Utils.debug.message(method
                     + "ArtifactResponse's status code is not success."
                     + statusCode);
             }
@@ -696,19 +697,19 @@ public class SPACSUtils {
                         LogUtil.ARTIFACT_RESPONSE_INVALID_STATUS_CODE,
                         data,
                         null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR, "invalidStatusCode",
                 SAML2Utils.bundle.getString("invalidStatusCode"));
             throw new SAML2Exception(
                 SAML2Utils.bundle.getString("invalidStatusCode"));
-        } 
+        }
 
         try {
             return ProtocolFactory.getInstance().createResponse(
                                 artiResp.getAny());
         } catch (SAML2Exception se) {
             if (SAML2Utils.debug.messageEnabled()) {
-                SAML2Utils.debug.message(method 
+                SAML2Utils.debug.message(method
                     + "couldn't instantiate Response:", se);
             }
             String[] data = {idpEntityID};
@@ -716,8 +717,8 @@ public class SPACSUtils {
                         LogUtil.CANNOT_INSTANTIATE_RESPONSE_ARTIFACT,
                         data,
                         null);
-            SAMLUtils.sendError(request, response, 
-                response.SC_INTERNAL_SERVER_ERROR, 
+            SAMLUtils.sendError(request, response,
+                response.SC_INTERNAL_SERVER_ERROR,
                 "failedToCreateResponse", se.getMessage());
             throw se;
         }
@@ -739,26 +740,26 @@ public class SPACSUtils {
             String[] data = { hostEntityId } ;
             LogUtil.error(Level.INFO,
                 LogUtil.CANNOT_INSTANTIATE_SOAP_MESSAGE_ECP, data, null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR,
                 "failedToCreateSOAPMessage", soapex.getMessage());
-            throw new SAML2Exception(soapex.getMessage()); 
+            throw new SAML2Exception(soapex.getMessage());
         } catch (SOAPBindingException soapex) {
             String[] data = { hostEntityId } ;
             LogUtil.error(Level.INFO,
                 LogUtil.CANNOT_INSTANTIATE_SOAP_MESSAGE_ECP, data, null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR,
                 "failedToCreateSOAPMessage", soapex.getMessage());
-            throw new SAML2Exception(soapex.getMessage()); 
+            throw new SAML2Exception(soapex.getMessage());
         } catch(SOAPFaultException sfex) {
             String[] data = { hostEntityId } ;
             LogUtil.error(Level.INFO, LogUtil.RECEIVE_SOAP_FAULT_ECP,
                 data, null);
             String faultString =
                 sfex.getSOAPFaultMessage().getSOAPFault().getFaultString();
-            SAMLUtils.sendError(request, response, 
-                response.SC_INTERNAL_SERVER_ERROR, 
+            SAMLUtils.sendError(request, response,
+                response.SC_INTERNAL_SERVER_ERROR,
                 "failedToCreateSOAPMessage", faultString);
             throw new SAML2Exception(faultString);
         }
@@ -807,7 +808,7 @@ public class SPACSUtils {
             String[] data = { hostEntityId } ;
             LogUtil.error(Level.INFO,
                 LogUtil.CANNOT_INSTANTIATE_SAML_RESPONSE_FROM_ECP, data, null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR,
                 "failedToCreateResponse", se.getMessage());
             throw se;
@@ -820,7 +821,7 @@ public class SPACSUtils {
         } catch (SAML2MetaException se) {
             String[] data = { orgName, idpEntityID };
             LogUtil.error(Level.INFO, LogUtil.IDP_META_NOT_FOUND, data, null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR,
                 "failedToGetIDPSSODescriptor", se.getMessage());
             throw se;
@@ -835,13 +836,13 @@ public class SPACSUtils {
                 if (!assertion.isSigned()) {
                     if (SAML2Utils.debug.messageEnabled()) {
                         SAML2Utils.debug.message(
-                            "SPACSUtils.getResponseFromPostECP: " + 
+                            "SPACSUtils.getResponseFromPostECP: " +
                             " Assertion is not signed.");
                     }
                     String[] data = { idpEntityID };
                     LogUtil.error(Level.INFO,
                         LogUtil.ECP_ASSERTION_NOT_SIGNED, data, null);
-                    SAMLUtils.sendError(request, response, 
+                    SAMLUtils.sendError(request, response,
                         response.SC_INTERNAL_SERVER_ERROR,
                         "assertionNotSigned",
                         SAML2Utils.bundle.getString("assertionNotSigned"));
@@ -850,13 +851,13 @@ public class SPACSUtils {
                 } else if (!assertion.isSignatureValid(cert)) {
                     if (SAML2Utils.debug.messageEnabled()) {
                         SAML2Utils.debug.message(
-                            "SPACSUtils.getResponseFromPostECP: " + 
+                            "SPACSUtils.getResponseFromPostECP: " +
                             " Assertion signature is invalid.");
                     }
                     String[] data = { idpEntityID };
                     LogUtil.error(Level.INFO,
                         LogUtil.ECP_ASSERTION_INVALID_SIGNATURE, data, null);
-                    SAMLUtils.sendError(request, response, 
+                    SAMLUtils.sendError(request, response,
                         response.SC_INTERNAL_SERVER_ERROR,
                         "invalidSignature",
                         SAML2Utils.bundle.getString("invalidSignature"));
@@ -932,7 +933,7 @@ public class SPACSUtils {
                         LogUtil.CANNOT_DECODE_RESPONSE,
                         null,
                         null);
-            SAMLUtils.sendError(request, response, 
+            SAMLUtils.sendError(request, response,
                 response.SC_INTERNAL_SERVER_ERROR, "errorDecodeResponse",
                 SAML2Utils.bundle.getString("errorDecodeResponse"));
             throw new SAML2Exception(
@@ -989,7 +990,7 @@ public class SPACSUtils {
                 idp, idpEntityID, SAML2Constants.IDP_ROLE);
                 if (!resp.isSigned() || !resp.isSignatureValid(cert)) {
                     SAML2Utils.debug.error(classMethod +
-                         " Signature in Response is invalid "); 
+                         " Signature in Response is invalid ");
                     String[] data = { orgName , hostEntityId , idpEntityID };
                     LogUtil.error(Level.INFO,
                         LogUtil.POST_RESPONSE_INVALID_SIGNATURE,data,null);
@@ -1048,7 +1049,7 @@ public class SPACSUtils {
         if (SAML2Utils.debug.messageEnabled()) {
             SAML2Utils.debug.message(classMethod + "Response : " +
                                      respInfo.getResponse());
-        }        
+        }
         Map smap = null;
         try {
             // check Response/Assertion and get back a Map of relevant data
@@ -1058,11 +1059,11 @@ public class SPACSUtils {
         } catch (SAML2Exception se) {
             // invoke SPAdapter for failure
             invokeSPAdapterForSSOFailure(hostEntityId, realm,
-                request, response, smap, respInfo, 
+                request, response, smap, respInfo,
                 SAML2ServiceProviderAdapter.INVALID_RESPONSE, se);
             throw se;
         }
-        
+
         com.sun.identity.saml2.assertion.Subject assertionSubject =
             (com.sun.identity.saml2.assertion.Subject)
             smap.get(SAML2Constants.SUBJECT);
@@ -1076,19 +1077,19 @@ public class SPACSUtils {
         Long maxSessionTime = (Long) smap.get(SAML2Constants.MAX_SESSION_TIME);
         String inRespToResp = (String) smap.get(SAML2Constants.IN_RESPONSE_TO);
         List assertions = (List) smap.get(SAML2Constants.ASSERTIONS);
-        
+
         if (SAML2Utils.debug.messageEnabled()) {
             SAML2Utils.debug.message(classMethod + "Assertions : " +
                                      assertions);
         }
-       
+
         SPSSOConfigElement spssoconfig =
             metaManager.getSPSSOConfig(realm, hostEntityId);
 
         // get mappers
         SPAccountMapper acctMapper = SAML2Utils.getSPAccountMapper(realm, hostEntityId);
         SPAttributeMapper attrMapper = SAML2Utils.getSPAttributeMapper(realm, hostEntityId);
-        
+
         boolean needAttributeEncrypted = false;
         boolean needNameIDEncrypted = false;
         String assertionEncryptedAttr =
@@ -1174,7 +1175,9 @@ public class SPACSUtils {
             }
         }
 
-        boolean ignoreProfile = false;
+        boolean isTransient = SAML2Constants.NAMEID_TRANSIENT_FORMAT.equals(nameIDFormat);
+        boolean isPersistent = SAML2Constants.PERSISTENT.equals(nameIDFormat);
+        boolean ignoreProfile;
         String existUserName = null;
         SessionProvider sessionProvider = null;
         try {
@@ -1184,7 +1187,7 @@ public class SPACSUtils {
             // invoke SPAdapter for failure
             SAML2Exception se2 = new SAML2Exception(se);
             invokeSPAdapterForSSOFailure(hostEntityId, realm,
-                request, response, smap, respInfo, 
+                request, response, smap, respInfo,
                 SAML2ServiceProviderAdapter.SSO_FAILED_SESSION_ERROR, se2);
             throw se2;
         }
@@ -1196,20 +1199,41 @@ public class SPACSUtils {
                 // invoke SPAdapter for failure
                 SAML2Exception se2 = new SAML2Exception(se);
                 invokeSPAdapterForSSOFailure(hostEntityId, realm,
-                    request, response, smap, respInfo, 
+                    request, response, smap, respInfo,
                     SAML2ServiceProviderAdapter.SSO_FAILED_SESSION_ERROR, se2);
                 throw se2;
             }
         }
-        String userName;
+
+        String remoteHostId = authnAssertion.getIssuer().getValue();
+        String userName = null;
+        boolean isNewAccountLink = false;
+        boolean shouldPersistNameID = isPersistent || (!isTransient && !ignoreProfile
+                && acctMapper.shouldPersistNameIDFormat(realm, hostEntityId, remoteHostId, nameIDFormat));
         try {
-            userName = acctMapper.getIdentity(
-                authnAssertion, hostEntityId, realm);
+            if (shouldPersistNameID) {
+                if (SAML2Utils.debug.messageEnabled()) {
+                    SAML2Utils.debug.message(classMethod + "querying data store for existing federation links: realm = "
+                            + realm + " hostEntityID = " + hostEntityId + " remoteEntityID = " + remoteHostId);
+                }
+
+                try {
+                    userName = SAML2Utils.getDataStoreProvider().getUserID(realm, SAML2Utils.getNameIDKeyMap(
+                            nameId, hostEntityId, remoteHostId, realm, SAML2Constants.SP_ROLE));
+                } catch (DataStoreProviderException dse) {
+                    SAML2Utils.debug.error(classMethod + "DataStoreProviderException whilst retrieving NameID " +
+                            "information", dse);
+                    throw new SAML2Exception(dse.getMessage());
+                }
+            }
+            if (userName == null) {
+                userName = acctMapper.getIdentity(authnAssertion, hostEntityId, realm);
+                isNewAccountLink = true;
+            }
         } catch (SAML2Exception se) {
             // invoke SPAdapter for failure
-            invokeSPAdapterForSSOFailure(hostEntityId, realm,
-                request, response, smap, respInfo, 
-                SAML2ServiceProviderAdapter.SSO_FAILED_NO_USER_MAPPING, se);
+            invokeSPAdapterForSSOFailure(hostEntityId, realm, request, response, smap, respInfo,
+                    SAML2ServiceProviderAdapter.SSO_FAILED_NO_USER_MAPPING, se);
             throw se;
         }
         if (userName == null) {
@@ -1220,10 +1244,8 @@ public class SPACSUtils {
                 classMethod + "process: userName =[" + userName + "]");
         }
         List attrs = null;
-        String remoteHostId = null;
         for (Iterator it = assertions.iterator(); it.hasNext(); ) {
             Assertion assertion = (Assertion)it.next();
-            remoteHostId = assertion.getIssuer().getValue();
             List origAttrs = getSAMLAttributes(assertion,
                  needAttributeEncrypted,
                  decryptionKey);
@@ -1242,8 +1264,8 @@ public class SPACSUtils {
             } catch (SAML2Exception se) {
                 // invoke SPAdapter for failure
                 invokeSPAdapterForSSOFailure(hostEntityId, realm,
-                    request, response, smap, respInfo, 
-                    SAML2ServiceProviderAdapter.SSO_FAILED_ATTRIBUTE_MAPPING, 
+                    request, response, smap, respInfo,
+                    SAML2ServiceProviderAdapter.SSO_FAILED_ATTRIBUTE_MAPPING,
                     se);
                 throw se;
             }
@@ -1262,26 +1284,7 @@ public class SPACSUtils {
                 SAML2Utils.bundle.getString("noUserMapping"));
         }
 
-        // Even if the user profile is set to ignore, we must attempt to persist
-        // if the NameIDFormat is set to persistent.
-        if (ignoreProfile && SAML2Constants.PERSISTENT.equals(nameIDFormat)) {
-            ignoreProfile = false;
-            SAML2Utils.debug.warning(classMethod
-                + "ignoreProfile was true but NameIDFormat is Persistent => setting ignoreProfile to false");        }
-
-        boolean isTransient = SAML2Constants.NAMEID_TRANSIENT_FORMAT.equals(
-            nameId.getFormat());
-        boolean spDoNotWriteFedInfo = isSPDoNotWriteFedInfo(realm, hostEntityId, metaManager) &&
-                SAML2Constants.UNSPECIFIED.equals(nameId.getFormat());
-        boolean writeFedInfo = ( (!ignoreProfile && !isTransient && !spDoNotWriteFedInfo) &&
-                (!SAML2Utils.isFedInfoExists(
-                    userName, hostEntityId, remoteHostId, nameId)));
-            // TODO: check if this few lines are needed
-            /*
-                DN dnObject = new DN(userName);
-                String [] array = dnObject.explodeDN(true);
-                userName = array[0];
-            */
+        boolean writeFedInfo = isNewAccountLink && shouldPersistNameID;
 
         if (SAML2Utils.debug.messageEnabled()) {
             SAML2Utils.debug.message(
@@ -1291,7 +1294,7 @@ public class SPACSUtils {
         }
         AuthnRequest authnRequest = null;
         if (smap != null) {
-            authnRequest = (AuthnRequest) 
+            authnRequest = (AuthnRequest)
                 smap.get(SAML2Constants.AUTHN_REQUEST);
         }
         if (inRespToResp != null && inRespToResp.length() != 0) {
@@ -1305,7 +1308,7 @@ public class SPACSUtils {
         String clientAddr = ClientUtils.getClientIPAddress(request);
         sessionInfoMap.put(SessionProvider.HOST, clientAddr);
         sessionInfoMap.put(SessionProvider.HOST_NAME, clientAddr);
-        sessionInfoMap.put(SessionProvider.AUTH_LEVEL, 
+        sessionInfoMap.put(SessionProvider.AUTH_LEVEL,
             String.valueOf(authLevel));
         request.setAttribute(SessionProvider.ATTR_MAP, attrMap);
         try {
@@ -1313,7 +1316,7 @@ public class SPACSUtils {
                 sessionInfoMap, request, response, null);
         } catch (SessionException se) {
             // invoke SPAdapter for failure
-            int failureCode = 
+            int failureCode =
                 SAML2ServiceProviderAdapter.SSO_FAILED_SESSION_GENERATION;
             int sessCode =  se.getErrCode();
             if (sessCode == SessionException.AUTH_USER_INACTIVE) {
@@ -1348,7 +1351,7 @@ public class SPACSUtils {
             // invoke SPAdapter for failure
             SAML2Exception se2 = new SAML2Exception(se);
             invokeSPAdapterForSSOFailure(hostEntityId, realm,
-                request, response, smap, respInfo, 
+                request, response, smap, respInfo,
                 SAML2ServiceProviderAdapter.SSO_FAILED_SESSION_ERROR, se2);
             throw se2;
         }
@@ -1391,7 +1394,7 @@ public class SPACSUtils {
             // invoke SPAdapter for failure
             SAML2Exception se2 = new SAML2Exception(se);
             invokeSPAdapterForSSOFailure(hostEntityId, realm,
-                request, response, smap, respInfo, 
+                request, response, smap, respInfo,
                 SAML2ServiceProviderAdapter.SSO_FAILED_SESSION_ERROR, se2);
             throw se2;
         }
@@ -1405,7 +1408,7 @@ public class SPACSUtils {
             } catch (SAML2Exception se) {
                 // invoke SPAdapter for failure
                 invokeSPAdapterForSSOFailure(hostEntityId, realm,
-                    request, response, smap, respInfo, 
+                    request, response, smap, respInfo,
                     SAML2ServiceProviderAdapter.FEDERATION_FAILED_WRITING_ACCOUNT_INFO, se);
                throw se;
             }
@@ -1429,7 +1432,7 @@ public class SPACSUtils {
             SAML2Utils.getSPAdapterClass(hostEntityId, realm);
         if (spAdapter != null) {
             boolean redirected = spAdapter.postSingleSignOnSuccess(
-                hostEntityId, realm, request, 
+                hostEntityId, realm, request,
                 response, out, session, authnRequest, respInfo.getResponse(),
                 respInfo.getProfileBinding(), writeFedInfo);
             String[] value = null;
@@ -1439,7 +1442,7 @@ public class SPACSUtils {
                 value = new String[] {"false"};
             }
             try {
-                sessionProvider.setProperty(session, 
+                sessionProvider.setProperty(session,
                     SAML2Constants.RESPONSE_REDIRECTED, value);
             } catch (SessionException ex) {
                 SAML2Utils.debug.warning("SPSingleLogout.processResp", ex);
@@ -1447,7 +1450,7 @@ public class SPACSUtils {
                 SAML2Utils.debug.warning("SPSingleLogout.processResp", ex);
             }
         }
-     
+
         String assertionID=authnAssertion.getID();
         if (respInfo.getProfileBinding().equals(SAML2Constants.HTTP_POST)) {
             SPCache.assertionByIDCache.put(assertionID, SAML2Constants.ONETIME);
@@ -1462,19 +1465,19 @@ public class SPACSUtils {
             } catch (StoreException se) {
                 SAML2Utils.debug.error(classMethod + "DB error!", se);
             } catch (SAML2Exception e) {
-                SAML2Utils.debug.error(classMethod + "DB error!", e); 
+                SAML2Utils.debug.error(classMethod + "DB error!", e);
             }
         }
         respInfo.setAssertion(authnAssertion);
- 
+
         return session;
     }
 
-   
+
     private static void invokeSPAdapterForSSOFailure(String hostEntityId,
         String realm, HttpServletRequest request, HttpServletResponse response,
-        Map smap, ResponseInfo respInfo, int errorCode, 
-        SAML2Exception se) { 
+        Map smap, ResponseInfo respInfo, int errorCode,
+        SAML2Exception se) {
         SAML2ServiceProviderAdapter spAdapter = null;
         try {
             spAdapter = SAML2Utils.getSPAdapterClass(hostEntityId, realm);
@@ -1487,7 +1490,7 @@ public class SPACSUtils {
         if (spAdapter != null) {
             AuthnRequest authnRequest = null;
             if (smap != null) {
-                authnRequest = (AuthnRequest) 
+                authnRequest = (AuthnRequest)
                     smap.get(SAML2Constants.AUTHN_REQUEST);
             }
             boolean redirected = spAdapter.postSingleSignOnFailure(
@@ -1502,7 +1505,7 @@ public class SPACSUtils {
         Object session, String sessionIndex, String metaAlias,
         NameIDInfo info, boolean isIDPProxy, boolean isTransient)
         throws SAML2Exception {
-        
+
         String infoKeyString = (new NameIDInfoKey(
             info.getNameIDValue(),
             info.getHostEntityID(),
@@ -1522,7 +1525,7 @@ public class SPACSUtils {
                 if (fromToken[0].indexOf(infoKeyString) == -1) {
                     String[] values = { fromToken[0] +
                                         SAML2Constants.SECOND_DELIM +
-                                        infoKeyString }; 
+                                        infoKeyString };
                     sessionProvider.setProperty(
                         session, infoKeyAttribute, values);
                 }
@@ -1561,7 +1564,7 @@ public class SPACSUtils {
                     if (fedSessions == null) {
                         fedSessions = new ArrayList();
                     }
-                }  
+                }
                 synchronized (fedSessions) {
                     fedSessions.add(new SPFedSession(sessionIndex, tokenID,
                         info, metaAlias));
@@ -1574,7 +1577,7 @@ public class SPACSUtils {
                 }
 
                 if (isIDPProxy) {
-                    //IDP Proxy 
+                    //IDP Proxy
                     IDPSession idpSess = (IDPSession)
                         IDPCache.idpSessionsBySessionID.get(
                         tokenID);
@@ -1586,10 +1589,10 @@ public class SPACSUtils {
                     if (SAML2Utils.debug.messageEnabled()) {
                         SAML2Utils.debug.message("Add Session Partner: " +
                             info.getRemoteEntityID());
-                    } 
+                    }
                     idpSess.addSessionPartner(new SAML2SessionPartner(
                         info.getRemoteEntityID(), true));
-                    // end of IDP Proxy        
+                    // end of IDP Proxy
                 }
             } else {
                 synchronized (fedSessions) {
@@ -1599,7 +1602,7 @@ public class SPACSUtils {
                         SPFedSession temp = (SPFedSession) iter.next();
                         String idpSessionIndex = null;
                         if(temp != null) {
-                           idpSessionIndex = temp.idpSessionIndex; 
+                           idpSessionIndex = temp.idpSessionIndex;
                         }
                         if ((idpSessionIndex != null) &&
                                 (idpSessionIndex.equals(sessionIndex))) {
@@ -1608,7 +1611,7 @@ public class SPACSUtils {
                             found = true;
                             break;
                         }
-                    }    
+                    }
                     if (!found) {
                         fedSessions.add(
                             new SPFedSession(sessionIndex, tokenID, info,
@@ -1624,7 +1627,7 @@ public class SPACSUtils {
 				    size());
                         }
                     }
-               }    
+               }
             }
             SPCache.fedSessionListsByNameIDInfoKey.put(infoKeyString,
                                                    fedSessions);
@@ -1642,13 +1645,13 @@ public class SPACSUtils {
                 "Unable to add session listener.");
         }
     }
-    
+
     /** Sets the attribute map in the session
      *
      *  @param sessionProvider Session provider
      *  @param attrMap the Attribute Map
      *  @param session the valid session object
-     *  @throws com.sun.identity.plugin.session.SessionException 
+     *  @throws com.sun.identity.plugin.session.SessionException
      */
     public static void setAttrMapInSession(
         SessionProvider sessionProvider,
@@ -1717,7 +1720,7 @@ public class SPACSUtils {
      * @param orgName realm or organization name the service provider resides in
      * @param hostEntityId Entity ID of the hosted service provider
      * @param sm <code>SAML2MetaManager</code> instance.
-     * @return final relay state. Or <code>null</code> if the input 
+     * @return final relay state. Or <code>null</code> if the input
      *         relayStateID is null and no default relay state is configured.
      */
     public static String getRelayState(
@@ -1751,9 +1754,9 @@ public class SPACSUtils {
                 } catch (StoreException se) {
                     SAML2Utils.debug.error("SPACUtils.getRelayState: Unable to retrieve relayState for relayStateID "
                             + relayStateID, se);
-                } catch (SAML2Exception ex) {                    
+                } catch (SAML2Exception ex) {
                     SAML2Utils.debug.error("SPACUtils.getRelayState: Unable to retrieve relayState for relayStateID "
-                            + relayStateID, ex);                    
+                            + relayStateID, ex);
                 }
             } else {
                 // !SAML2Utils.isSAML2FailOverEnabled()
@@ -1762,18 +1765,18 @@ public class SPACSUtils {
                         + " is null for relayStateID: " + relayStateID + ", SAML2 failover is disabled");
                 }
             }
-            
+
             if ((relayStateUrl == null) || (relayStateUrl.trim().length() == 0)
             ) {
                 relayStateUrl = relayStateID;
             }
         }
-        
+
         if (relayStateUrl == null || relayStateUrl.trim().length() == 0) {
             relayStateUrl = getAttributeValueFromSPSSOConfig(
                 orgName, hostEntityId, sm, SAML2Constants.DEFAULT_RELAY_STATE);
         }
-        
+
         return relayStateUrl;
     }
 
@@ -1844,9 +1847,9 @@ public class SPACSUtils {
             }
         }
         synchronized (SPCache.responseHash) {
-           SPCache.responseHash.put(respInfo.getResponse().getID(), 
+           SPCache.responseHash.put(respInfo.getResponse().getID(),
                respInfo);
-        }   
+        }
         if (SAML2Utils.debug.messageEnabled()) {
             SAML2Utils.debug.message("SPACSUtils:prepareForLocalLogin: " +
                 "localLoginUrl = " + localLoginUrl);
@@ -1855,7 +1858,7 @@ public class SPACSUtils {
     }
 
     /**
-     * Retrieves attribute value for a given attribute name from 
+     * Retrieves attribute value for a given attribute name from
      * <code>SPSSOConfig</code>.
      * @param orgName realm or organization name the service provider resides in
      * @param hostEntityId hosted service provider's Entity ID.
@@ -1864,7 +1867,7 @@ public class SPACSUtils {
      * @param attrName name of the attribute whose value ot be retrived.
      * @return value of the attribute; or <code>null</code> if the attribute
      *                if not configured, or an error occured in the process.
-     */ 
+     */
     private static String getAttributeValueFromSPSSOConfig(String orgName,
                                                         String hostEntityId,
                                                         SAML2MetaManager sm,
@@ -1948,21 +1951,21 @@ public class SPACSUtils {
      * result will be returned. <br>
      * Here is a list of keys and values for the returned map: <br>
      * SAML2Constants.ATTRIBUTE_MAP -- Attribute map containing all attributes
-     *                                 passed down from IDP inside the 
-     *                                 Assertion. The value is a 
-     *                                 <code>java.util.Map</code> whose keys 
-     *                                 are attribute names and values are 
-     *                                 <code>java.util.Set</code> of string 
+     *                                 passed down from IDP inside the
+     *                                 Assertion. The value is a
+     *                                 <code>java.util.Map</code> whose keys
+     *                                 are attribute names and values are
+     *                                 <code>java.util.Set</code> of string
      *                                 values for the attributes. <br>
      * SAML2Constants.RELAY_STATE -- Relay state, value is a string <br>
      * SAML2Constants.IDPENTITYID -- IDP entity ID, value is a string<br>
-     * SAML2Constants.RESPONSE    -- Response object, value is an instance of 
+     * SAML2Constants.RESPONSE    -- Response object, value is an instance of
      *                               com.sun.identity.saml2.protocol.Response
-     * SAML2Constants.ASSERTION   -- Assertion object, value is an instance of 
+     * SAML2Constants.ASSERTION   -- Assertion object, value is an instance of
      *                               com.sun.identity.saml2.assertion.Assertion
-     * SAML2Constants.SUBJECT     -- Subject object, value is an instance of 
+     * SAML2Constants.SUBJECT     -- Subject object, value is an instance of
      *                               com.sun.identity.saml2.assertion.Subject
-     * SAML2Constants.NAMEID      -- NameID object, value is an instance of 
+     * SAML2Constants.NAMEID      -- NameID object, value is an instance of
      *                               com.sun.identity.saml2.assertion.NameID
      *
      * @param request HTTP Servlet request
@@ -1976,7 +1979,7 @@ public class SPACSUtils {
      * @throws ServletException if the processing failed due to request error.
      *
      * @supported.api
-     */  
+     */
     public static Map processResponseForFedlet (HttpServletRequest request,
         HttpServletResponse response, PrintWriter out) throws SAML2Exception, IOException,
         SessionException, ServletException {
@@ -1984,7 +1987,7 @@ public class SPACSUtils {
             throw new ServletException(
                 SAML2SDKUtils.bundle.getString("nullInput"));
         }
-        
+
         String requestURL = request.getRequestURL().toString();
         SAML2MetaManager metaManager = new SAML2MetaManager();
         if (metaManager == null) {
@@ -2015,12 +2018,12 @@ public class SPACSUtils {
         } catch (SAML2MetaException sme) {
             SAML2SDKUtils.debug.error("SPACSUtils.processResponseForFedlet",
                 sme);
-            throw new SAML2Exception( 
+            throw new SAML2Exception(
                     SAML2SDKUtils.bundle.getString("metaDataError"));
         }
         if (hostEntityId == null) {
             // logging?
-            throw new SAML2Exception( 
+            throw new SAML2Exception(
                     SAML2SDKUtils.bundle.getString("metaDataError"));
         }
         // organization is always root org
@@ -2037,7 +2040,7 @@ public class SPACSUtils {
         }
         respInfo = SPACSUtils.getResponse(
                 request, response, orgName, hostEntityId, metaManager);
-        
+
         Object newSession = null;
 
         // Throws a SAML2Exception if the response cannot be validated
@@ -2048,7 +2051,7 @@ public class SPACSUtils {
         newSession = SPACSUtils.processResponse(
                     request, response, out, metaAlias, null, respInfo,
                     orgName, hostEntityId, metaManager);
-        
+
         SAML2SDKUtils.debug.message("SSO SUCCESS");
         String[] redirected = sessionProvider.getProperty(newSession,
                 SAML2Constants.RESPONSE_REDIRECTED);
@@ -2097,51 +2100,8 @@ public class SPACSUtils {
         } else {
             realRedirectUrl = finalUrl;
         }
-        return createMapForFedlet(respInfo, realRedirectUrl, hostEntityId); 
+        return createMapForFedlet(respInfo, realRedirectUrl, hostEntityId);
     }
-
-     /**
-     * Returns  <code>true</code> or <code>false</code>
-     * depending if the flag  spDoNotWriteFederationInfo is set in the
-     * SP Extended metadata
-     *
-     * @param realm the realm name
-     * @param spEntityID the entity id of the Service Provider
-     * @param metaManager the SAML2MetaMAnager used to read the extendede metadata
-     * @return the <code>true/false</code>
-     * @exception SAML2Exception if the operation is not successful
-     */
-    private static Boolean isSPDoNotWriteFedInfo(
-                                 String realm, String spEntityID, SAML2MetaManager metaManager)
-        throws SAML2Exception {
-        String methodName = "isSPDoNotWriteFedInfo";
-
-        Boolean isSPDoNotWriteFedInfoEnabled = false;
-        SAML2SDKUtils.debug.message("SPACSUtils." + methodName + "Entering");
-
-        try {
-            String SPDoNotWriteFedInfo = getAttributeValueFromSPSSOConfig(realm,
-                    spEntityID, metaManager,
-                    SAML2Constants.SP_DO_NOT_WRITE_FEDERATION_INFO);
-
-            if (SPDoNotWriteFedInfo != null && !SPDoNotWriteFedInfo.isEmpty()) {
-                SAML2SDKUtils.debug.message("SPACSUtils." + methodName +
-                        ": SPDoNotWriteFedInfo is: " +  SPDoNotWriteFedInfo);
-                isSPDoNotWriteFedInfoEnabled = SPDoNotWriteFedInfo.equalsIgnoreCase("true");
-            } else {
-                SAML2SDKUtils.debug.message("SPACSUtils." + methodName +
-                        ": SPDoNotWriteFedInfo is: not configured");
-                isSPDoNotWriteFedInfoEnabled = false;
-            }
-        } catch (Exception ex) {
-            SAML2Utils.debug.error(methodName +
-                "Unable to get the SPDoNotWriteFedInfo flag.", ex);
-            throw new SAML2Exception(ex);
-        }
-
-        return isSPDoNotWriteFedInfoEnabled ;
-    }
-
 
     private static Map createMapForFedlet(
         ResponseInfo respInfo, String relayUrl, String hostedEntityId) {
@@ -2152,9 +2112,9 @@ public class SPACSUtils {
         Response samlResp = respInfo.getResponse();
         map.put(SAML2Constants.RESPONSE, samlResp);
         Assertion assertion = respInfo.getAssertion();
-        map.put(SAML2Constants.ASSERTION, assertion); 
+        map.put(SAML2Constants.ASSERTION, assertion);
         map.put(SAML2Constants.SUBJECT, assertion.getSubject());
-        map.put(SAML2Constants.IDPENTITYID, assertion.getIssuer().getValue()); 
+        map.put(SAML2Constants.IDPENTITYID, assertion.getIssuer().getValue());
         map.put(SAML2Constants.SPENTITYID, hostedEntityId);
         map.put(SAML2Constants.NAMEID, respInfo.getNameId());
         map.put(SAML2Constants.ATTRIBUTE_MAP, respInfo.getAttributeMap());

@@ -1,4 +1,4 @@
-/**
+/*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
  * Copyright (c) 2008 Sun Microsystems Inc. All Rights Reserved
@@ -24,6 +24,7 @@
  *
  * $Id: CreateSAML2HostedProviderTemplate.java,v 1.29 2009/11/24 21:49:04 madan_ranganath Exp $
  *
+ * Portions Copyrighted 2015 ForgeRock AS.
  */
 
 package com.sun.identity.workflow;
@@ -64,7 +65,7 @@ public class CreateSAML2HostedProviderTemplate {
     )  {
         return createExtendedDataTemplate(entityID, mapParams, url, true);
     }
-    
+
     public static String createExtendedDataTemplate(
         String entityID,
         Map mapParams,
@@ -151,7 +152,7 @@ public class CreateSAML2HostedProviderTemplate {
             MetaTemplateParameters.P_IDP_S_CERT);
         String idpECertAlias = (String)mapParams.get(
             MetaTemplateParameters.P_IDP_E_CERT);
-        
+
         if (idpSCertAlias == null) {
             idpSCertAlias = "";
         }
@@ -211,6 +212,9 @@ public class CreateSAML2HostedProviderTemplate {
             "\">\n" +
             "            <Value>com.sun.identity.saml2.plugins.DefaultIDPAccountMapper" +
             "</Value>\n" +
+            "        </Attribute>\n" +
+            "        <Attribute name=\"" + SAML2Constants.IDP_DISABLE_NAMEID_PERSISTENCE + "\">\n" +
+            "            <Value>false</Value>\n" +
             "        </Attribute>\n" +
             "        <Attribute name=\"" + SAML2Constants.IDP_ATTRIBUTE_MAPPER +
             "\">\n" +
@@ -317,7 +321,7 @@ public class CreateSAML2HostedProviderTemplate {
         if (spECertAlias == null) {
             spECertAlias = "";
         }
-        
+
         buff.append(
             "    <SPSSOConfig metaAlias=\"" + spAlias + "\">\n" +
             "        <Attribute name=\"" + SAML2Constants.ENTITY_DESCRIPTION +
@@ -511,7 +515,7 @@ public class CreateSAML2HostedProviderTemplate {
             "    </SPSSOConfig>\n"
         );
     }
-    
+
     private static void buildAttributeAuthorityConfigTemplate(
         StringBuffer buff,
         String attraAlias,
@@ -522,14 +526,14 @@ public class CreateSAML2HostedProviderTemplate {
             MetaTemplateParameters.P_ATTR_AUTHORITY_E_CERT);
         String attraSCertAlias = (String)mapParams.get(
             MetaTemplateParameters.P_ATTR_AUTHORITY_S_CERT);
-        
+
         if (attraECertAlias == null) {
             attraECertAlias = "";
         }
         if (attraSCertAlias == null) {
             attraSCertAlias = "";
         }
-        
+
         buff.append(
             "    <AttributeAuthorityConfig metaAlias=\"" + attraAlias + "\">\n"+
             "        <Attribute name=\"" + SAML2Constants.SIGNING_CERT_ALIAS +
@@ -575,13 +579,13 @@ public class CreateSAML2HostedProviderTemplate {
             MetaTemplateParameters.P_ATTR_QUERY_PROVIDER_S_CERT);
         String attrqECertAlias = (String)mapParams.get(
             MetaTemplateParameters.P_ATTR_QUERY_PROVIDER_E_CERT);
-        
+
         if (attrqSCertAlias == null) {
             attrqSCertAlias = "";
         }
         if (attrqECertAlias == null) {
             attrqECertAlias = "";
-        }        
+        }
 
         buff.append(
             "    <AttributeQueryConfig metaAlias=\"" + attrqAlias + "\">\n" +
@@ -613,7 +617,7 @@ public class CreateSAML2HostedProviderTemplate {
         if (authnaSCertAlias == null) {
             authnaSCertAlias = "";
         }
-        
+
         buff.append(
             "    <AuthnAuthorityConfig metaAlias=\"" + authnaAlias + "\">\n"+
             "        <Attribute name=\"" + SAML2Constants.SIGNING_CERT_ALIAS +
@@ -649,7 +653,7 @@ public class CreateSAML2HostedProviderTemplate {
         if (affiSCertAlias == null) {
             affiSCertAlias = "";
         }
-        
+
         buff.append(
             "    <AffiliationConfig metaAlias=\"" + affiAlias + "\">\n"+
             "        <Attribute name=\"" + SAML2Constants.SIGNING_CERT_ALIAS +
@@ -709,7 +713,7 @@ public class CreateSAML2HostedProviderTemplate {
             "        </Attribute>\n" +
             "   </XACMLPDPConfig>\n");
     }
-    
+
     private static void buildPEPConfigTemplate(
         StringBuffer buff,
         String pepAlias,
@@ -757,7 +761,7 @@ public class CreateSAML2HostedProviderTemplate {
             "            <Value>false</Value>\n" +
             "        </Attribute>\n" +
             "        <Attribute name=\"" + COTConstants.COT_LIST + "\">\n" +
-            "        </Attribute>\n" +            
+            "        </Attribute>\n" +
             "  </XACMLAuthzDecisionQueryConfig>\n");
     }
 
@@ -840,13 +844,13 @@ public class CreateSAML2HostedProviderTemplate {
         Map mapParams
     ) throws SAML2MetaException {
         String maStr = buildMetaAliasInURI(idpAlias);
-        
+
         buff.append(
             "    <IDPSSODescriptor\n" +
             "        WantAuthnRequestsSigned=\"false\"\n" +
             "        protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\">\n"
         );
-        
+
         String idpSCertAlias = (String)mapParams.get(
             MetaTemplateParameters.P_IDP_S_CERT);
         String idpECertAlias = (String)mapParams.get(
@@ -867,7 +871,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </KeyInfo>\n" +
                 "        </KeyDescriptor>\n");
         }
-        
+
         String idpEX509Cert = SAML2MetaSecurityUtils.buildX509Certificate(
             idpECertAlias);
         if (idpEX509Cert != null) {
@@ -888,7 +892,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </EncryptionMethod>\n" +
                 "        </KeyDescriptor>\n");
         }
-        
+
         buff.append(
             "        <ArtifactResolutionService\n" +
             "            Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:SOAP\"\n" +
@@ -896,7 +900,7 @@ public class CreateSAML2HostedProviderTemplate {
             "\"\n" +
             "            index=\"0\"\n" +
             "            isDefault=\"1\"/>\n" +
-            
+
             "        <SingleLogoutService\n" +
             "            Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect\"\n" +
             "            Location=\"" + url + "/IDPSloRedirect" +maStr+ "\"\n" +
@@ -979,7 +983,7 @@ public class CreateSAML2HostedProviderTemplate {
             "        WantAssertionsSigned=\"false\"\n" +
             "        protocolSupportEnumeration=\n" +
             "            \"urn:oasis:names:tc:SAML:2.0:protocol\">\n");
-        
+
         String spSCertAlias = (String)mapParams.get(
             MetaTemplateParameters.P_SP_S_CERT);
         String spECertAlias = (String)mapParams.get(
@@ -989,7 +993,7 @@ public class CreateSAML2HostedProviderTemplate {
             spSCertAlias);
         String spEX509Cert = SAML2MetaSecurityUtils.buildX509Certificate(
             spECertAlias);
-        
+
         if (spSX509Cert != null) {
             buff.append(
                 "        <KeyDescriptor use=\"signing\">\n" +
@@ -1002,7 +1006,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </KeyInfo>\n" +
                 "        </KeyDescriptor>\n");
         }
-        
+
         if (spEX509Cert != null) {
             buff.append(
                 "        <KeyDescriptor use=\"encryption\">\n" +
@@ -1021,7 +1025,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </EncryptionMethod>\n" +
                 "        </KeyDescriptor>\n");
         }
-        
+
         buff.append(
             "        <SingleLogoutService\n" +
             "            Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect\"\n" +
@@ -1096,11 +1100,11 @@ public class CreateSAML2HostedProviderTemplate {
         Map mapParams
     ) throws SAML2MetaException {
         String maStr = buildMetaAliasInURI(attraAlias);
-        
+
         buff.append(
             "    <AttributeAuthorityDescriptor\n" +
             "        protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\">\n");
-        
+
         String attraECertAlias = (String)mapParams.get(
             MetaTemplateParameters.P_ATTR_AUTHORITY_E_CERT);
         String attraSCertAlias = (String)mapParams.get(
@@ -1120,7 +1124,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </KeyInfo>\n" +
                 "        </KeyDescriptor>\n");
         }
-        
+
         String attraEX509Cert = SAML2MetaSecurityUtils.buildX509Certificate(
             attraECertAlias);
         if (attraEX509Cert != null) {
@@ -1141,7 +1145,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </EncryptionMethod>\n" +
                 "        </KeyDescriptor>\n");
         }
-        
+
         buff.append(
             "        <AttributeService\n" +
             "            Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:SOAP\"\n" +
@@ -1164,7 +1168,7 @@ public class CreateSAML2HostedProviderTemplate {
             SAML2Constants.BASIC_ATTRIBUTE_PROFILE + "</AttributeProfile>\n" +
             "    </AttributeAuthorityDescriptor>\n");
     }
-    
+
     private static void addAttributeQueryTemplate(
         StringBuffer buff,
         String attrqAlias,
@@ -1179,7 +1183,7 @@ public class CreateSAML2HostedProviderTemplate {
             "        xsi:type=\"query:AttributeQueryDescriptorType\"\n" +
             "        protocolSupportEnumeration=\n" +
             "            \"urn:oasis:names:tc:SAML:2.0:protocol\">\n");
-        
+
         String attrqSCertAlias = (String)mapParams.get(
             MetaTemplateParameters.P_ATTR_QUERY_PROVIDER_S_CERT);
         String attrqECertAlias = (String)mapParams.get(
@@ -1188,7 +1192,7 @@ public class CreateSAML2HostedProviderTemplate {
             attrqSCertAlias);
         String attrqEX509Cert = SAML2MetaSecurityUtils.buildX509Certificate(
             attrqECertAlias);
-        
+
         if (attrqSX509Cert != null) {
             buff.append(
                 "        <KeyDescriptor use=\"signing\">\n" +
@@ -1201,7 +1205,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </KeyInfo>\n" +
                 "        </KeyDescriptor>\n");
         }
-        
+
         if (attrqEX509Cert != null) {
             buff.append(
                 "        <KeyDescriptor use=\"encryption\">\n" +
@@ -1220,7 +1224,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </EncryptionMethod>\n" +
                 "        </KeyDescriptor>\n");
         }
-        
+
         buff.append(
             "        <NameIDFormat>\n" +
             "            urn:oasis:names:tc:SAML:2.0:nameid-format:persistent\n" +
@@ -1241,11 +1245,11 @@ public class CreateSAML2HostedProviderTemplate {
         Map mapParams
     ) throws SAML2MetaException {
         String maStr = buildMetaAliasInURI(authnaAlias);
-        
+
         buff.append(
             "    <AuthnAuthorityDescriptor\n" +
             "        protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\">\n");
-        
+
         String authnaECertAlias = (String)mapParams.get(
             MetaTemplateParameters.P_AUTHN_AUTHORITY_E_CERT);
         String authnaSCertAlias = (String)mapParams.get(
@@ -1265,7 +1269,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </KeyInfo>\n" +
                 "        </KeyDescriptor>\n");
         }
-        
+
         String authnaEX509Cert = SAML2MetaSecurityUtils.buildX509Certificate(
             authnaECertAlias);
         if (authnaEX509Cert != null) {
@@ -1286,7 +1290,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </EncryptionMethod>\n" +
                 "        </KeyDescriptor>\n");
         }
-        
+
         buff.append(
             "        <AuthnQueryService\n" +
             "            Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:SOAP\"\n" +
@@ -1309,7 +1313,7 @@ public class CreateSAML2HostedProviderTemplate {
         Map mapParams
     ) throws SAML2MetaException {
         String maStr = buildMetaAliasInURI(affiAlias);
-        
+
         buff.append(
             "    <AffiliationDescriptor\n" +
             "        affiliationOwnerID=\"" + affiOwnerID + "\">\n");
@@ -1342,7 +1346,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </KeyInfo>\n" +
                 "        </KeyDescriptor>\n");
         }
-        
+
         String affiEX509Cert = SAML2MetaSecurityUtils.buildX509Certificate(
             affiECertAlias);
         if (affiEX509Cert != null) {
@@ -1375,7 +1379,7 @@ public class CreateSAML2HostedProviderTemplate {
     ) throws SAML2MetaException {
         String maStr = buildMetaAliasInURI(pdpAlias);
         buff.append(
-            "    <XACMLPDPDescriptor " + 
+            "    <XACMLPDPDescriptor " +
             "protocolSupportEnumeration=" +
             "\"urn:oasis:names:tc:SAML:2.0:protocol\">\n");
 
@@ -1392,7 +1396,7 @@ public class CreateSAML2HostedProviderTemplate {
         if (pdpSX509Cert != null) {
             buff.append(
                 "        <KeyDescriptor use=\"signing\">\n" +
-                "            <KeyInfo xmlns=\"" + 
+                "            <KeyInfo xmlns=\"" +
                                     SAML2MetaSecurityUtils.NS_XMLSIG + "\">\n" +
                 "                <X509Data>\n" +
                 "                    <X509Certificate>\n" + pdpSX509Cert +
@@ -1414,7 +1418,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </KeyInfo>\n" +
                 "            <EncryptionMethod Algorithm=" +
                 "\"http://www.w3.org/2001/04/xmlenc#aes128-cbc\">\n" +
-                "                <KeySize xmlns=\"" + 
+                "                <KeySize xmlns=\"" +
                                     SAML2MetaSecurityUtils.NS_XMLENC +"\">" +
                 "128</KeySize>\n" +
                 "            </EncryptionMethod>\n" +
@@ -1442,7 +1446,7 @@ public class CreateSAML2HostedProviderTemplate {
             MetaTemplateParameters.P_PEP_E_CERT);
         String pepSCertAlias = (String)mapParams.get(
             MetaTemplateParameters.P_PEP_S_CERT);
-        
+
         String pepSX509Cert = SAML2MetaSecurityUtils.buildX509Certificate(
             pepSCertAlias);
         String pepEX509Cert = SAML2MetaSecurityUtils.buildX509Certificate(
@@ -1464,7 +1468,7 @@ public class CreateSAML2HostedProviderTemplate {
         if (pepEX509Cert != null) {
             buff.append(
                 "        <KeyDescriptor use=\"encryption\">\n" +
-                "            <KeyInfo xmlns=\"" + 
+                "            <KeyInfo xmlns=\"" +
                                     SAML2MetaSecurityUtils.NS_XMLSIG + "\">\n" +
                 "                <X509Data>\n" +
                 "                    <X509Certificate>\n" + pepEX509Cert +
@@ -1473,7 +1477,7 @@ public class CreateSAML2HostedProviderTemplate {
                 "            </KeyInfo>\n" +
                 "            <EncryptionMethod Algorithm=" +
                 "\"http://www.w3.org/2001/04/xmlenc#aes128-cbc\">\n" +
-                "                <KeySize xmlns=\"" + 
+                "                <KeySize xmlns=\"" +
                                     SAML2MetaSecurityUtils.NS_XMLENC +"\">" +
                 "128</KeySize>\n" +
                 "            </EncryptionMethod>\n" +
