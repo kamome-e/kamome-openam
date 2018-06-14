@@ -1,4 +1,4 @@
-/**
+/*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
  * Copyright (c) 2006 Sun Microsystems Inc. All Rights Reserved
@@ -32,6 +32,7 @@ import com.sun.identity.common.PeriodicCleanUpMap;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -281,7 +282,7 @@ public class IDPCache {
      * value: Map containing NameNameID format as Key and user profile
      *     attribute name as Value.
      */
-    public static Hashtable formatAttributeHash = new Hashtable();
+    public static final Map<String, Map<String, String>> formatAttributeHash = new Hashtable<>();
 
     /**
      * Clears the authn context mapping hash tables.

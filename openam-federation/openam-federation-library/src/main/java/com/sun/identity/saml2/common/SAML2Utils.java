@@ -2511,7 +2511,7 @@ public class SAML2Utils extends SAML2SDKUtils {
      * @param attrName attribute name for the value.
      * @return value of specified attribute from SSOConfig.
      */
-    public static List getAllAttributeValueFromSSOConfig(String realm,
+    public static List<String> getAllAttributeValueFromSSOConfig(String realm,
             String hostEntityId,
             String entityRole,
             String attrName) {
