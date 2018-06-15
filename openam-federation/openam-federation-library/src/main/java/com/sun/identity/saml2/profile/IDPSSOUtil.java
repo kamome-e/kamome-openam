@@ -1480,6 +1480,7 @@ public class IDPSSOUtil {
         NameIDInfo nameIDInfo;
         NameID nameID = null;
         IDPAccountMapper idpAccountMapper = SAML2Utils.getIDPAccountMapper(realm, idpEntityID);
+        NameID currentNameID = idpAccountMapper.getNameID(session, idpEntityID, spNameQualifier, realm, nameIDFormat);
 
         //Use-cases for NameID persistence:
         //* persistent NameID -> The NameID MUST be stored
@@ -1504,7 +1505,8 @@ public class IDPSSOUtil {
                 if (nameIDInfo != null) {
                     nameID = nameIDInfo.getNameID();
 
-                    if (!nameIDFormat.equals(nameID.getFormat())) {
+                    if ((!nameIDFormat.equals(nameID.getFormat()))
+                            || (!currentNameID.getValue().equals(nameID.getValue()))) {
                         AccountUtils.removeAccountFederation(nameIDInfo, userID);
                         DoManageNameID.removeIDPFedSession(remoteEntityID, nameID.getValue());
                         nameID = null;
