@@ -60,6 +60,9 @@
                             <div class="message">
                                 <span class="icon error"></span>
                                 <h3><%= (String) viewBean.getDisplayMessage() %></h3>
+                                <jato:content name="ContentStaticWarning">
+                                    <p><jato:getDisplayFieldValue name='StaticTextWarning' defaultValue='' fireDisplayEvents='true' escape='false'/></p>
+                                </jato:content>
                                 <jato:content name="ContentHref">
                                     <p><auth:href name="LoginURL" fireDisplayEvents='true'><jato:text name="txtGotoLoginAfterFail" /></auth:href></p>
                                 </jato:content>
