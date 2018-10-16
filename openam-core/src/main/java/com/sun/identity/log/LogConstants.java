@@ -197,7 +197,7 @@ public class LogConstants {
      */
     public static final String LOGVERIFY_PERIODINSECONDS =
         "iplanet-am-logging-verify-period-in-seconds";
-    
+
     public static final long LOGVERIFY_PERIODINSECONDS_DEFAULT = 3600;
 
     /**
@@ -205,15 +205,15 @@ public class LogConstants {
      */
     public static final String LOGSIGN_PERIODINSECONDS         =
         "iplanet-am-logging-signature-period-in-seconds";
-    
+
     public static final long LOGSIGN_PERIODINSECONDS_DEFAULT = 600;
-    
+
     /**
      * Attribute defining the Log Security status; ON or OFF.
      */
     public static final String SECURITY_STATUS =
         "iplanet-am-logging-security-status";
-    
+
     /**
      * Defines the File Read Handler class.
      */
@@ -234,7 +234,7 @@ public class LogConstants {
      */
     public static final String DB_READ_HANDLER =
         "sun-am-logging-db-read-handler";
-    
+
     /**
      * Attribute defining the maximum records for flat file logs.
      * Also the default number of maximum records to be read.
@@ -265,7 +265,7 @@ public class LogConstants {
         "iplanet-am-logging-verifier-action-class";
 
     /**
-     * Attribute defining the Directory where the logger certificate 
+     * Attribute defining the Directory where the logger certificate
      * store is stored.
      */
     public static final String LOGGER_CERT_STORE =
@@ -313,19 +313,19 @@ public class LogConstants {
      */
     public static final String FILTER_CLASS_NAME =
         "iplanet-am-logging-filter-class-name";
-    
+
     /**
      * Attribute defining the Secure Timestamp generator class
      */
     public static final String SECURE_TIMESTAMP_GENERATOR =
         "iplanet-am-logging-secure-timestamp-generator";
-    
+
     /**
      * Attribute defining the secure log helper class
      */
     public static final String SECURE_LOG_HELPER =
         "iplanet-am-logging-secure-log-helper-class-name";
-    
+
     /**
      * Attribute defining the default secure log helper class
      */
@@ -337,24 +337,24 @@ public class LogConstants {
      */
     public static final String SECURITY_INITIALIZER =
         "iplanet-am-logging-security-initializer-class-name";
-    
+
     /**
      * Attribute defining the security signing algorithm
      */
     public static final String SECURITY_SIGNING_ALGORITHM =
         "iplanet-am-logging-secure-signing-algorithm";
-    
+
     /**
      * Attribute defining the default security signing algorithm
      */
     public static final String DEFAULT_SECURITY_SIGNING_ALGORITHM =
         "SHA1withRSA";
-    
+
     /**
      * Attribute defining the log file logging level
      */
     public static final String LOGGING_LEVEL = "sun-am-log-level";
-    
+
     /**
      * Attribute defining the Oracle DB data type for the DATA field
      */
@@ -378,7 +378,43 @@ public class LogConstants {
      */
     public static final String MYSQL_DBDATETIME_FORMAT =
         "sun-am-logging-mysql-dbdate-format";
-    
+
+    // TODO syslog出力 --- sta
+    /**
+     * Attribute defining the Syslog Handler class.
+     */
+    public static final String SYSLOG_HANDLER = "iplanet-am-logging-syslog-handler";
+
+    /**
+     * Attribute defining the SyslogFormatter class
+     */
+    public static final String SYSLOG_FORMATTER = "iplanet-am-logging-syslog-formatter";
+
+    /**
+     * Attribute defining syslog host.
+     */
+    public static final String SYSLOG_HOST = "iplanet-am-logging-syslog-host";
+
+    /**
+     * Attribute defining syslog port.
+     */
+    public static final String SYSLOG_PORT = "iplanet-am-logging-syslog-port";
+    /**
+     * Attribute defining syslog protocol, UDP or TCP.
+     */
+    public static final String SYSLOG_PROTOCOL = "iplanet-am-logging-syslog-protocol";
+
+    /**
+     * Attribute defining syslog facility.
+     */
+    public static final String SYSLOG_FACILITY = "iplanet-am-logging-syslog-facility";
+
+    /**
+     * Attribute defining syslog connection timeout.
+     */
+    public static final String SYSLOG_CONNECTION_TIMEOUT = "iplanet-am-logging-syslog-connection-timeout";
+    // TODO syslog出力 --- end
+
     /**
      * Property defining whether logging is enabled
      * @supported.api
@@ -393,13 +429,13 @@ public class LogConstants {
         "com.sun.identity.log.logSubdir";
 
     public static final String LOG_READ = "READ";
-    
+
     public static final String LOG_WRITE = "WRITE";
-    
+
     public static final String LOG_CREATE = "CREATE";
-    
+
     public static final String LOG_DELETE  = "DELETE";
-    
+
     /*
      *logInfoMap keys
      */
@@ -546,7 +582,7 @@ public class LogConstants {
     /**
      * default logging level
      */
-    public static final String DEFAULT_LOGGING_LEVEL_STR = "INFO"; 
+    public static final String DEFAULT_LOGGING_LEVEL_STR = "INFO";
     public static final Level DEFAULT_LOGGING_LEVEL = Level.INFO;
 
     /**

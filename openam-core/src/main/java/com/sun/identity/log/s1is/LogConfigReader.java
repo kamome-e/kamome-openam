@@ -66,7 +66,7 @@ import java.util.TreeSet;
  * the configuration.
  */
 public class LogConfigReader implements ServiceListener{
-    
+
     private static Debug debug;
     private static ServiceSchema smsLogSchema           = null;
     private static ServiceSchema smsPlatformSchema      = null;
@@ -74,7 +74,7 @@ public class LogConfigReader implements ServiceListener{
     private static Map logAttributes                    = null;
     private static Map platformAttributes               = null;
     private static Map namingAttributes                 = null;
-    
+
     private String localProtocol = null;
     private String localHost = null;
     private String localPort = null;
@@ -87,7 +87,7 @@ public class LogConfigReader implements ServiceListener{
 
     private static boolean isRegisteredForDSEvents = false;
     private LogManager manager;
-    
+
     /**
      * The constructor loads the configuration from the DS using
      * DSAME SDK. Constructs a String as "key=value CRLF" for each
@@ -95,7 +95,7 @@ public class LogConfigReader implements ServiceListener{
      * has multiple values or a List, it gets converted to a "," seperated
      * String.
      * <p> Example1: iplanet-am-logging-backend=FILE \r\n
-     * <p> Example2: iplanet-am-logging-logfields=TIME, DOMAIN, IPADDR, 
+     * <p> Example2: iplanet-am-logging-logfields=TIME, DOMAIN, IPADDR,
      * HOSTNAME, DATA, LEVEL, LOGINID \r\n
      * <p> The input stream hence constructed is converted into a
      * ByteArrayInputStream and is loaded into LogManager.
@@ -134,12 +134,12 @@ public class LogConfigReader implements ServiceListener{
         }
         String configString = constructInputStream();
         ByteArrayInputStream inputStream = null;
-        try { inputStream = 
+        try { inputStream =
                 new ByteArrayInputStream(configString.getBytes("ISO8859-1"));
         } catch (UnsupportedEncodingException unse) {
             debug.error("LogConfigReader: unsupported Encoding" + unse);
         }
-        manager = 
+        manager =
             (com.sun.identity.log.LogManager) LogManagerUtil.getLogManager();
 
         try {
@@ -150,11 +150,11 @@ public class LogConfigReader implements ServiceListener{
         }
         setLocalFlag();
     }
-    
+
     /**
-     * LogManager needs inputStream in the form of " Key = Value \r\n ". 
-     * so to get that we need to get the keys of the default attributs append 
-     * a "=", get the value for that key and append a CRLF. This input stream 
+     * LogManager needs inputStream in the form of " Key = Value \r\n ".
+     * so to get that we need to get the keys of the default attributs append
+     * a "=", get the value for that key and append a CRLF. This input stream
      * will then be loaded into the logmanager via properties API.
      */
     private String constructInputStream() {
@@ -417,6 +417,7 @@ public class LogConfigReader implements ServiceListener{
         }   catch (Exception e) {
             debug.error("LogConfigReader: Could not read dbhandler ", e);
         }
+
         // remote handler class
         try {
             key = LogConstants.REMOTE_HANDLER;
@@ -430,7 +431,7 @@ public class LogConfigReader implements ServiceListener{
         }   catch (Exception e) {
             debug.error("LogConfigReader: Could not read remotehandler ", e);
         }
-        
+
         // elf formatter class
         try {
             key = LogConstants.ELF_FORMATTER;
@@ -458,7 +459,7 @@ public class LogConfigReader implements ServiceListener{
         }   catch (Exception e) {
             debug.error("LogConfigReader: Could not read secure formatter ", e);
         }
-        
+
         // db formatter class
         try {
             key = LogConstants.DB_FORMATTER;
@@ -508,11 +509,11 @@ public class LogConfigReader implements ServiceListener{
             debug.error("LogConfigReader: Could not read security status ", e);
         }
 
-        // secure log signing algorithm name 
+        // secure log signing algorithm name
         // MD2withRSA, MD5withRSA, SHA1withDSA, SHA1withRSA
         try {
             key = LogConstants.SECURITY_SIGNING_ALGORITHM;
-            value = CollectionHelper.getMapAttr(logAttributes, key, 
+            value = CollectionHelper.getMapAttr(logAttributes, key,
                 LogConstants.DEFAULT_SECURITY_SIGNING_ALGORITHM);
             sbuffer.append(key).append("=")
                 .append(value).append(LogConstants.CRLF);
@@ -521,12 +522,12 @@ public class LogConfigReader implements ServiceListener{
                 "log signing alogorithm ", e);
         }
 
-        // secure log helper class name 
-        // com.sun.identity.log.secure.impl.SecureLogHelperJSSImpl or 
+        // secure log helper class name
+        // com.sun.identity.log.secure.impl.SecureLogHelperJSSImpl or
         // com.sun.identity.log.secure.impl.SecureLogHelperJCEImpl
         try {
             key = LogConstants.SECURE_LOG_HELPER;
-            value = CollectionHelper.getMapAttr(logAttributes, key, 
+            value = CollectionHelper.getMapAttr(logAttributes, key,
                 LogConstants.SECURE_DEFAULT_LOG_HELPER);
             sbuffer.append(key).append("=")
                    .append(value).append(LogConstants.CRLF);
@@ -534,7 +535,7 @@ public class LogConfigReader implements ServiceListener{
             debug.error("LogConfigReader: Could not read secure " +
                 "log helper class name ", e);
         }
-        
+
         // secure logger certificate store
         try {
             key = LogConstants.LOGGER_CERT_STORE;
@@ -710,7 +711,7 @@ public class LogConfigReader implements ServiceListener{
         } catch(Exception e) {
             debug.error("LogConfigReader:Could not read debug Impl Class name");
         }
-        
+
         // Buffer size
         try {
             key = LogConstants.BUFFER_SIZE;
@@ -898,13 +899,40 @@ public class LogConfigReader implements ServiceListener{
         } catch (Exception e) {
             debug.error("LogConfigReader: could not get from DS", e);
         }
+
+        // TODO syslog出力 --- sta
+        sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_HANDLER, logAttributes, "Sysloghandler");
+        sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_FORMATTER, logAttributes, "Syslogformatter");
+        sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_PROTOCOL, logAttributes, "Syslog protocol");
+        sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_HOST, logAttributes, "Syslog host");
+        sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_PORT, logAttributes, "Syslog port");
+        sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_FACILITY, logAttributes, "Syslog facility");
+        sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_CONNECTION_TIMEOUT, logAttributes, "Syslog connection timeout");
+        // TODO syslog出力 --- end
+
         return sbuffer.toString();
     }
+
+    // TODO syslog出力 --- sta
+    private final StringBuilder copyConfigOption(StringBuilder sb, String key, Map attributes,String description) {
+        try {
+            String value = CollectionHelper.getMapAttr(attributes, key);
+            if ((value == null) || (value.length() ==0)) {
+                debug.warning("LogConfigReader: " + description + " is null");
+            } else {
+                sb.append(key).append("=").append(value).append(LogConstants.CRLF);
+            }
+        }   catch (Exception e) {
+            debug.error("LogConfigReader: Could not read " + description, e);
+        }
+        return sb;
+    }
+    // TODO syslog出力 --- end
 
     class LogHeaderComparator implements Comparator {
         /**
          * Compares two strings from the Log headers. Names should either be
-         * in the form ##:HeaderName or HeaderName, where ## is a two digit 
+         * in the form ##:HeaderName or HeaderName, where ## is a two digit
          * number. Instances with ##: preceding will go first, in ascending
          * order according to the two digit number. If two of the same number
          * appear they will be ordered according to the order of in which they
@@ -996,7 +1024,7 @@ public class LogConfigReader implements ServiceListener{
                 .append(value).append(LogConstants.CRLF);
         }
     }
-    
+
     /**
      * This method is used to get the global schemas of Logging, Platform
      * and Naming Services. Platform service schema is used to determine the
@@ -1004,7 +1032,7 @@ public class LogConfigReader implements ServiceListener{
      */
     private void getDefaultAttributes(SSOToken ssoToken)
     throws SMSException, SSOException {
-        
+
         ServiceSchemaManager schemaManager =
         new ServiceSchemaManager("iPlanetAMLoggingService", ssoToken);
         smsLogSchema = schemaManager.getGlobalSchema();
@@ -1024,14 +1052,14 @@ public class LogConfigReader implements ServiceListener{
             isRegisteredForDSEvents = true;
         }
         smsNamingSchema = schemaManager.getGlobalSchema();
-        
+
         // get the default attributes of each service(Logging, Platform and
         // Naming).
         logAttributes           = smsLogSchema.getAttributeDefaults();
         platformAttributes      = smsPlatformSchema.getAttributeDefaults();
         namingAttributes        = smsNamingSchema.getAttributeDefaults();
     }
-    
+
     /**
      * This method is used for gettting the SSOToken from the
      * TokenManager using Principal and defaultOrg. Need to
@@ -1046,16 +1074,16 @@ public class LogConfigReader implements ServiceListener{
         return (SSOToken) AccessController.doPrivileged(
             AdminTokenAction.getInstance());
     }
-    
+
     /**
-     * This method checks whether the logging service url is explicitly 
-     * mentioned in the naming service. If yes then validates the URL against 
-     * the platform server list of trusted servers. if the logging service 
+     * This method checks whether the logging service url is explicitly
+     * mentioned in the naming service. If yes then validates the URL against
+     * the platform server list of trusted servers. if the logging service
      * url is not mentioned explicitly it sets the local flag to true.
      */
     private void setLocalFlag() {
         if (debug.messageEnabled()) {
-            debug.message("LogConfigReader: logserviceID is" 
+            debug.message("LogConfigReader: logserviceID is"
                 + localLogServiceID);
         }
         try{
@@ -1063,8 +1091,8 @@ public class LogConfigReader implements ServiceListener{
             // dynamically updated.
             // URL url =  WebtopNaming.getServiceURL(LOGGING_SERVICE,
             // protocol, host, port);
-            
-            String urlString = 
+
+            String urlString =
                 manager.getProperty(LogConstants.LOGGING_SERVICE_URL);
             String logHost = null;
             if (urlString.indexOf("%") == -1) {
@@ -1085,10 +1113,10 @@ public class LogConfigReader implements ServiceListener{
             debug.error("LogConfigReader: Error setting localFlag: ",e);
         }
     }
-    
+
     // following methods
     // to implement ServiceListener
-    
+
     public void globalConfigChanged(
         String servName,
         String ver,
@@ -1098,7 +1126,7 @@ public class LogConfigReader implements ServiceListener{
     ) {
         debug.message("Global config change");
     }
-    
+
     public void organizationConfigChanged(
         String servName,
         String ver,
@@ -1109,9 +1137,9 @@ public class LogConfigReader implements ServiceListener{
     ) {
         debug.message("Org config change");
     }
-    
+
     public void schemaChanged(String servName,String ver) {
-        
+
         if (debug.messageEnabled()) {
             debug.message("LogService schemaChanged(): ver = " + ver);
         }
@@ -1126,7 +1154,7 @@ public class LogConfigReader implements ServiceListener{
          *  the logging status to inactive, and no more records will
          *  get written out.
          */
-        manager = 
+        manager =
             (com.sun.identity.log.LogManager) LogManagerUtil.getLogManager();
         if (manager.getDidFirstReadConfig() &&
             manager.getLoggingStatusIsActive() &&

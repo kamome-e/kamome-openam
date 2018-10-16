@@ -46,10 +46,23 @@ public class DateUtils {
 
     private static final TimeZone UTC_TIME_ZONE = TimeZone.getTimeZone("UTC");
 
+    private static final String FULL_DATE_FORMAT = "{0}-{1}-{2}T{3}:{4}:{5}{7}";
+
+    /**
+     * Returns ISO-8601 (RFC3339) compatible representation of local date and time and time offset.
+     * For instance, 2004-03-20T07:53:32+02:00.
+     *
+     * @param date Date object.
+     * @return The formatted date.
+     */
+    public static String toFullLocalDateFormat(final Date date) {
+        return dateToString(date, FULL_DATE_FORMAT, null);
+    }
+
     /**
      * Returns <code>yyyy-MM-dd HH:mm:ss</code> String representation of a
      * date.
-     * 
+     *
      * @param date Date object.
      */
     public static String dateToString(Date date) {
@@ -59,7 +72,7 @@ public class DateUtils {
     /**
      * Returns UTC String representation of a date. For instance,
      * 2004-03-20T05:53:32Z.
-     * 
+     *
      * @param date Date object.
      */
     public static String toUTCDateFormat(Date date) {
@@ -92,6 +105,33 @@ public class DateUtils {
         return val;
     }
 
+    private static String dateToString(Date date, String format, TimeZone tz) {
+        GregorianCalendar cal = new GregorianCalendar();
+        if (tz != null) {
+            cal.setTimeZone(tz);
+        }
+        cal.setTime(date);
+        String[] params = new String[8];
+
+        params[0] = formatInteger(cal.get(Calendar.YEAR), 4);
+        params[1] = formatInteger(cal.get(Calendar.MONTH) + 1, 2);
+        params[2] = formatInteger(cal.get(Calendar.DAY_OF_MONTH), 2);
+        params[3] = formatInteger(cal.get(Calendar.HOUR_OF_DAY), 2);
+        params[4] = formatInteger(cal.get(Calendar.MINUTE), 2);
+        params[5] = formatInteger(cal.get(Calendar.SECOND), 2);
+        params[6] = formatInteger(cal.get(Calendar.MILLISECOND), 3);
+
+        int offset = cal.get(Calendar.ZONE_OFFSET) + cal.get(Calendar.DST_OFFSET);
+        if (offset == 0) {
+            params[7] = "Z";
+        } else {
+            params[7] = (offset < 0 ? "-" : "+")
+                + formatInteger(Math.abs(offset) / 3600000, 2)
+                + ":" + formatInteger((Math.abs(offset) / 60000) % 60, 2);
+        }
+        return MessageFormat.format(format, (Object[]) params);
+    }
+
     /**
      * Returns date that is represented by a string. It uses the following
      * representation of date. yyyy-MM-DD'T'hh:mm:ss based on the following
@@ -115,7 +155,7 @@ public class DateUtils {
      * least four digits, the MM, DD, SS, hh, mm and ss fields exactly two
      * digits each (not counting fractional seconds); leading zeroes must be
      * used if the field would otherwise have too few digits.
-     * 
+     *
      * This representation may be immediately followed by a "Z" to indicate
      * Coordinated Universal Time (UTC) or, to indicate the time zone, i.e. the
      * difference between the local time and Coordinated Universal Time,
@@ -124,11 +164,11 @@ public class DateUtils {
      * 8601 Date and Time Formats ('D) for details about legal values in the
      * various fields. If the time zone is included, both hours and minutes must
      * be present.
-     * 
+     *
      * For example, to indicate 1:20 pm on May the 31st, 1999 for Eastern
      * Standard Time which is 5 hours behind Coordinated Universal Time (UTC),
      * one would write: 1999-05-31T13:20:00-05:00.
-     * 
+     *
      * @param strDate String representation of date.
      * @throws ParseException if <code>strDate</code> is in an invalid format.
      */
@@ -171,7 +211,7 @@ public class DateUtils {
      * Returns the difference portion of a date string. Array of integer with
      * the first element defining the hour difference; and second element
      * defining the minute difference
-     * 
+     *
      * @param strDate Date String.
      * @param idx Index of the +/- character.
      * @returns the difference portion of a date string.
@@ -200,15 +240,15 @@ public class DateUtils {
 
     /**
      * Returns a date with a string of yyyy-MM-ssThh:mm:ss or yyyy-MM-ssThh:mm.
-     * 
+     *
      * @param strDate String representation of a date.
      * @param timeDiff Time differences
-     * @param plusDiff Time differences (plus/minus). true indicates do a plus 
-     *        to the computed date. Ignore this value if <code>timeDiff</code> 
+     * @param plusDiff Time differences (plus/minus). true indicates do a plus
+     *        to the computed date. Ignore this value if <code>timeDiff</code>
      *        is null.
      */
     private static Date createDate(
-        String strDate, 
+        String strDate,
         int[] timeDiff,
         boolean plusDiff
     ) throws ParseException {

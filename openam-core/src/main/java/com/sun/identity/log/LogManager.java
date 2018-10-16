@@ -72,7 +72,7 @@ public class LogManager extends java.util.logging.LogManager {
      * The formatter which depends on the log settings
      */
     public static String FORMATTER = "Formatter";
-    
+
     public static boolean isMonitoringInit = false;
 
     /*
@@ -324,6 +324,11 @@ public class LogManager extends java.util.logging.LogManager {
                         HANDLER = getProperty(LogConstants.DB_HANDLER);
                         FORMATTER = getProperty(LogConstants.DB_FORMATTER);
                         String driver = getProperty(LogConstants.DB_DRIVER);
+                    // TODO syslog出力 --- sta
+                    } else if (getProperty(LogConstants.BACKEND).equals("Syslog")) {
+                        HANDLER = getProperty(LogConstants.SYSLOG_HANDLER);
+                        FORMATTER = getProperty(LogConstants.SYSLOG_FORMATTER);
+                    // TODO syslog出力 --- end
                     } else if (getProperty(
                         LogConstants.SECURITY_STATUS).equalsIgnoreCase("ON"))
                     {
@@ -563,7 +568,7 @@ public class LogManager extends java.util.logging.LogManager {
          *
          *  note that status == INACTIVE overrides any Level setting
          *  for the logging service, or an individual log file.
-         *  
+         *
          */
         if (loggingIsActive) {
             // see if there's a reason to write the log record
@@ -680,7 +685,7 @@ public class LogManager extends java.util.logging.LogManager {
                     getProperty(LogConstants.BACKEND));
             logServiceImplForMonitoring.setSsoServerLoggingRecsRejected(
                     (long)0);
-            
+
             isMonitoringInit = true;
         }
     }
