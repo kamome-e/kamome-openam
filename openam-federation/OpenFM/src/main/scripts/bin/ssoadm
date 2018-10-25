@@ -118,4 +118,6 @@ $JAVA_HOME/bin/java -Xms256m -Xmx512m -cp "$CLASSPATH" \
     -D"am.version.expected=@AM_VERSION@" \
     -D"com.iplanet.am.sdk.package=com.iplanet.am.sdk.remote" \
     -D"com.sun.identity.idm.remote.notification.enabled=false" \
+    -D"opensso.protocol.handler.pkgs=com.sun.identity.protocol" \
+    -D"com.iplanet.am.jssproxy.trustAllServerCerts=true" \
     com.sun.identity.cli.CommandManager "$@"

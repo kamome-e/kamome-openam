@@ -103,3 +103,7 @@ $JAVA_HOME/bin/java -D"load.config=yes" -D"help.print=$help_print" \
                       -D"path.log=$path_log" \
                       -cp "$CLASSPATH" \
                       com.sun.identity.tools.bundles.Main
+
+sed -i "s/^\( *JAVA_HOME=\).*$/\1\"`echo ${JAVA_HOME} | sed 's/\\//\\\\\\//g'`\"/" openam/bin/ampassword
+sed -i "s/^\( *JAVA_HOME=\).*$/\1\"`echo ${JAVA_HOME} | sed 's/\\//\\\\\\//g'`\"/" openam/bin/amverifyarchive
+sed -i "s/^\( *JAVA_HOME=\).*$/\1\"`echo ${JAVA_HOME} | sed 's/\\//\\\\\\//g'`\"/" openam/bin/ssoadm
