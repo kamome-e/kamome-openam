@@ -46,6 +46,7 @@ public class DateUtils {
 
     private static final TimeZone UTC_TIME_ZONE = TimeZone.getTimeZone("UTC");
 
+    // 2018.11.01 OPENAM_BUG_FIX-204 バーチャルアプライアンス syslog出力 - sta
     private static final String FULL_DATE_FORMAT = "{0}-{1}-{2}T{3}:{4}:{5}{7}";
 
     /**
@@ -58,6 +59,7 @@ public class DateUtils {
     public static String toFullLocalDateFormat(final Date date) {
         return dateToString(date, FULL_DATE_FORMAT, null);
     }
+    // 2018.11.01 OPENAM_BUG_FIX-204 バーチャルアプライアンス syslog出力 - end
 
     /**
      * Returns <code>yyyy-MM-dd HH:mm:ss</code> String representation of a
@@ -105,6 +107,7 @@ public class DateUtils {
         return val;
     }
 
+    // 2018.11.01 OPENAM_BUG_FIX-204 バーチャルアプライアンス syslog出力 - sta
     private static String dateToString(Date date, String format, TimeZone tz) {
         GregorianCalendar cal = new GregorianCalendar();
         if (tz != null) {
@@ -131,6 +134,7 @@ public class DateUtils {
         }
         return MessageFormat.format(format, (Object[]) params);
     }
+    // 2018.11.01 OPENAM_BUG_FIX-204 バーチャルアプライアンス syslog出力 - end
 
     /**
      * Returns date that is represented by a string. It uses the following

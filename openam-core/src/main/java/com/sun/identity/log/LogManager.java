@@ -324,11 +324,11 @@ public class LogManager extends java.util.logging.LogManager {
                         HANDLER = getProperty(LogConstants.DB_HANDLER);
                         FORMATTER = getProperty(LogConstants.DB_FORMATTER);
                         String driver = getProperty(LogConstants.DB_DRIVER);
-                    // TODO syslog出力 --- sta
+                    // 2018.11.01 OPENAM_BUG_FIX-204 バーチャルアプライアンス syslog出力 - sta
                     } else if (getProperty(LogConstants.BACKEND).equals("Syslog")) {
                         HANDLER = getProperty(LogConstants.SYSLOG_HANDLER);
                         FORMATTER = getProperty(LogConstants.SYSLOG_FORMATTER);
-                    // TODO syslog出力 --- end
+                    // 2018.11.01 OPENAM_BUG_FIX-204 バーチャルアプライアンス syslog出力 - end
                     } else if (getProperty(
                         LogConstants.SECURITY_STATUS).equalsIgnoreCase("ON"))
                     {

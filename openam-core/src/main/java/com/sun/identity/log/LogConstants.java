@@ -379,7 +379,7 @@ public class LogConstants {
     public static final String MYSQL_DBDATETIME_FORMAT =
         "sun-am-logging-mysql-dbdate-format";
 
-    // TODO syslog出力 --- sta
+    // 2018.11.01 OPENAM_BUG_FIX-204 バーチャルアプライアンス syslog出力 - sta
     /**
      * Attribute defining the Syslog Handler class.
      */
@@ -413,7 +413,7 @@ public class LogConstants {
      * Attribute defining syslog connection timeout.
      */
     public static final String SYSLOG_CONNECTION_TIMEOUT = "iplanet-am-logging-syslog-connection-timeout";
-    // TODO syslog出力 --- end
+    // 2018.11.01 OPENAM_BUG_FIX-204 バーチャルアプライアンス syslog出力 - end
 
     /**
      * Property defining whether logging is enabled

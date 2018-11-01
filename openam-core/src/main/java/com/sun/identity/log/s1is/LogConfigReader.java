@@ -900,7 +900,7 @@ public class LogConfigReader implements ServiceListener{
             debug.error("LogConfigReader: could not get from DS", e);
         }
 
-        // TODO syslog出力 --- sta
+        // 2018.11.01 OPENAM_BUG_FIX-204 バーチャルアプライアンス syslog出力 - sta
         sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_HANDLER, logAttributes, "Sysloghandler");
         sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_FORMATTER, logAttributes, "Syslogformatter");
         sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_PROTOCOL, logAttributes, "Syslog protocol");
@@ -908,12 +908,12 @@ public class LogConfigReader implements ServiceListener{
         sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_PORT, logAttributes, "Syslog port");
         sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_FACILITY, logAttributes, "Syslog facility");
         sbuffer = copyConfigOption(sbuffer, LogConstants.SYSLOG_CONNECTION_TIMEOUT, logAttributes, "Syslog connection timeout");
-        // TODO syslog出力 --- end
+        // 2018.11.01 OPENAM_BUG_FIX-204 バーチャルアプライアンス syslog出力 - end
 
         return sbuffer.toString();
     }
 
-    // TODO syslog出力 --- sta
+    // 2018.11.01 OPENAM_BUG_FIX-204 バーチャルアプライアンス syslog出力 - sta
     private final StringBuilder copyConfigOption(StringBuilder sb, String key, Map attributes,String description) {
         try {
             String value = CollectionHelper.getMapAttr(attributes, key);
@@ -927,7 +927,7 @@ public class LogConfigReader implements ServiceListener{
         }
         return sb;
     }
-    // TODO syslog出力 --- end
+    // 2018.11.01 OPENAM_BUG_FIX-204 バーチャルアプライアンス syslog出力 - end
 
     class LogHeaderComparator implements Comparator {
         /**
