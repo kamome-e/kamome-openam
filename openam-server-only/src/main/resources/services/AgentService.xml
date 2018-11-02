@@ -2,12 +2,12 @@
 
 <!--
    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
-  
+
    Copyright (c) 2006 Sun Microsystems Inc. All Rights Reserved
-  
+
    The contents of this file are subject to the terms
    of the Common Development and Distribution License
-   (the License). You may not use this file except in 
+   (the License). You may not use this file except in
    compliance with the License.
 
    You can obtain a copy of the License at
@@ -297,7 +297,7 @@
                           syntax="string"
                           i18nKey="a731">
                       <DefaultValues>
-                          <Value>HmacSHA256</Value>
+                          <Value>HS256</Value>
                       </DefaultValues>
                   </AttributeSchema>
                   <!--
@@ -1591,7 +1591,7 @@
                         <DefaultValues>
                             <Value>com.sun.identity.common.configuration.FilterModeValueValidator</Value>
                         </DefaultValues>
-                    </AttributeSchema> 
+                    </AttributeSchema>
                     <AttributeSchema name="MapValueValidator"
                         type="validator"
                         syntax="string">
@@ -1605,7 +1605,7 @@
                         <DefaultValues>
                             <Value>com.sun.identity.common.configuration.GlobalMapValueValidator</Value>
                         </DefaultValues>
-                    </AttributeSchema>                                      
+                    </AttributeSchema>
                     <AttributeSchema
                         name="com.sun.identity.agents.config.repository.location"
                         type="single_choice"
@@ -2009,7 +2009,7 @@
                         <DefaultValues>
                             <Value>2000</Value>
                         </DefaultValues>
-                    </AttributeSchema>              
+                    </AttributeSchema>
                     <AttributeSchema
                         name="com.sun.identity.agents.config.logout.url"
                         type="list"
@@ -2055,7 +2055,7 @@
                         <DefaultValues>
                             <Value>2000</Value>
                         </DefaultValues>
-                    </AttributeSchema>                 
+                    </AttributeSchema>
                     <AttributeSchema
                         name="com.sun.identity.agents.config.agent.host"
                         type="single"
@@ -2216,7 +2216,7 @@
                         <DefaultValues>
                            <Value>false</Value>
                         </DefaultValues>
-                    </AttributeSchema> 
+                    </AttributeSchema>
                     <AttributeSchema
                         name="com.sun.identity.agents.config.cdsso.domain"
                         type="list"
@@ -3068,7 +3068,7 @@
                         </DefaultValues>
                     </AttributeSchema>
                 </SubSchema>
-                
+
                 <SubSchema name="WSCAgent" inheritance="multiple">
                     <AttributeSchema
                         name="agentgroup"
@@ -3463,7 +3463,7 @@
                     </AttributeSchema>
 
                 </SubSchema>
-                
+
                 <SubSchema name="WSPAgent" inheritance="multiple">
                     <AttributeSchema
                         name="agentgroup"
@@ -3697,7 +3697,7 @@
                         name="SAMLAttributeMapping"
                         type="list"
                         syntax="string"
-                        i18nKey="a334">                        
+                        i18nKey="a334">
                     </AttributeSchema>
                     <AttributeSchema
                         name="NameIDMapper"
@@ -3883,7 +3883,7 @@
                     </AttributeSchema>
 
                 </SubSchema>
-                
+
                 <SubSchema name="STSAgent" inheritance="multiple">
                     <AttributeSchema
                         name="agentgroup"
@@ -4274,7 +4274,7 @@
                     </AttributeSchema>
 
                 </SubSchema>
-                
+
                 <SubSchema name="DiscoveryAgent" inheritance="multiple">
                      <AttributeSchema
                          name="userpassword"
@@ -4367,7 +4367,7 @@
                         <DefaultValues>
                             <Value>com.sun.identity.sm.RequiredValueValidator</Value>
                         </DefaultValues>
-                    </AttributeSchema>                
+                    </AttributeSchema>
                 </SubSchema>
                 <SubSchema name="SharedAgent" inheritance="multiple">
                     <AttributeSchema name="userpassword"
@@ -4403,7 +4403,7 @@
                         <DefaultValues>
                             <Value>com.sun.identity.sm.RequiredValueValidator</Value>
                         </DefaultValues>
-                    </AttributeSchema>                
+                    </AttributeSchema>
                     <AttributeSchema name="AgentsAllowedToRead"
                         type="multiple_choice"
                         syntax="string"
