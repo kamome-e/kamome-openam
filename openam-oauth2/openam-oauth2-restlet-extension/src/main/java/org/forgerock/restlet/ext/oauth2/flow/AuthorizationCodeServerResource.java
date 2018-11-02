@@ -55,7 +55,7 @@ public class AuthorizationCodeServerResource extends AbstractFlow {
     public Representation token(Representation entity) {
         /*
          * The authorization server MUST:
-         * 
+         *
          * o require client authentication for confidential clients or for any
          * client that was issued client credentials (or with other
          * authentication requirements), o authenticate the client if client
@@ -124,6 +124,7 @@ public class AuthorizationCodeServerResource extends AbstractFlow {
             String nonce = code.getNonce();
             data.put(OAuth2Constants.Custom.NONCE, nonce);
             data.put(OAuth2Constants.Custom.SSO_TOKEN_ID, code.getSessionId());
+            data.put("clientSecret", String.valueOf(getRequest().getChallengeResponse().getSecret()));
 //            data.put(OAuth2Constants.Custom.SSO_TOKEN_ID, getRequest().getCookies().getValues(
 //                    SystemProperties.get("com.iplanet.am.cookie.name")));
             response.putAll(executeExtraDataScopePlugin(data, token));

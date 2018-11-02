@@ -30,14 +30,14 @@ import com.sun.identity.idm.*;
 import com.sun.identity.shared.OAuth2Constants;
 import org.forgerock.json.jose.jws.JwsAlgorithm;
 import org.forgerock.json.jose.jws.SignedJwt;
-import org.forgerock.json.jose.jws.SigningManager;
-import org.forgerock.json.jose.jws.handlers.SigningHandler;
 import org.forgerock.json.jose.jwt.JwtClaimsSet;
 import org.forgerock.openam.ext.cts.repo.DefaultOAuthTokenStoreImpl;
 import org.forgerock.openam.oauth2.exceptions.OAuthProblemException;
 import org.forgerock.openam.guice.InjectorHolder;
 import org.forgerock.openam.oauth2.model.CoreToken;
 import org.forgerock.openam.oauth2.model.JWTToken;
+import org.forgerock.openam.oauth2.model.CustomSigningManager;
+import org.forgerock.openam.oauth2.model.handlers.CustomSigningHandler;
 import org.forgerock.openam.oauth2.provider.OAuth2TokenStore;
 import org.forgerock.openam.oauth2.provider.Scope;
 import org.forgerock.openam.oauth2.utils.OAuth2Utils;
@@ -48,6 +48,9 @@ import org.forgerock.json.jose.jwt.JwtHeader;
 
 import java.security.SignatureException;
 import java.util.*;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
@@ -209,7 +212,7 @@ public class ScopeImpl implements Scope {
                 throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(),
                         "Cant sign JWT");
             }
-            
+
             // update at 2018.02.02 header algorithm "none" --- sta
             String headerAlgorithm = null;
             try {
@@ -235,6 +238,14 @@ public class ScopeImpl implements Scope {
                 throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(), "Cant sign JWT");
             }
 
+            String clientSecret = null;
+            try {
+                clientSecret = parameters.get("clientSecret");
+            } catch (Exception e) {
+                OAuth2Utils.DEBUG.error("ScopeImpl.extraDataToReturnForTokenEndpoint()::Unable to sign JWT", e);
+                throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(), "Cant sign JWT");
+            }
+
             String jwsHeader = signedJwt.getHeader().build();
             String encodedHeader = Utils.base64urlEncode(jwsHeader);
             String encodedClaims = Utils.base64urlEncode(jwsPayload);
@@ -242,9 +253,9 @@ public class ScopeImpl implements Scope {
             String id_token = signingInput + ".";
 
             if (!"none".equals(headerAlgorithm)) {
-                SigningManager signingManager = new SigningManager();
-                SigningHandler signingHandler = signingManager.getSigningHandler(signedJwt.getHeader().getAlgorithm());
-                byte[] signature = signingHandler.sign(signedJwt.getHeader().getAlgorithm(), OAuth2Utils.getServerKeyPair(Request.getCurrent()).getPrivate(), signingInput);
+                CustomSigningManager signingManager = new CustomSigningManager();
+                CustomSigningHandler signingHandler = signingManager.getSigningHandler(signedJwt.getHeader().getAlgorithm());
+                byte[] signature = signingHandler.sign(signedJwt.getHeader().getAlgorithm(), OAuth2Utils.getServerKeyPair(Request.getCurrent()).getPrivate(), signingInput, clientSecret);
                 id_token = id_token + Base64url.encode(signature);
             }
 
