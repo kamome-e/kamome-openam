@@ -70,9 +70,9 @@ public class CustomHmacSigningHandler implements CustomSigningHandler {
         try {
             Mac mac = Mac.getInstance(algorithm);
             // decode the base64 encoded string
-            byte[] decodedKey = Base64.getDecoder().decode(clientSecret);
+            byte[] secretByte = clientSecret.getBytes();
             // rebuild key using SecretKeySpec
-            SecretKey secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+            SecretKey secretKey = new SecretKeySpec(secretByte, "AES");
             mac.init(secretKey);
             return mac.doFinal(data);
         } catch (NoSuchAlgorithmException e) {
