@@ -616,6 +616,11 @@
                 <artifactId>openam-auth-windowsdesktopsso</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.forgerock.ce.openam</groupId>
+                <artifactId>openam-auth-userid</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.forgerock.ce.openam</groupId>

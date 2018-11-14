@@ -705,6 +705,11 @@
         </dependency>
 
         <dependency>
+            <artifactId>openam-auth-userid</artifactId>
+            <groupId>org.forgerock.ce.openam</groupId>
+        </dependency>
+
+        <dependency>
             <artifactId>json-resource</artifactId>
             <groupId>org.forgerock.ce.commons</groupId>
         </dependency>

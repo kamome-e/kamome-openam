@@ -62,6 +62,7 @@
         <module>openam-auth-persistentcookie</module>
         <module>deviceprint</module>
         <module>openam-auth-scripted</module>
+        <module>openam-auth-userid</module>
     </modules>
 
     <profiles>
