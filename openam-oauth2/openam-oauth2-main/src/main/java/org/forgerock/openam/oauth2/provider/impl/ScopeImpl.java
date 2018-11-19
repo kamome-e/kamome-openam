@@ -29,12 +29,13 @@ import com.iplanet.sso.SSOToken;
 import com.sun.identity.idm.*;
 import com.sun.identity.shared.OAuth2Constants;
 import org.forgerock.json.jose.jws.JwsAlgorithm;
-import org.forgerock.json.jose.jws.SignedJwt;
+import org.forgerock.json.jose.jws.JwsAlgorithmType;
 import org.forgerock.json.jose.jwt.JwtClaimsSet;
 import org.forgerock.openam.ext.cts.repo.DefaultOAuthTokenStoreImpl;
 import org.forgerock.openam.oauth2.exceptions.OAuthProblemException;
 import org.forgerock.openam.guice.InjectorHolder;
 import org.forgerock.openam.oauth2.model.CoreToken;
+import org.forgerock.openam.oauth2.model.CustomSignedJwt;
 import org.forgerock.openam.oauth2.model.JWTToken;
 import org.forgerock.openam.oauth2.model.CustomSigningManager;
 import org.forgerock.openam.oauth2.model.handlers.CustomSigningHandler;
@@ -65,23 +66,32 @@ import java.lang.reflect.Field;
 public class ScopeImpl implements Scope {
     private static final String MULTI_ATTRIBUTE_SEPARATOR = ",";
     private static final String OPENID_SCOPE = "openid";
+    private static final String EMAIL_SCOPE = "email";
+    private static final String ADDRESS_SCOPE = "address";
+    private static final String PHONE_SCOPE = "phone";
+    private static final String NAME_SCOPE = "name";
+    private static final String GIVEN_NAME_SCOPE = "given_name";
+    private static final String FAMILY_NAME_SCOPE = "family_name";
+    private static final String LOCALE_SCOPE = "locale";
+    private static final String ZONEINFO_SCOPE = "zoneinfo";
+    private static final String PROFILE_SCOPE = "profile";
 
     private static Map<String, Object> scopeToUserUserProfileAttributes;
 
     static {
         scopeToUserUserProfileAttributes = new HashMap<String, Object>();
-        scopeToUserUserProfileAttributes.put("email","mail");
-        scopeToUserUserProfileAttributes.put("address", "postaladdress");
-        scopeToUserUserProfileAttributes.put("phone", "telephonenumber");
+        scopeToUserUserProfileAttributes.put(EMAIL_SCOPE,"mail");
+        scopeToUserUserProfileAttributes.put(ADDRESS_SCOPE, "postaladdress");
+        scopeToUserUserProfileAttributes.put(PHONE_SCOPE, "telephonenumber");
 
         Map<String, Object> profileSet = new HashMap<String, Object>();
-        profileSet.put("name", "cn");
-        profileSet.put("given_name", "givenname");
-        profileSet.put("family_name", "sn");
-        profileSet.put("locale", "preferredlocale");
-        profileSet.put("zoneinfo", "preferredtimezone");
+        profileSet.put(NAME_SCOPE, "cn");
+        profileSet.put(GIVEN_NAME_SCOPE, "givenname");
+        profileSet.put(FAMILY_NAME_SCOPE, "sn");
+        profileSet.put(LOCALE_SCOPE, "preferredlocale");
+        profileSet.put(ZONEINFO_SCOPE, "preferredtimezone");
 
-        scopeToUserUserProfileAttributes.put("profile", profileSet);
+        scopeToUserUserProfileAttributes.put(PROFILE_SCOPE, profileSet);
     }
 
     private OAuth2TokenStore store = null;
@@ -204,9 +214,18 @@ public class ScopeImpl implements Scope {
                     token.getClientID(),
                     parameters.get(OAuth2Constants.Custom.NONCE),
                     parameters.get(OAuth2Constants.Custom.SSO_TOKEN_ID));
-            SignedJwt signedJwt = null;
+
+            String clientSecret = null;
             try {
-                signedJwt =((JWTToken) jwtToken).sign(OAuth2Utils.getServerKeyPair(Request.getCurrent()).getPrivate());
+                clientSecret = parameters.get("clientSecret");
+            } catch (Exception e) {
+                OAuth2Utils.DEBUG.error("ScopeImpl.extraDataToReturnForTokenEndpoint()::Unable to sign JWT", e);
+                throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(), "Cant sign JWT");
+            }
+
+            CustomSignedJwt signedJwt = null;
+            try {
+                signedJwt =((JWTToken) jwtToken).sign(OAuth2Utils.getServerKeyPair(Request.getCurrent()).getPrivate(), clientSecret);
             } catch (SignatureException e){
                 OAuth2Utils.DEBUG.error("ScopeImpl.extraDataToReturnForTokenEndpoint()::Unable to sign JWT", e);
                 throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(),
@@ -230,17 +249,9 @@ public class ScopeImpl implements Scope {
             String jwsPayload = null;
             try  {
                 Field fieldPayload = null;
-                fieldPayload = SignedJwt.class.getDeclaredField("payload");
+                fieldPayload = CustomSignedJwt.class.getDeclaredField("payload");
                 fieldPayload.setAccessible(true);
                 jwsPayload =  fieldPayload.get(signedJwt).toString();
-            } catch (Exception e) {
-                OAuth2Utils.DEBUG.error("ScopeImpl.extraDataToReturnForTokenEndpoint()::Unable to sign JWT", e);
-                throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(), "Cant sign JWT");
-            }
-
-            String clientSecret = null;
-            try {
-                clientSecret = parameters.get("clientSecret");
             } catch (Exception e) {
                 OAuth2Utils.DEBUG.error("ScopeImpl.extraDataToReturnForTokenEndpoint()::Unable to sign JWT", e);
                 throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(), "Cant sign JWT");
@@ -255,7 +266,12 @@ public class ScopeImpl implements Scope {
             if (!"none".equals(headerAlgorithm)) {
                 CustomSigningManager signingManager = new CustomSigningManager();
                 CustomSigningHandler signingHandler = signingManager.getSigningHandler(signedJwt.getHeader().getAlgorithm());
-                byte[] signature = signingHandler.sign(signedJwt.getHeader().getAlgorithm(), OAuth2Utils.getServerKeyPair(Request.getCurrent()).getPrivate(), signingInput, clientSecret);
+                byte[] signature = null;
+                if (JwsAlgorithmType.RSA.equals(signedJwt.getHeader().getAlgorithm().getAlgorithmType())) {
+                    signature = signingHandler.sign(signedJwt.getHeader().getAlgorithm(), OAuth2Utils.getServerKeyPair(Request.getCurrent()).getPrivate(), signingInput);
+                } else {
+                    signature = signingHandler.sign(signedJwt.getHeader().getAlgorithm(), clientSecret, signingInput);
+                }
                 id_token = id_token + Base64url.encode(signature);
             }
 
@@ -293,21 +309,21 @@ public class ScopeImpl implements Scope {
             id = this.id;
         }
 
-        //add the subject identifier to the response
+        // add the subject identifier to the response
         response.put("sub", token.getUserID());
         for(String scope: scopes){
             if (scope.equals(OPENID_SCOPE)) {
                 continue;
             }
 
-            //get the attribute associated with the scope
+            // get the attribute associated with the scope
             Object attributes = scopeToUserUserProfileAttributes.get(scope);
             if (attributes == null){
              OAuth2Utils.DEBUG.error("ScopeImpl.getUserInfo()::Invalid Scope in token scope="+ scope);
             } else if (attributes instanceof String){
                 Set<String> attr = null;
 
-                //if the attribute is a string get the attribute
+                // if the attribute is a string get the attribute
                 try {
                     attr = id.getAttribute((String)attributes);
                 } catch (IdRepoException e) {
@@ -316,8 +332,15 @@ public class ScopeImpl implements Scope {
                     OAuth2Utils.DEBUG.error("ScopeImpl.getUserInfo(): Unable to retrieve atrribute", e);
                 }
 
-                //add a single object to the response.
-                if (attr != null && attr.size() == 1){
+                // add a single object to the response.
+                if (scope.equals(ADDRESS_SCOPE)) {
+                    Map<String,Object> addressAttr = transAddress(attr);
+                    if (addressAttr == null || addressAttr.isEmpty()) {
+                        OAuth2Utils.DEBUG.error("ScopeImpl.getUserInfo(): Got an empty result for scope=" + scope);
+                    } else {
+                        response.put(scope, addressAttr);
+                    }
+                } else if (attr != null && attr.size() == 1){
                     response.put(scope, attr.iterator().next());
                 } else if (attr != null && attr.size() > 1){ // add a set to the response
                     response.put(scope, attr);
@@ -327,15 +350,15 @@ public class ScopeImpl implements Scope {
                 }
             } else if (attributes instanceof Map){
 
-                //the attribute is a collection of attributes
-                //for example profile can be address, email, etc...
+                // the attribute is a collection of attributes
+                // for example profile can be address, email, etc...
                 if (attributes != null && !((Map<String,String>) attributes).isEmpty()){
                     for (Map.Entry<String, String> entry: ((Map<String, String>) attributes).entrySet()){
                         String attribute = null;
                         attribute = (String)entry.getValue();
                         Set<String> attr = null;
 
-                        //get the attribute
+                        // get the attribute
                         try {
                             attr = id.getAttribute(attribute);
                         } catch (IdRepoException e) {
@@ -344,13 +367,13 @@ public class ScopeImpl implements Scope {
                             OAuth2Utils.DEBUG.error("ScopeImpl.getUserInfo(): Unable to retrieve atrribute", e);
                         }
 
-                        //add the attribute value(s) to the response
+                        // add the attribute value(s) to the response
                         if (attr != null && attr.size() == 1){
                             response.put(entry.getKey(), attr.iterator().next());
                         } else if (attr != null && attr.size() > 1){
                             response.put(entry.getKey(), attr);
                         } else {
-                            //attr is null or attr is empty
+                            // attr is null or attr is empty
                             OAuth2Utils.DEBUG.error("ScopeImpl.getUserInfo(): Got an empty result for scope=" + scope);
                         }
                     }
@@ -359,6 +382,25 @@ public class ScopeImpl implements Scope {
         }
 
         return response;
+    }
+
+    private Map<String,Object> transAddress(Set<String> attr) {
+        if (attr == null || attr.size() == 0){
+            return null;
+        }
+
+        Map<String,Object> map = new HashMap<String,Object>();
+        final String key = "formatted";
+        if (attr.size() == 1){
+            map.put(key, attr.iterator().next());
+        } else {
+            Iterator<String> it = attr.iterator();
+            for (int i = 0; it.hasNext(); i++) {
+                map.put(key + "_" + i, it.next());
+            }
+        }
+
+        return map;
     }
 
 }

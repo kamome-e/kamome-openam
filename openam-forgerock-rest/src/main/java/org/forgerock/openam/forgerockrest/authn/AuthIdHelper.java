@@ -31,12 +31,12 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.forgerock.json.jose.builders.JwtBuilderFactory;
 import org.forgerock.json.jose.exceptions.JwtRuntimeException;
 import org.forgerock.json.jose.jws.JwsAlgorithm;
-import org.forgerock.json.jose.jws.SignedJwt;
 import org.forgerock.json.jose.jwt.JwtClaimsSet;
 import org.forgerock.openam.forgerockrest.authn.core.AuthenticationContext;
 import org.forgerock.openam.forgerockrest.authn.core.LoginConfiguration;
 import org.forgerock.openam.forgerockrest.authn.core.wrappers.CoreServicesWrapper;
 import org.forgerock.openam.forgerockrest.authn.exceptions.RestAuthException;
+import org.forgerock.openam.oauth2.model.CustomSignedJwt;
 import org.forgerock.openam.utils.AMKeyProvider;
 
 import com.google.inject.Singleton;
@@ -184,9 +184,9 @@ public class AuthIdHelper {
      * @param authId The Auth Id jwt string
      * @return The JWT object.
      */
-    public SignedJwt reconstructAuthId(String authId) {
+    public CustomSignedJwt reconstructAuthId(String authId) {
         try {
-            return jwtBuilderFactory.reconstruct(authId, SignedJwt.class);
+            return jwtBuilderFactory.reconstruct(authId, CustomSignedJwt.class);
         } catch (JwtRuntimeException e) {
             throw new RestAuthException(Response.Status.BAD_REQUEST, "Failed to parse JWT, " + e.getLocalizedMessage(),
                     e);
@@ -206,7 +206,7 @@ public class AuthIdHelper {
         PrivateKey privateKey = amKeyProvider.getPrivateKey(keyAlias);
 
         try {
-            boolean verified = jwtBuilderFactory.reconstruct(authId, SignedJwt.class).verify(privateKey);
+            boolean verified = jwtBuilderFactory.reconstruct(authId, CustomSignedJwt.class).verify(privateKey);
             if (!verified) {
                 throw new RestAuthException(Response.Status.BAD_REQUEST, "AuthId JWT Signature not valid");
             }

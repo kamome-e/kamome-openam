@@ -18,13 +18,15 @@ package org.forgerock.openam.oauth2.model.handlers;
 
 import org.forgerock.json.jose.exceptions.JwsSigningException;
 import org.forgerock.json.jose.exceptions.JwsVerifyingException;
-import org.forgerock.json.jose.jws.JwsAlgorithm;
 import org.forgerock.json.jose.utils.Utils;
 import org.forgerock.util.SignatureUtil;
+
+import org.forgerock.openam.oauth2.model.JwsAlgorithmOAuth2;
 
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 
@@ -43,30 +45,54 @@ public class CustomRSASigningHandler implements CustomSigningHandler {
     }
 
     @Override
-    public byte[] sign(JwsAlgorithm algorithm, Key privateKey, String data) {
+    public byte[] sign(JwsAlgorithmOAuth2 algorithm, Key privateKey, String data) {
         try {
-            return signatureUtil.sign((PrivateKey) privateKey, algorithm.getAlgorithm(), data);
+            return signatureUtil.sign((PrivateKey) privateKey, algorithm.getSignAlgorithm(), data);
         } catch (SignatureException e) {
             if (e.getCause().getClass().isAssignableFrom(NoSuchAlgorithmException.class)) {
-                throw new JwsSigningException("Unsupported Signing Algorithm, " + algorithm.getAlgorithm(), e);
+                throw new JwsSigningException("Unsupported Signing Algorithm, " + algorithm.getSignAlgorithm(), e);
             }
             throw new JwsSigningException(e);
         }
     }
 
     @Override
-    public byte[] sign(JwsAlgorithm algorithm, Key privateKey, String data, String clientSecret) throws JwsSigningException {
-        return sign(algorithm, privateKey, data);
+    public byte[] sign(JwsAlgorithmOAuth2 algorithm, String clientSecret, String data) throws JwsSigningException {
+        return "".getBytes(Utils.CHARSET);
     }
 
     @Override
-    public boolean verify(JwsAlgorithm algorithm, Key privateKey, byte[] data, byte[] signature) {
+    public boolean verify(JwsAlgorithmOAuth2 algorithm, Key privateKey, byte[] data, byte[] signature) {
         try {
-            return signatureUtil.verify((X509Certificate) null, algorithm.getAlgorithm(),
+            return signatureUtil.verify((X509Certificate) null, algorithm.getSignAlgorithm(),
                     new String(data, Utils.CHARSET), signature);
         } catch (SignatureException e) {
             if (e.getCause().getClass().isAssignableFrom(NoSuchAlgorithmException.class)) {
-                throw new JwsVerifyingException("Unsupported Signing Algorithm, " + algorithm.getAlgorithm(), e);
+                throw new JwsVerifyingException("Unsupported Signing Algorithm, " + algorithm.getSignAlgorithm(), e);
+            }
+            throw new JwsVerifyingException(e);
+        }
+    }
+
+    public boolean verify(JwsAlgorithmOAuth2 algorithm, Key publicKey, String data, byte[] signature) {
+        try {
+            return signatureUtil.verify((PublicKey) publicKey, algorithm.getSignAlgorithm(), data, signature);
+        } catch (SignatureException e) {
+            if (e.getCause().getClass().isAssignableFrom(NoSuchAlgorithmException.class)) {
+                throw new JwsVerifyingException("Unsupported Signing Algorithm, " + algorithm.getSignAlgorithm(), e);
+            }
+            throw new JwsVerifyingException(e);
+        }
+    }
+
+    @Override
+    public boolean verify(JwsAlgorithmOAuth2 algorithm, String clientSecret, byte[] data, byte[] signature) {
+        try {
+            return signatureUtil.verify((X509Certificate) null, algorithm.getSignAlgorithm(),
+                    new String(data, Utils.CHARSET), signature);
+        } catch (SignatureException e) {
+            if (e.getCause().getClass().isAssignableFrom(NoSuchAlgorithmException.class)) {
+                throw new JwsVerifyingException("Unsupported Signing Algorithm, " + algorithm.getSignAlgorithm(), e);
             }
             throw new JwsVerifyingException(e);
         }

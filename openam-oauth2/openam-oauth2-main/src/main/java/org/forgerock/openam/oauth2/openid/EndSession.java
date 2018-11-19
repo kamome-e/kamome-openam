@@ -28,9 +28,9 @@ import com.iplanet.sso.SSOToken;
 import com.iplanet.sso.SSOTokenManager;
 import com.sun.identity.shared.OAuth2Constants;
 import org.forgerock.json.jose.common.JwtReconstruction;
-import org.forgerock.json.jose.jws.SignedJwt;
 import org.forgerock.json.jose.jwt.JwtClaimsSet;
 import org.forgerock.openam.oauth2.exceptions.OAuthProblemException;
+import org.forgerock.openam.oauth2.model.CustomSignedJwt;
 import org.forgerock.openam.oauth2.utils.OAuth2Utils;
 import org.restlet.representation.Representation;
 import org.restlet.resource.Get;
@@ -61,7 +61,7 @@ public class EndSession extends ServerResource {
             throw OAuthProblemException.OAuthError.BAD_REQUEST.handle(null, "The endSesison endpoint requires an id_token_hint parameter");
         }
         JwtReconstruction jwtReconstruction = new JwtReconstruction();
-        SignedJwt jwt = jwtReconstruction.reconstructJwt(id_token, SignedJwt.class);
+        CustomSignedJwt jwt = jwtReconstruction.reconstructJwt(id_token, CustomSignedJwt.class);
 
         JwtClaimsSet claims = jwt.getClaimsSet();
         String sessionId = (String) claims.getClaim(OAuth2Constants.JWTTokenParams.OPS);

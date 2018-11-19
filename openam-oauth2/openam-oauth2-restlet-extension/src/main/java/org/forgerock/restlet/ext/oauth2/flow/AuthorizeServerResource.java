@@ -21,11 +21,16 @@ import com.iplanet.am.util.SystemProperties;
 import com.iplanet.sso.SSOToken;
 import com.sun.identity.idm.AMIdentity;
 import com.sun.identity.shared.OAuth2Constants;
+import com.sun.identity.shared.encode.Base64;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
 import org.forgerock.openam.oauth2.exceptions.OAuthProblemException;
+import org.forgerock.openam.oauth2.model.ClientApplication;
 import org.forgerock.openam.oauth2.model.CoreToken;
+import org.forgerock.openam.oauth2.model.impl.ClientApplicationImpl;
 import org.forgerock.openam.oauth2.openid.OpenIDPromptParameter;
 import org.forgerock.openam.oauth2.provider.OAuth2ProviderSettings;
 import org.forgerock.openam.oauth2.provider.ResponseType;
@@ -40,6 +45,7 @@ import org.restlet.resource.Post;
 import org.restlet.routing.Redirector;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
@@ -136,12 +142,12 @@ public class AuthorizeServerResource extends AbstractFlow {
 
     @Post("form:json")
     public Representation represent(Representation entity) {
-        
+
          // 2018.02.19 add OPENAM-8575 OAuth2.0認証画面 CSRF脆弱性対策 --- sta
         Charset UTF_8_CHARSET = Charset.forName("UTF-8");
         SSOToken ssoToken = OAuth2Utils.getSSOToken(getRequest());
         String csrfValue = OAuth2Utils.getRequestParameter(getRequest(), OAuth2Constants.Custom.CSRF, String.class);
-        if ( csrfValue == null || 
+        if ( csrfValue == null ||
                 (ssoToken != null &&  !MessageDigest.isEqual(ssoToken.getTokenID().toString().getBytes(UTF_8_CHARSET), csrfValue.getBytes(UTF_8_CHARSET)) )) {
             OAuth2Utils.DEBUG.error("Session id from consent request does not match users session");
             throw OAuthProblemException.OAuthError.BAD_REQUEST.handle(getRequest(), "bad_request");
@@ -181,7 +187,7 @@ public class AuthorizeServerResource extends AbstractFlow {
             Map<String, String> responseTypes = null;
             responseTypes = getResponseTypes(OAuth2Utils.getRealm(getRequest()));
 
-            Set<String> requestedResponseTypes = OAuth2Utils.stringToSet(OAuth2Utils.getRequestParameter(getRequest(), OAuth2Constants.Params.RESPONSE_TYPE, String.class));
+            Set<String> tmpRequestedResponseTypes = OAuth2Utils.stringToSet(OAuth2Utils.getRequestParameter(getRequest(), OAuth2Constants.Params.RESPONSE_TYPE, String.class));
             Map<String, CoreToken> listOfTokens = new HashMap<String, CoreToken>();
             Map<String, Object> data = new HashMap<String, Object>();
             data.put(OAuth2Constants.CoreTokenParams.TOKEN_TYPE, client.getClient().getAccessTokenType());
@@ -194,56 +200,87 @@ public class AuthorizeServerResource extends AbstractFlow {
             data.put(OAuth2Constants.Custom.SSO_TOKEN_ID, getRequest().getCookies().getValues(
                     SystemProperties.get("com.iplanet.am.cookie.name")));
 
-
-            if (requestedResponseTypes == null || requestedResponseTypes.isEmpty()) {
+            if (tmpRequestedResponseTypes == null || tmpRequestedResponseTypes.isEmpty()) {
                 OAuth2Utils.DEBUG.error("AuthorizeServerResource.represent(): Error response_type not set");
                 throw OAuthProblemException.OAuthError.UNSUPPORTED_RESPONSE_TYPE.handle(getRequest(),
                         "Response type is not supported");
-            } else {
-                try {
-                    for (String request : requestedResponseTypes) {
-                        if (request.isEmpty()) {
-                            throw OAuthProblemException.OAuthError.UNSUPPORTED_RESPONSE_TYPE.handle(getRequest(),
-                                    "Response type is not supported");
-                        }
-                        String responseClass = responseTypes.get(request);
-                        if (responseClass == null || responseClass.isEmpty()) {
-                            OAuth2Utils.DEBUG.warning("AuthorizeServerResource.represent(): Requested a response type that is not configured. response_type=" + request);
-                            throw OAuthProblemException.OAuthError.UNSUPPORTED_RESPONSE_TYPE.handle(getRequest(),
-                                    "Response type is not supported");
-                        } else if (responseClass.equalsIgnoreCase("none")) {
-                            continue;
-                        }
-                        //execute response type class
-                        Class clazz = Class.forName(responseClass);
-                        ResponseType classObj = (ResponseType) clazz.newInstance();
+            }
 
-                        //create the response type token
-                        CoreToken token = classObj.createToken(data);
+            List<String> requestedResponseTypes = new ArrayList<String>(tmpRequestedResponseTypes);
+            if (requestedResponseTypes.contains("id_token") && nonce == null) {
+                OAuth2Utils.DEBUG.error("AuthorizeServerResource.represent(): Missing required parameter nonce from request");
+                throw OAuthProblemException.OAuthError.INVALID_REQUEST.handle(getRequest(),
+                        "Missing required parameter nonce from request");
+            }
 
-                        //get the response type return location
-                        String paramName = classObj.URIParamValue();
-                        if (listOfTokens.containsKey(paramName)) {
-                            OAuth2Utils.DEBUG.error("AuthorizeServerResource.represent(): Returning multiple response types with the same url value");
-                            throw OAuthProblemException.OAuthError.UNSUPPORTED_RESPONSE_TYPE.handle(getRequest(),
-                                    "Returning multiple response types with the same url value");
-                        }
-                        listOfTokens.put(classObj.URIParamValue(), token);
+            // at_hash, c_hashを先に生成する必要があるため、id_tokenを最後に処理する。
+            if (requestedResponseTypes.contains("id_token")) {
+                requestedResponseTypes.remove("id_token");
+                requestedResponseTypes.add("id_token");
+            }
 
-                        //if return location is fragment all tokens need to be returned as a fragment
-                        if (fragment == false) {
-                            String location = classObj.getReturnLocation();
-                            if (location.equalsIgnoreCase("FRAGMENT")) {
-                                fragment = true;
-                            }
-                        }
+            AMIdentity id = OAuth2Utils.getClientIdentity(sessionClient.getClientId(), OAuth2Utils.getRealm(getRequest()));
+            ClientApplication clientApplication = new ClientApplicationImpl(id);
+            String algorithm = clientApplication.getIDTokenSignedResponseAlgorithm();
 
+            String atHash = null;
+            String cHash = null;
+            try {
+                for (String request : requestedResponseTypes) {
+                    if (request.isEmpty()) {
+                        throw OAuthProblemException.OAuthError.UNSUPPORTED_RESPONSE_TYPE.handle(getRequest(),
+                                "Response type is not supported");
                     }
-                } catch (Exception e) {
-                    OAuth2Utils.DEBUG.error("AuthorizeServerResource.represent(): Error invoking classes for response_type", e);
-                    throw OAuthProblemException.OAuthError.UNSUPPORTED_RESPONSE_TYPE.handle(getRequest(),
-                            "Response type is not supported");
+                    if (request.equals("id_token")) {
+                        if (atHash != null && !atHash.isEmpty()) {
+                            data.put(OAuth2Constants.JWTTokenParams.AT_HASH, urlEnc(atHash));
+                        }
+                        if (cHash != null && !cHash.isEmpty()) {
+                            data.put(OAuth2Constants.JWTTokenParams.C_HASH, urlEnc(cHash));
+                        }
+                    }
+                    String responseClass = responseTypes.get(request);
+                    if (responseClass == null || responseClass.isEmpty()) {
+                        OAuth2Utils.DEBUG.warning("AuthorizeServerResource.represent(): Requested a response type that is not configured. response_type=" + request);
+                        throw OAuthProblemException.OAuthError.UNSUPPORTED_RESPONSE_TYPE.handle(getRequest(),
+                                "Response type is not supported");
+                    } else if (responseClass.equalsIgnoreCase("none")) {
+                        continue;
+                    }
+                    //execute response type class
+                    Class clazz = Class.forName(responseClass);
+                    ResponseType classObj = (ResponseType) clazz.newInstance();
+
+                    //create the response type token
+                    CoreToken token = classObj.createToken(data);
+
+                    //get the response type return location
+                    String paramName = classObj.URIParamValue();
+                    if (listOfTokens.containsKey(paramName)) {
+                        OAuth2Utils.DEBUG.error("AuthorizeServerResource.represent(): Returning multiple response types with the same url value");
+                        throw OAuthProblemException.OAuthError.UNSUPPORTED_RESPONSE_TYPE.handle(getRequest(),
+                                "Returning multiple response types with the same url value");
+                    }
+                    listOfTokens.put(classObj.URIParamValue(), token);
+
+                    if (request.equals("token")) {
+                        atHash = hash(token.getTokenID(), getAlgorithm(algorithm));
+                    } else if (request.equals("code")) {
+                        cHash = hash(token.getTokenID(), getAlgorithm(algorithm));
+                    }
+
+                    //if return location is fragment all tokens need to be returned as a fragment
+                    if (fragment == false) {
+                        String location = classObj.getReturnLocation();
+                        if (location.equalsIgnoreCase("FRAGMENT")) {
+                            fragment = true;
+                        }
+                    }
                 }
+            } catch (Exception e) {
+                OAuth2Utils.DEBUG.error("AuthorizeServerResource.represent(): Error invoking classes for response_type", e);
+                throw OAuthProblemException.OAuthError.UNSUPPORTED_RESPONSE_TYPE.handle(getRequest(),
+                        "Response type is not supported");
             }
 
             Form tokenForm = tokensToForm(listOfTokens);
@@ -338,13 +375,13 @@ public class AuthorizeServerResource extends AbstractFlow {
 
     protected boolean savedConsent(String userid, String clientId, Set<String> scopes) {
         OAuth2ProviderSettings settings = OAuth2Utils.getSettingsProvider(getRequest());
-        // 2018.02.09 upd --sta 
+        // 2018.02.09 upd --sta
         // SharedConsentAttributeNameが null の場合、エラーメッセージを出力する
         String attribute = settings.getSharedConsentAttributeName();
         if (attribute != null) {
             AMIdentity id = OAuth2Utils.getIdentity(userid, OAuth2Utils.getRealm(getRequest()));
             Set<String> attributeSet = null;
-    
+
             if (id != null) {
                 try {
                     attributeSet = id.getAttribute(attribute);
@@ -353,26 +390,29 @@ public class AuthorizeServerResource extends AbstractFlow {
                     return false;
                 }
             }
-    
-            //check the values of the attribute set vs the scope and client requested
-            //attribute set is in the form of client_id|scope1 scope2 scope3
-            for (String consent : attributeSet) {
-                int loc = consent.indexOf(" ");
-                String consentClientId = consent.substring(0, loc);
-                String[] scopesArray = null;
-                if (loc + 1 < consent.length()) {
-                    scopesArray = consent.substring(loc + 1, consent.length()).split(" ");
-                }
-                Set<String> consentScopes = null;
-                if (scopesArray != null && scopesArray.length > 0) {
-                    consentScopes = new HashSet<String>(Arrays.asList(scopesArray));
-                } else {
-                    consentScopes = new HashSet<String>();
-                }
-    
-                //if both the client and the scopes are identical to the saved consent then approve
-                if (clientId.equals(consentClientId) && scopes.equals(consentScopes)) {
-                    return true;
+
+            // check the values of the attribute set vs the scope and client requested
+            // attribute set is in the form of client_id|scope1 scope2 scope3
+            for (String attr : attributeSet) {
+                String[] consents = attr.split("\\|");
+                for (String consent : consents) {
+                    int loc = consent.indexOf(" ");
+                    String consentClientId = consent.substring(0, loc);
+                    String[] scopesArray = null;
+                    if (loc + 1 < consent.length()) {
+                        scopesArray = consent.substring(loc + 1, consent.length()).split(" ");
+                    }
+                    Set<String> consentScopes = null;
+                    if (scopesArray != null && scopesArray.length > 0) {
+                        consentScopes = new HashSet<String>(Arrays.asList(scopesArray));
+                    } else {
+                        consentScopes = new HashSet<String>();
+                    }
+
+                    //if both the client and the scopes are identical to the saved consent then approve
+                    if (clientId.equals(consentClientId) && scopes.equals(consentScopes)) {
+                        return true;
+                    }
                 }
             }
         } else {
@@ -387,11 +427,11 @@ public class AuthorizeServerResource extends AbstractFlow {
         AMIdentity id = OAuth2Utils.getIdentity(userId, OAuth2Utils.getRealm(getRequest()));
         OAuth2ProviderSettings settings = OAuth2Utils.getSettingsProvider(getRequest());
         String consentAttribute = settings.getSharedConsentAttributeName();
-        // 2018.02.09 upd --sta 
+        // 2018.02.09 upd --sta
         // SharedConsentAttributeNameが null の場合、エラーメッセージを出力する
         if (consentAttribute != null) {
+
             try {
-    
                 //get the current set of consents and add our new consent to it.
                 Set<String> consents = new HashSet<String>(id.getAttribute(consentAttribute));
                 StringBuilder sb = new StringBuilder();
@@ -400,11 +440,25 @@ public class AuthorizeServerResource extends AbstractFlow {
                 } else {
                     sb.append(clientId.trim()).append(" ").append(scopes.trim());
                 }
-                consents.add(sb.toString());
-    
+
+                Set<String> newConsents = new HashSet<String>();
+                StringBuilder contentSb = new StringBuilder();
+                for (String consent : consents) {
+                    String[] attrs = consent.split("\\|");
+                    for (String attr : attrs) {
+                        int loc = attr.indexOf(" ");
+                        String attrClientId = attr.substring(0, loc);
+                        if (!clientId.equals(attrClientId)) {
+                            contentSb.append(attr).append("|");
+                        }
+                    }
+                }
+                contentSb.append(sb.toString());
+                newConsents.add(contentSb.toString());
+
                 //update the user profile with our new consent settings
                 Map<String, Set<String>> attrs = new HashMap<String, Set<String>>();
-                attrs.put(consentAttribute, consents);
+                attrs.put(consentAttribute, newConsents);
                 id.setAttributes(attrs);
                 id.store();
             } catch (Exception e) {
@@ -420,6 +474,41 @@ public class AuthorizeServerResource extends AbstractFlow {
 
         Map<String, String> allResponseTypes = getResponseTypes(OAuth2Utils.getRealm(getRequest()));
         return allResponseTypes.keySet().containsAll(responseTypesRequested);
+    }
+
+    private String getAlgorithm(String algorithm) {
+        if (algorithm.equals("HS256")) {
+            return "SHA-256";
+        } else if (algorithm.equals("HS384")) {
+            return "SHA-384";
+        } else if (algorithm.equals("HS512")) {
+            return "SHA-512";
+        } else if (algorithm.equals("RS256")) {
+            return "SHA-256";
+        } else {
+            return "SHA-1";
+        }
+    }
+
+    private String hash(String string, String algorithm) {
+        try {
+            MessageDigest sha1 = MessageDigest.getInstance(algorithm);
+            sha1.update(string.getBytes("UTF-8"));
+            byte[] result = sha1.digest();
+            final byte[] toEncode = Arrays.copyOfRange(result, 0, result.length / 2);
+            return Base64.encode(toEncode);
+        } catch (Exception ex) {
+            OAuth2Utils.DEBUG.warning("AuthorizeServerResource.hash(): ", ex);
+            return null;
+        }
+    }
+
+    private String urlEnc(String value) {
+        String result = value;
+        result = result.replaceAll("\\+", "-");
+        result = result.replaceAll("/", "_");
+        result = result.replaceAll("=", "");
+        return result;
     }
 
 }

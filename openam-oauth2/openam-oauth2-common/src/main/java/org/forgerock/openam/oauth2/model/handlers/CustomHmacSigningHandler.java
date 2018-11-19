@@ -26,8 +26,8 @@ import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.forgerock.json.jose.exceptions.JwsSigningException;
-import org.forgerock.json.jose.jws.JwsAlgorithm;
 import org.forgerock.json.jose.utils.Utils;
+import org.forgerock.openam.oauth2.model.JwsAlgorithmOAuth2;
 import org.forgerock.openam.utils.StringUtils;
 
 /**
@@ -39,17 +39,13 @@ import org.forgerock.openam.utils.StringUtils;
 public class CustomHmacSigningHandler implements CustomSigningHandler {
 
     @Override
-    public byte[] sign(JwsAlgorithm algorithm, Key privateKey, String data) {
-        return signWithHMAC(algorithm.getAlgorithm(), privateKey, data.getBytes(Utils.CHARSET));
+    public byte[] sign(JwsAlgorithmOAuth2 algorithm, Key privateKey, String data) {
+        return signWithHMAC(algorithm.getSignAlgorithm(), privateKey, data.getBytes(Utils.CHARSET));
     }
 
     @Override
-    public byte[] sign(JwsAlgorithm algorithm, Key privateKey, String data, String clientSecret) {
-        if (StringUtils.isNotEmpty(clientSecret)) {
-            return signWithHMAC(algorithm.getAlgorithm(), clientSecret, data.getBytes(Utils.CHARSET));
-        } else {
-            return signWithHMAC(algorithm.getAlgorithm(), privateKey, data.getBytes(Utils.CHARSET));
-        }
+    public byte[] sign(JwsAlgorithmOAuth2 algorithm, String clientSecret, String data) {
+        return signWithHMAC(algorithm.getSignAlgorithm(), clientSecret, data.getBytes(Utils.CHARSET));
     }
 
     private byte[] signWithHMAC(String algorithm, Key key, byte[] data) {
@@ -83,9 +79,19 @@ public class CustomHmacSigningHandler implements CustomSigningHandler {
     }
 
     @Override
-    public boolean verify(JwsAlgorithm algorithm, Key privateKey, byte[] data, byte[] signature) {
-        byte[] signed = signWithHMAC(algorithm.getAlgorithm(), privateKey, data);
+    public boolean verify(JwsAlgorithmOAuth2 algorithm, Key privateKey, byte[] data, byte[] signature) {
+        byte[] signed = signWithHMAC(algorithm.getSignAlgorithm(), privateKey, data);
+        return MessageDigest.isEqual(signed, signature);
+    }
 
+    @Override
+    public boolean verify(JwsAlgorithmOAuth2 algorithm, Key publicKey, String data, byte[] signature) {
+        return true;
+    }
+
+    @Override
+    public boolean verify(JwsAlgorithmOAuth2 algorithm, String clientSecret, byte[] data, byte[] signature) {
+        byte[] signed = signWithHMAC(algorithm.getSignAlgorithm(), clientSecret, data);
         return MessageDigest.isEqual(signed, signature);
     }
 }

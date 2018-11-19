@@ -627,6 +627,26 @@ public class ClientApplicationImpl implements ClientApplication{
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public String getSignSecret(){
+
+        Set<String> set = null;
+        try {
+            set = id.getAttribute(OAuth2Constants.OAuth2Client.SIGN_SECRET);
+        } catch (Exception e){
+            OAuth2Utils.DEBUG.error("Unable to get "+ OAuth2Constants.OAuth2Client.SIGN_SECRET +" from repository", e);
+            throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(),
+                    "Unable to get "+ OAuth2Constants.OAuth2Client.SIGN_SECRET +" from repository");
+        }
+        if (set == null || set.isEmpty()) {
+            return null;
+        }
+        return set.iterator().next();
+
+    }
+
     private Set<String> convertAttributeValues(Set<String> input) {
         Set<String> result = new HashSet<String>();
         for (String param : input) {

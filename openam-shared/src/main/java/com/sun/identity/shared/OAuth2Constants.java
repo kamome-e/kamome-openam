@@ -27,7 +27,7 @@ package com.sun.identity.shared;
 /**
  * TODO Finish this class with all constants TODO refactor to clean up what is
  * interface, storage, or both
- * 
+ *
  * @author $author$
  * @version $Revision$ $Date$
  */
@@ -37,7 +37,7 @@ public class OAuth2Constants {
         /**
          * Authorization endpoint - used to obtain authorization from the
          * resource owner via user-agent redirection.
-         * 
+         *
          * @see <a
          *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-24#section-3.1">3.1.
          *      Authorization Endpoint</a>
@@ -46,7 +46,7 @@ public class OAuth2Constants {
         /**
          * Token endpoint - used to exchange an authorization grant for an
          * access token, typically with client authentication.
-         * 
+         *
          * @see <a
          *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-24#section-3.2">3.2.
          *      Token Endpoint</a>
@@ -54,7 +54,7 @@ public class OAuth2Constants {
         TOKEN_ENDPOINT,
         /**
          * Extension grant types MAY define additional endpoints as needed.
-         * 
+         *
          * @see <a
          *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-24#section-3">3.
          *      Protocol Endpoints</a>
@@ -64,7 +64,7 @@ public class OAuth2Constants {
 
     /*
      * public static final Set<String> params;
-     * 
+     *
      * static { Set<String> paramSet = new HashSet<String>();
      * paramSet.add(Params.ACCESS_TOKEN); paramSet.add(Params.CLIENT_ID);
      * paramSet.add(Params.CLIENT_SECRET); paramSet.add(Params.CODE);
@@ -225,7 +225,7 @@ public class OAuth2Constants {
 
     /**
      * 11.3.2. Initial Registry Contents
-     * 
+     *
      * @see <a href="">11.3. The OAuth Authorization Endpoint Response Type
      *      Registry</a>
      */
@@ -297,7 +297,7 @@ public class OAuth2Constants {
 
     /**
      * SAML 2.0 Bearer Assertion Profiles for OAuth 2.0
-     * 
+     *
      * @see <a
      *      href="http://tools.ietf.org/html/draft-ietf-oauth-saml2-bearer">SAML
      *      2.0 Bearer Assertion Profiles for OAuth 2.0</a>
@@ -333,7 +333,7 @@ public class OAuth2Constants {
         /**
          * Mac
          * <p/>
-         * 
+         *
          * <pre>
          *  Authorization: MAC id="h480djs93hd8",
          *      ts="1336363200",
@@ -375,7 +375,7 @@ public class OAuth2Constants {
 
         /*
          * 8.1.1. Registration Template
-         * 
+         *
          * Algorithm name: The name requested (e.g., "example"). Body hash
          * algorithm: The corresponding algorithm used to calculate the payload
          * body hash. Change controller: For standards-track RFCs, state "IETF".
@@ -385,63 +385,63 @@ public class OAuth2Constants {
          * specifies the algorithm, preferably including a URI that can be used
          * to retrieve a copy of the document. An indication of the relevant
          * sections may also be included, but is not required.
-         * 
+         *
          * 8.1.2. Initial Registry Contents
-         * 
+         *
          * The HTTP MAC authentication scheme algorithm registry's initial
          * contents are:
-         * 
-         * 
-         * 
+         *
+         *
+         *
          * Hammer-Lahav, et al. Expires November 12, 2011 [Page 22]
-         * 
+         *
          * Internet-Draft MAC Authentication May 2011
-         * 
-         * 
+         *
+         *
          * o Algorithm name: hmac-sha-1 o Body hash algorithm: sha-1 o Change
          * controller: IETF o Specification document(s): [[ this document ]]
-         * 
+         *
          * o Algorithm name: hmac-sha-256 o Body hash algorithm: sha-256 o
          * Change controller: IETF o Specification document(s): [[ this document
          * ]]
-         * 
+         *
          * 8.2. OAuth Access Token Type Registration
-         * 
+         *
          * This specification registers the following access token type in the
          * OAuth Access Token Type Registry.
-         * 
+         *
          * 8.2.1. The "mac" OAuth Access Token Type
-         * 
+         *
          * Type name: mac Additional Token Endpoint Response Parameters: secret,
          * algorithm HTTP Authentication Scheme(s): MAC Change controller: IETF
          * Specification document(s): [[ this document ]]
-         * 
+         *
          * 8.3. OAuth Parameters Registration
-         * 
+         *
          * This specification registers the following parameters in the OAuth
          * Parameters Registry established by [I-D.ietf-oauth-v2].
-         * 
+         *
          * 8.3.1. The "mac_key" OAuth Parameter
-         * 
+         *
          * Parameter name: mac_key Parameter usage location: authorization
          * response, token response Change controller: IETF Specification
          * document(s): [[ this document ]] Related information: None
-         * 
+         *
          * 8.3.2. The "mac_algorithm" OAuth Parameter
-         * 
+         *
          * Parameter name: mac_algorithm
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
+         *
+         *
+         *
+         *
+         *
+         *
+         *
          * Hammer-Lahav, et al. Expires November 12, 2011 [Page 23]
-         * 
+         *
          * Internet-Draft MAC Authentication May 2011
-         * 
-         * 
+         *
+         *
          * Parameter usage location: authorization response, token response
          * Change controller: IETF Specification document(s): [[ this document
          * ]] Related information: None
@@ -523,7 +523,7 @@ public class OAuth2Constants {
          * for other reasons. The resource SHOULD respond with the HTTP 401
          * (Unauthorized) status code. The client MAY request a new access token
          * and retry the protected resource request.
-         * 
+         *
          * @see <a
          *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-bearer-17#section-3.1">Error
          *      Codes</a>
@@ -535,7 +535,7 @@ public class OAuth2Constants {
          * token. The resource server SHOULD respond with the HTTP 403
          * (Forbidden) status code and MAY include the "scope" attribute with
          * the scope necessary to access the protected resource.
-         * 
+         *
          * @see <a
          *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-bearer-17#section-3.1">Error
          *      Codes</a>
@@ -548,7 +548,7 @@ public class OAuth2Constants {
          * the response and request a new access token using the refresh token
          * issued with the expired access token. The resource server MUST
          * respond with the HTTP 401 (Unauthorized) status code.
-         * 
+         *
          * @see <a
          *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.2.1">5.2.1.
          *      Error Codes</a>
@@ -559,7 +559,7 @@ public class OAuth2Constants {
          * The client identifier provided is invalid, the client failed to
          * authenticate, the client did not include its credentials, provided
          * multiple client credentials, or used unsupported credentials type.
-         * 
+         *
          * @see <a
          *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-4.3.1">4.3.1.
          *      Error Codes</a>
@@ -570,7 +570,7 @@ public class OAuth2Constants {
          * Handles all errors that don't stem from invalid requests -- e.g.,
          * perhaps errors resulting from databases that are down or logic errors
          * in code.
-         * 
+         *
          * @see <a
          *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-4.3.1">4.3.1.
          *      Error Codes</a>
@@ -581,7 +581,7 @@ public class OAuth2Constants {
          * The provided access grant is invalid, expired, or revoked (e.g.
          * invalid assertion, expired authorization token, bad end-user password
          * credentials, or mismatching authorization code and redirection URI).
-         * 
+         *
          * @see <a
          *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-4.3.1">4.3.1.
          *      Error Codes</a>
@@ -592,7 +592,7 @@ public class OAuth2Constants {
          * The provided access grant is invalid, expired, or revoked (e.g.
          * invalid assertion, expired authorization token, bad end-user password
          * credentials, or mismatching authorization code and redirection URI).
-         * 
+         *
          * @see <a
          *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-4.3.1">4.3.1.
          *      Error Codes</a>
@@ -601,7 +601,7 @@ public class OAuth2Constants {
 
         /**
          * The code provided is invalid.
-         * 
+         *
          * @see <a
          *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-4.3.1">4.3.1.
          *      Error Codes</a>
@@ -610,7 +610,7 @@ public class OAuth2Constants {
 
         /**
          * The redirection URI provided does not match a pre-registered value.
-         * 
+         *
          * @see <a
          *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-3.2.1">3.2.1.
          *      Error Codes</a>
@@ -680,6 +680,7 @@ public class OAuth2Constants {
         public static final String SAVE_CONSENT= "save_consent";
         public static final String SSO_TOKEN_ID = "ssoTokenId";
         public static final String CSRF = "csrf";
+        public static final String MAX_AGE = "max_age";
         /**
          * The display mode in which to render the dialog. The default is
          * {@code page} on the www subdomain and {@code wap} on the m subdomain.
@@ -790,6 +791,7 @@ public class OAuth2Constants {
         public static final String CLIENT_SECRET = "client_secret";
         public static final String ACCESS_TOKEN = "com.forgerock.openam.oauth2provider.accessToken";
         public static final String CLIENT_SESSION_URI = "com.forgerock.openam.oauth2provider.clientSessionURI";
+        public static final String SIGN_SECRET = "com.forgerock.openam.oauth2provider.signSecret";
     }
 
     public class JWTTokenParams{
@@ -801,10 +803,12 @@ public class OAuth2Constants {
         public static final String AZP = "azp";
         public static final String EXP = "exp";
         public static final String IAT =  "iat";
-        public static final String ATH = "ath";
+        public static final String AUTH_TIME = "auth_time";
         public static final String NONCE = "nonce";
         public static final String OPS = "org.forgerock.openidconnect.ops";
         public static final String LEGACY_OPS = "ops";
+        public static final String AT_HASH = "at_hash";
+        public static final String C_HASH = "c_hash";
 
     }
 }

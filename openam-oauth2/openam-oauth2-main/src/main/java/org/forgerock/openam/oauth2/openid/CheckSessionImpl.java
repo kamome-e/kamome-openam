@@ -29,8 +29,8 @@ import com.iplanet.sso.SSOTokenManager;
 import com.sun.identity.idm.AMIdentity;
 import com.sun.identity.shared.OAuth2Constants;
 import org.forgerock.json.jose.common.JwtReconstruction;
-import org.forgerock.json.jose.jws.SignedJwt;
 import org.forgerock.openam.oauth2.model.ClientApplication;
+import org.forgerock.openam.oauth2.model.CustomSignedJwt;
 import org.forgerock.openam.oauth2.model.impl.ClientApplicationImpl;
 import org.forgerock.openam.oauth2.utils.OAuth2Utils;
 import org.restlet.ext.servlet.ServletUtils;
@@ -67,7 +67,7 @@ public class CheckSessionImpl implements CheckSession {
      * {@inheritDoc}
      */
     public String getClientSessionURI(HttpServletRequest request){
-        SignedJwt jwt = getIDToken(request);
+        CustomSignedJwt jwt = getIDToken(request);
         if (jwt == null || !jwt.verify(OAuth2Utils.getServerKeyPair(request).getPrivate())) {
             return "";
         }
@@ -87,7 +87,7 @@ public class CheckSessionImpl implements CheckSession {
      * {@inheritDoc}
      */
     public boolean getValidSession(HttpServletRequest request){
-        SignedJwt jwt = getIDToken(request);
+        CustomSignedJwt jwt = getIDToken(request);
         if (jwt == null || !jwt.verify(OAuth2Utils.getServerKeyPair(request).getPrivate())) {
             return false;
         }
@@ -105,7 +105,7 @@ public class CheckSessionImpl implements CheckSession {
 
     }
 
-    private SignedJwt getIDToken(HttpServletRequest request){
+    private CustomSignedJwt getIDToken(HttpServletRequest request){
         URI referer = null;
         try {
             referer = new URI(request.getHeader("Referer"));
@@ -130,7 +130,7 @@ public class CheckSessionImpl implements CheckSession {
             String id_token = map.get("id_token");
 
             JwtReconstruction jwtReconstruction = new JwtReconstruction();
-            return jwtReconstruction.reconstructJwt(id_token, SignedJwt.class);
+            return jwtReconstruction.reconstructJwt(id_token, CustomSignedJwt.class);
         }
         return null;
     }

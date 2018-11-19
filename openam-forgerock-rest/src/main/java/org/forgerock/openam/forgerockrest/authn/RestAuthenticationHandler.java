@@ -23,7 +23,7 @@ import com.sun.identity.shared.debug.Debug;
 import com.sun.identity.shared.locale.L10NMessageImpl;
 import org.forgerock.json.fluent.JsonException;
 import org.forgerock.json.fluent.JsonValue;
-import org.forgerock.json.jose.jws.SignedJwt;
+
 import org.forgerock.openam.forgerockrest.authn.callbackhandlers.RestAuthCallbackHandlerResponseException;
 import org.forgerock.openam.forgerockrest.authn.core.AuthIndexType;
 import org.forgerock.openam.forgerockrest.authn.core.AuthenticationContext;
@@ -32,6 +32,7 @@ import org.forgerock.openam.forgerockrest.authn.core.LoginConfiguration;
 import org.forgerock.openam.forgerockrest.authn.core.LoginProcess;
 import org.forgerock.openam.forgerockrest.authn.exceptions.RestAuthErrorCodeException;
 import org.forgerock.openam.forgerockrest.authn.exceptions.RestAuthException;
+import org.forgerock.openam.oauth2.model.CustomSignedJwt;
 import org.forgerock.openam.utils.JsonObject;
 import org.forgerock.openam.utils.JsonValueBuilder;
 
@@ -139,7 +140,7 @@ public class RestAuthenticationHandler {
 
             String sessionId = null;
             if (authId != null) {
-                SignedJwt jwt = authIdHelper.reconstructAuthId(authId);
+                CustomSignedJwt jwt = authIdHelper.reconstructAuthId(authId);
                 sessionId = jwt.getClaimsSet().getClaim("sessionId", String.class);
                 String authIndexTypeString = jwt.getClaimsSet().getClaim("authIndexType", String.class);
                 indexType = getAuthIndexType(authIndexTypeString);

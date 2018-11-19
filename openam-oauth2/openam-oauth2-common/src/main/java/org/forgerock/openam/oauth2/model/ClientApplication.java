@@ -70,7 +70,7 @@ public interface ClientApplication {
      * <p/>
      * The authorization server MAY allow the client to register multiple
      * redirection endpoints.
-     * 
+     *
      * @return
      * @see <a
      *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-24#section-3.1.2.3">3.1.2.3.
@@ -101,7 +101,7 @@ public interface ClientApplication {
 
     /**
      * Gets the default Scopes assigned to tokens for this client
-     * 
+     *
      * @return a set of strings representing the default scopes for this client
      * @see <a href="http://tools.ietf.org/html/rfc6749#section-3.3">3.3.  Access Token Scope</a>
      */
@@ -116,7 +116,7 @@ public interface ClientApplication {
      * property and the value is null.
      * <p/>
      * This function is not part of the OAuth2 specification
-     * 
+     *
      * @return
      */
     public boolean isAutoGrant();
@@ -290,5 +290,11 @@ public interface ClientApplication {
      * @return
      */
     public String getClientSessionURI();
+
+    /**
+     * Gets the sign use secret.
+     * @return
+     */
+    public String getSignSecret();
 
 }

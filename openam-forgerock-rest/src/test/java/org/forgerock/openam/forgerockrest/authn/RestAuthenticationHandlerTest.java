@@ -23,7 +23,6 @@ import com.sun.identity.authentication.spi.PagePropertiesCallback;
 import com.sun.identity.shared.locale.L10NMessageImpl;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.forgerock.json.fluent.JsonValue;
-import org.forgerock.json.jose.jws.SignedJwt;
 import org.forgerock.json.jose.jwt.JwtClaimsSet;
 import org.forgerock.openam.forgerockrest.authn.callbackhandlers.RestAuthCallbackHandlerResponseException;
 import org.forgerock.openam.forgerockrest.authn.core.AuthIndexType;
@@ -32,6 +31,7 @@ import org.forgerock.openam.forgerockrest.authn.core.LoginConfiguration;
 import org.forgerock.openam.forgerockrest.authn.core.LoginProcess;
 import org.forgerock.openam.forgerockrest.authn.core.LoginStage;
 import org.forgerock.openam.forgerockrest.authn.core.wrappers.AuthContextLocalWrapper;
+import org.forgerock.openam.oauth2.model.CustomSignedJwt;
 import org.forgerock.openam.utils.JsonValueBuilder;
 import org.json.JSONException;
 import org.mockito.ArgumentCaptor;
@@ -387,7 +387,7 @@ public class RestAuthenticationHandlerTest {
 
         given(loginAuthenticator.getLoginProcess(Matchers.<LoginConfiguration>anyObject())).willReturn(loginProcess);
 
-        SignedJwt signedJwt = mock(SignedJwt.class);
+        CustomSignedJwt signedJwt = mock(CustomSignedJwt.class);
         JwtClaimsSet claimsSet = mock(JwtClaimsSet.class);
 
         given(signedJwt.getClaimsSet()).willReturn(claimsSet);

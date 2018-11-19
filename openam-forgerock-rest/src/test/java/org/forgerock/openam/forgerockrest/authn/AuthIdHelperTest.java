@@ -30,7 +30,6 @@ import org.forgerock.json.jose.builders.SignedJwtBuilder;
 import org.forgerock.json.jose.builders.SignedJwtBuilderImpl;
 import org.forgerock.json.jose.exceptions.JwtRuntimeException;
 import org.forgerock.json.jose.jws.JwsAlgorithm;
-import org.forgerock.json.jose.jws.SignedJwt;
 import org.forgerock.json.jose.jwt.Algorithm;
 import org.forgerock.json.jose.jwt.JwtClaimsSet;
 import org.forgerock.openam.forgerockrest.authn.core.AuthIndexType;
@@ -38,6 +37,7 @@ import org.forgerock.openam.forgerockrest.authn.core.LoginConfiguration;
 import org.forgerock.openam.forgerockrest.authn.core.wrappers.AuthContextLocalWrapper;
 import org.forgerock.openam.forgerockrest.authn.core.wrappers.CoreServicesWrapper;
 import org.forgerock.openam.forgerockrest.authn.exceptions.RestAuthException;
+import org.forgerock.openam.oauth2.model.CustomSignedJwt;
 import org.forgerock.openam.utils.AMKeyProvider;
 import org.forgerock.openam.utils.JsonValueBuilder;
 import org.mockito.ArgumentCaptor;
@@ -283,14 +283,14 @@ public class AuthIdHelperTest {
         authIdHelper.reconstructAuthId("AUTH_ID");
 
         //Then
-        verify(jwtBuilderFactory).reconstruct("AUTH_ID", SignedJwt.class);
+        verify(jwtBuilderFactory).reconstruct("AUTH_ID", CustomSignedJwt.class);
     }
 
     @Test
     public void shouldThrowRestAuthExceptionWhenReconstructingAuthIdFails() {
 
         //Given
-        given(jwtBuilderFactory.reconstruct("AUTH_ID", SignedJwt.class)).willThrow(JwtRuntimeException.class);
+        given(jwtBuilderFactory.reconstruct("AUTH_ID", CustomSignedJwt.class)).willThrow(JwtRuntimeException.class);
 
         //When
         RestAuthException exception = null;
@@ -315,10 +315,10 @@ public class AuthIdHelperTest {
     public void shouldVerifyAuthId() throws SignatureException, SSOException, SMSException {
 
         //Given
-        SignedJwt signedJwt = mock(SignedJwt.class);
+        CustomSignedJwt signedJwt = mock(CustomSignedJwt.class);
         PrivateKey privateKey = mock(PrivateKey.class);
 
-        given(jwtBuilderFactory.reconstruct("AUTH_ID", SignedJwt.class)).willReturn(signedJwt);
+        given(jwtBuilderFactory.reconstruct("AUTH_ID", CustomSignedJwt.class)).willReturn(signedJwt);
         given(signedJwt.verify(privateKey)).willReturn(true);
         given(amKeyProvider.getPrivateKey("KEY_ALIAS")).willReturn(privateKey);
 
@@ -328,7 +328,7 @@ public class AuthIdHelperTest {
         authIdHelper.verifyAuthId("REALM_DN", "AUTH_ID");
 
         //Then
-        verify(jwtBuilderFactory).reconstruct("AUTH_ID", SignedJwt.class);
+        verify(jwtBuilderFactory).reconstruct("AUTH_ID", CustomSignedJwt.class);
         verify(signedJwt).verify(privateKey);
     }
 
@@ -336,10 +336,10 @@ public class AuthIdHelperTest {
     public void shouldVerifyAuthIdAndFail() throws SignatureException, SSOException, SMSException {
 
         //Given
-        SignedJwt signedJwt = mock(SignedJwt.class);
+        CustomSignedJwt signedJwt = mock(CustomSignedJwt.class);
         PrivateKey privateKey = mock(PrivateKey.class);
 
-        given(jwtBuilderFactory.reconstruct("AUTH_ID", SignedJwt.class)).willReturn(signedJwt);
+        given(jwtBuilderFactory.reconstruct("AUTH_ID", CustomSignedJwt.class)).willReturn(signedJwt);
         given(signedJwt.verify(privateKey)).willReturn(false);
         given(amKeyProvider.getPrivateKey("KEY_ALIAS")).willReturn(privateKey);
 
@@ -355,7 +355,7 @@ public class AuthIdHelperTest {
         }
 
         //Then
-        verify(jwtBuilderFactory).reconstruct("AUTH_ID", SignedJwt.class);
+        verify(jwtBuilderFactory).reconstruct("AUTH_ID", CustomSignedJwt.class);
         verify(signedJwt).verify(privateKey);
         assertTrue(exceptionCaught);
     }
@@ -364,7 +364,7 @@ public class AuthIdHelperTest {
     public void shouldVerifyAuthIdAndFailWhenReconstructingJwt() throws SignatureException, SSOException, SMSException {
 
         //Given
-        given(jwtBuilderFactory.reconstruct("AUTH_ID", SignedJwt.class)).willThrow(JwtRuntimeException.class);
+        given(jwtBuilderFactory.reconstruct("AUTH_ID", CustomSignedJwt.class)).willThrow(JwtRuntimeException.class);
 
         mockGetKeyAliasMethod("REALM_DN", false);
 

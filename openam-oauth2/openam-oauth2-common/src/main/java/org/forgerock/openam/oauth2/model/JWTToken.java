@@ -26,6 +26,8 @@ package org.forgerock.openam.oauth2.model;
 
 import com.sun.identity.idm.AMIdentity;
 import com.sun.identity.shared.OAuth2Constants;
+import com.sun.identity.shared.encode.Base64;
+
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.jose.builders.JwtBuilderFactory;
 import org.forgerock.json.jose.jwe.EncryptedJwt;
@@ -33,18 +35,20 @@ import org.forgerock.json.jose.jwe.EncryptionMethod;
 import org.forgerock.json.jose.jwe.JweAlgorithm;
 import org.forgerock.openam.oauth2.model.JwsAlgorithmOAuth2;
 import org.forgerock.json.jose.jws.JwsAlgorithm;
-import org.forgerock.json.jose.jws.JwsHeader;
-import org.forgerock.json.jose.jws.SignedJwt;
+import org.forgerock.json.jose.jws.JwsAlgorithmType;
 import org.forgerock.json.jose.jwt.JwtClaimsSet;
 import org.forgerock.openam.oauth2.exceptions.OAuthProblemException;
+import org.forgerock.openam.oauth2.model.CustomSignedJwt;
 import org.forgerock.openam.oauth2.model.impl.ClientApplicationImpl;
 import org.forgerock.openam.oauth2.provider.OAuth2ProviderSettings;
 import org.forgerock.openam.oauth2.utils.OAuth2Utils;
 import org.restlet.Request;
 
+import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -86,11 +90,33 @@ public class JWTToken extends CoreToken implements Token {
         jwtClaimsSet = jwtBuilderFactory.claims().claims(asMap()).build();
     }
 
-    public SignedJwt sign(PrivateKey pk) throws SignatureException {
+    public JWTToken(String iss, String sub, String aud, String azp, long exp, long iat, long ath, String realm, String nonce, String ops, String atHash, String cHash){
+        setIssuer(iss);
+        setSubject(sub);
+        setAudience(aud);
+        setAuthorizeParty(azp);
+        setExpirationTime(exp);
+        setIssueTime(iat);
+        setAuthTime(ath);
+        setRealm(realm);
+        setNonce(nonce);
+        setOPS(ops);
+        setAtHash(atHash);
+        setCHash(cHash);
+        setTokenType(OAuth2Constants.JWTTokenParams.JWT_TOKEN);
+        setTokenName(OAuth2Constants.JWTTokenParams.ID_TOKEN);
+        jwtClaimsSet = jwtBuilderFactory.claims().claims(asMap()).build();
+    }
+
+    public CustomSignedJwt sign(PrivateKey pk, String clientSecret) throws SignatureException {
         String clientID = getClientID();
         AMIdentity id = OAuth2Utils.getClientIdentity(clientID, getRealm());
         ClientApplication clientApplication = new ClientApplicationImpl(id);
         String algorithm = clientApplication.getIDTokenSignedResponseAlgorithm();
+        String clientSecretStr = clientApplication.getSignSecret();
+        if (clientSecret != null && 0 < clientSecret.length()) {
+            clientSecretStr = clientSecret;
+        }
         // update at 2018.02.02 header algorithm "none" --- sta
          JwsAlgorithmOAuth2  jwsAlgorithm = JwsAlgorithmOAuth2.getJwsAlgorithmOath2(algorithm);
         // update at 2018.02.02 header algorithm "none" --- end
@@ -98,10 +124,28 @@ public class JWTToken extends CoreToken implements Token {
             OAuth2Utils.DEBUG.error("JWTToken.sign()::Unable to find jws algorithm for: " + algorithm);
             throw new SignatureException();
         }
-        JwsHeader header = new JwsHeader();
+        CustomJwsHeader header = new CustomJwsHeader();
         header.setAlgorithm(jwsAlgorithm);
+        header.setKeyId(createKid());
 //        header.setContentType("JWT");  del at 2018.02.02
-        return new SignedJwt(header, jwtClaimsSet, pk);
+        return new CustomSignedJwt(header, jwtClaimsSet, pk, clientSecretStr);
+    }
+
+    private String createKid() {
+        RSAPublicKey key = (RSAPublicKey) OAuth2Utils.getServerKeyPair(Request.getCurrent()).getPublic();
+        return hash(OAuth2Utils.getArias(Request.getCurrent())
+                + key.getModulus().toString() + key.getPublicExponent().toString());
+    }
+
+    private String hash(String string) {
+        try {
+            MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+            sha1.update(string.getBytes("UTF-8"));
+            return Base64.encode(sha1.digest());
+        } catch (Exception ex) {
+            OAuth2Utils.DEBUG.warning("Hash.hash:", ex);
+            return null;
+        }
     }
 
     public EncryptedJwt encrypt(PublicKey pk, JweAlgorithm alg, EncryptionMethod enc) throws SignatureException {
@@ -140,7 +184,7 @@ public class JWTToken extends CoreToken implements Token {
         Map<String, Object> tokenMap = new HashMap<String, Object>();
         try {
             tokenMap.put(OAuth2Constants.JWTTokenParams.ID_TOKEN,
-                    this.sign(OAuth2Utils.getServerKeyPair(Request.getCurrent()).getPrivate()));
+                    this.sign(OAuth2Utils.getServerKeyPair(Request.getCurrent()).getPrivate(), null));
         } catch (Exception e){
             OAuth2Utils.DEBUG.error("Cant sign JWT", e);
             throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(),
@@ -163,7 +207,7 @@ public class JWTToken extends CoreToken implements Token {
     public String getTokenID(){
         String s = null;
         try {
-            s = this.sign(OAuth2Utils.getServerKeyPair(Request.getCurrent()).getPrivate()).build();
+            s = this.sign(OAuth2Utils.getServerKeyPair(Request.getCurrent()).getPrivate(), null).build();
         } catch (Exception e){
             OAuth2Utils.DEBUG.error("Cant get JWT id", e);
             throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(Request.getCurrent(),
@@ -236,12 +280,20 @@ public class JWTToken extends CoreToken implements Token {
         super.put(OAuth2Constants.JWTTokenParams.OPS, ops);
     }
 
+    private void setAtHash(String atHash){
+        super.put(OAuth2Constants.JWTTokenParams.AT_HASH, atHash);
+    }
+
+    private void setCHash(String cHash){
+        super.put(OAuth2Constants.JWTTokenParams.C_HASH, cHash);
+    }
+
     /**
      * The time in seconds the enduser authenticated for the token
      * @param time Seconds since epoc
      */
     private void setAuthTime(long time){
-        super.put(OAuth2Constants.JWTTokenParams.ATH, time);
+        super.put(OAuth2Constants.JWTTokenParams.AUTH_TIME, time);
     }
 
     protected void setTokenType(String tokenType){

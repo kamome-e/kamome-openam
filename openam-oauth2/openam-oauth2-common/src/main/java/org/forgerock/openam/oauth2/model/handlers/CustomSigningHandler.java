@@ -16,7 +16,7 @@
 
 package org.forgerock.openam.oauth2.model.handlers;
 
-import org.forgerock.json.jose.jws.JwsAlgorithm;
+import org.forgerock.openam.oauth2.model.JwsAlgorithmOAuth2;
 
 import java.security.Key;
 
@@ -28,9 +28,13 @@ import java.security.Key;
  */
 public interface CustomSigningHandler {
 
-    byte[] sign(JwsAlgorithm algorithm, Key privateKey, String data);
+    byte[] sign(JwsAlgorithmOAuth2 algorithm, Key privateKey, String data);
 
-    byte[] sign(JwsAlgorithm algorithm, Key privateKey, String data, String clientSecret);
+    byte[] sign(JwsAlgorithmOAuth2 algorithm, String clientSecret, String data);
 
-    boolean verify(JwsAlgorithm algorithm, Key privateKey, byte[] data, byte[] signature);
+    boolean verify(JwsAlgorithmOAuth2 algorithm, Key privateKey, byte[] data, byte[] signature);
+
+    boolean verify(JwsAlgorithmOAuth2 algorithm, Key publicKey, String data, byte[] signature);
+
+    boolean verify(JwsAlgorithmOAuth2 algorithm, String clientSecret, byte[] data, byte[] signature);
 }

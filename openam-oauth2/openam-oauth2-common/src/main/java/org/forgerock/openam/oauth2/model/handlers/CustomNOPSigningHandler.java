@@ -16,7 +16,8 @@
 
 package org.forgerock.openam.oauth2.model.handlers;
 
-import org.forgerock.json.jose.jws.JwsAlgorithm;
+import org.forgerock.openam.oauth2.model.JwsAlgorithmOAuth2;
+
 import org.forgerock.json.jose.utils.Utils;
 
 import java.security.Key;
@@ -30,17 +31,27 @@ import java.security.Key;
 public class CustomNOPSigningHandler implements CustomSigningHandler {
 
     @Override
-    public byte[] sign(JwsAlgorithm algorithm, Key privateKey, String data) {
+    public byte[] sign(JwsAlgorithmOAuth2 algorithm, Key privateKey, String data) {
         return "".getBytes(Utils.CHARSET);
     }
 
     @Override
-    public byte[] sign(JwsAlgorithm algorithm, Key privateKey, String data, String clientSecret) {
-        return sign(algorithm, privateKey, data);
+    public byte[] sign(JwsAlgorithmOAuth2 algorithm, String clientSecret, String data) {
+        return "".getBytes(Utils.CHARSET);
     }
 
     @Override
-    public boolean verify(JwsAlgorithm algorithm, Key privateKey, byte[] data, byte[] signature) {
+    public boolean verify(JwsAlgorithmOAuth2 algorithm, Key privateKey, byte[] data, byte[] signature) {
+        return signature.length == 0;
+    }
+
+    @Override
+    public boolean verify(JwsAlgorithmOAuth2 algorithm, Key publicKey, String data, byte[] signature) {
+        return signature.length == 0;
+    }
+
+    @Override
+    public boolean verify(JwsAlgorithmOAuth2 algorithm, String clientSecret, byte[] data, byte[] signature) {
         return signature.length == 0;
     }
 }
