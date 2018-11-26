@@ -187,7 +187,7 @@ public class OAuth2ProviderSettingsImpl implements OAuth2ProviderSettings {
     private static final boolean PROPAGATE_EXCEPTIONS = false;
 
 
-    public OAuth2ProviderSettingsImpl(HttpServletRequest request, String realm) { 
+    public OAuth2ProviderSettingsImpl(HttpServletRequest request, String realm) {
     	  initializeClass(request, realm);
 	}
 
@@ -490,17 +490,7 @@ public class OAuth2ProviderSettingsImpl implements OAuth2ProviderSettings {
 
     @Override
     public String getJWKSUri() {
-        if ((providerConfiguration != null) && (providerConfiguration.jwksUri != null)) {
-            return providerConfiguration.jwksUri;
-        } else {
-            String message = "OAuth2Utils::Unable to get provider setting for : "+
-                    OAuth2Constants.OAuth2ProviderService.JKWS_URI;
-            OAuth2Utils.DEBUG.error(message);
-            // 2018.02.09 upd savedConsentAttributeがnullの場合、
-            // Exceptionをthrowせず、エラーメッセージを出力してブランクを返却する
-//            throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(null, message);
-            return "";
-        }
+        return deploymentUrl + "/oauth2/connect/jwk_uri";
     }
 
     @Override

@@ -31,6 +31,7 @@ import org.forgerock.openam.guice.InjectorHolder;
 import org.forgerock.openam.oauth2.internal.UserIdentityVerifier;
 import org.forgerock.openam.oauth2.openid.ConnectClientRegistration;
 import org.forgerock.openam.oauth2.openid.EndSession;
+import org.forgerock.openam.oauth2.openid.JWKEndpoint;
 import org.forgerock.openam.oauth2.openid.UserInfo;
 import org.forgerock.openam.oauth2.provider.impl.ClientVerifierImpl;
 import org.forgerock.openam.ext.cts.repo.DefaultOAuthTokenStoreImpl;
@@ -102,12 +103,16 @@ public class OAuth2Application extends Application {
         //connect session management
         root.attach("/connect/endSession", EndSession.class);
 
+        // OPENAM_BUG_FIX-201 add 2018.11.26 taisei.morigami start
+        root.attach("/connect/jwk_uri", JWKEndpoint.class);
+        // OPENAM_BUG_FIX-201 add 2018.11.26 taisei.morigami end
+
         return root;
     }
 
     /**
      * Setups OAuth2 paths and handlers
-     * 
+     *
      * @return a Restlet of the endpoints and their handlers
      */
     public Restlet activate() {
@@ -145,7 +150,7 @@ public class OAuth2Application extends Application {
 
     /**
      * Creates a new client verifier
-     * 
+     *
      * @return ClientVerifierImpl
      *              A client verifier
      */
@@ -155,7 +160,7 @@ public class OAuth2Application extends Application {
 
     /**
      * Creates a new user verifier
-     * 
+     *
      * @return UserIdentityVerifier
      *              A new UserVerifier
      */
@@ -165,7 +170,7 @@ public class OAuth2Application extends Application {
 
     /**
      * Gets the current token store or creates a new one if it doesn't exist
-     * 
+     *
      * @return OAuthTokenStore
      *              A new token store.
      */

@@ -36,7 +36,9 @@ public enum JwsAlgorithmOAuth2 implements Algorithm {
     /** HMAC using SHA-384 hash algorithm. */
     HS384("HS384", JwsAlgorithmType.HMAC),
     /** HMAC using SHA-512 hash algorithm. */
-    HS512("HS512", JwsAlgorithmType.HMAC);
+    HS512("HS512", JwsAlgorithmType.HMAC),
+    /** HMAC using SHA-512 hash algorithm. */
+    RS256("RS256", JwsAlgorithmType.RSA);
 
     private final String algorithm;
     private final JwsAlgorithmType algorithmType;
