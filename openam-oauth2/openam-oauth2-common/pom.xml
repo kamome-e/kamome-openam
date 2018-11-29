@@ -30,7 +30,7 @@
     <parent>
         <groupId>org.forgerock.ce.openam</groupId>
         <artifactId>openam-oauth2</artifactId>
-        <version>11.2.3</version>
+        <version>11.2.6</version>
     </parent>
 
     <groupId>org.forgerock.ce.openam</groupId>
@@ -84,6 +84,11 @@
         <dependency>
             <groupId>org.forgerock.ce.commons</groupId>
             <artifactId>json-fluent</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <classifier>no_aop</classifier>
         </dependency>
 
         <!-- Test Dependencies -->

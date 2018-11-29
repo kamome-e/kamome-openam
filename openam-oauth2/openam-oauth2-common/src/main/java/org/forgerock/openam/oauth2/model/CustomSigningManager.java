@@ -21,7 +21,6 @@ import org.forgerock.openam.oauth2.model.handlers.CustomHmacSigningHandler;
 import org.forgerock.openam.oauth2.model.handlers.CustomNOPSigningHandler;
 import org.forgerock.openam.oauth2.model.handlers.CustomRSASigningHandler;
 import org.forgerock.openam.oauth2.model.handlers.CustomSigningHandler;
-import org.forgerock.json.jose.jws.JwsAlgorithm;
 import org.forgerock.json.jose.jws.JwsAlgorithmType;
 import org.forgerock.util.SignatureUtil;
 
@@ -37,7 +36,7 @@ public class CustomSigningManager {
 
     private final SignatureUtil signatureUtil = SignatureUtil.getInstance();
 
-    public CustomSigningHandler getSigningHandler(JwsAlgorithm algorithm) {
+    public CustomSigningHandler getSigningHandler(JwsAlgorithmOAuth2 algorithm) {
 
         switch (algorithm.getAlgorithmType()) {
             case NONE: {

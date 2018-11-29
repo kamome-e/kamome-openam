@@ -30,17 +30,18 @@ import org.forgerock.json.jose.jws.JwsAlgorithmType;
 public enum JwsAlgorithmOAuth2 implements Algorithm {
 
     /** No digital signature or MAC value included. */
-    none("none", JwsAlgorithmType.NONE),
+    none("none", null, JwsAlgorithmType.NONE),
     /** HMAC using SHA-256 hash algorithm. */
-    HS256("HS256", JwsAlgorithmType.HMAC),
+    HS256("HS256", "HmacSHA256", JwsAlgorithmType.HMAC),
     /** HMAC using SHA-384 hash algorithm. */
-    HS384("HS384", JwsAlgorithmType.HMAC),
+    HS384("HS384", "HmacSHA384", JwsAlgorithmType.HMAC),
     /** HMAC using SHA-512 hash algorithm. */
-    HS512("HS512", JwsAlgorithmType.HMAC),
+    HS512("HS512", "HmacSHA512", JwsAlgorithmType.HMAC),
     /** HMAC using SHA-512 hash algorithm. */
-    RS256("RS256", JwsAlgorithmType.RSA);
+    RS256("RS256", "SHA256withRSA", JwsAlgorithmType.RSA);
 
     private final String algorithm;
+    private final String signAlgorithm;
     private final JwsAlgorithmType algorithmType;
 
     /**
@@ -50,9 +51,10 @@ public enum JwsAlgorithmOAuth2 implements Algorithm {
      * @param algorithm The Java Cryptographic algorithm name.
      * @param algorithmType The JwsAlgorithmType of the JwsAlgorithm.
      */
-    private JwsAlgorithmOAuth2(String algorithm, JwsAlgorithmType algorithmType) {
+    private JwsAlgorithmOAuth2(String algorithm, String signAlgorithm, JwsAlgorithmType algorithmType) {
         this.algorithm = algorithm;
         this.algorithmType = algorithmType;
+        this.signAlgorithm = signAlgorithm;
     }
 
     /**
@@ -61,6 +63,10 @@ public enum JwsAlgorithmOAuth2 implements Algorithm {
     @Override
     public String getAlgorithm() {
         return algorithm;
+    }
+
+    public String getSignAlgorithm() {
+        return signAlgorithm;
     }
 
     /**
