@@ -116,7 +116,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
     ServiceSchemaManager ssm;
 
     ServiceConfigManager scm;
-    ServiceConfig userConfigCache, roleConfigCache;   
+    ServiceConfig userConfigCache, roleConfigCache;
     // Contains the names of the specials users
     Set specialUsers;
     String ssmListenerId, scmListenerId;
@@ -130,7 +130,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#addListener(com.iplanet.sso.SSOToken,
      *      com.iplanet.am.sdk.IdRepoListener)
      */
@@ -162,7 +162,16 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
+     * @see com.sun.identity.idm.IdRepo#getListener()
+     */
+    public IdRepoListener getListener() {
+        return repoListener;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see com.sun.identity.idm.IdRepo#assignService(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.lang.String,
      *      com.sun.identity.sm.SchemaType, java.util.Map)
@@ -181,7 +190,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#create(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Map)
      */
@@ -195,7 +204,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#delete(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String)
      */
@@ -221,7 +230,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getAssignedServices(
      *      com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Map)
@@ -236,14 +245,14 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
                 "305", args);
         } else {
             Object args[] = { NAME, IdOperation.SERVICE.getName() };
-            throw new IdRepoUnsupportedOpException(IdRepoBundle.BUNDLE_NAME, 
+            throw new IdRepoUnsupportedOpException(IdRepoBundle.BUNDLE_NAME,
                 "305", args);
         }
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getAttributes(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Set)
      */
@@ -264,7 +273,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getAttributes(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String)
      */
@@ -308,7 +317,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getBinaryAttributes(
      *      com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Set)
@@ -330,7 +339,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#setBinaryAttributes(
      *      com.iplanet.sso.SSOToken, com.sun.identity.idm.IdType,
      *      java.lang.String, java.util.Map, boolean)
@@ -353,7 +362,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getMembers(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String,
      *      com.sun.identity.idm.IdType)
@@ -367,7 +376,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getMemberships(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String,
      *      com.sun.identity.idm.IdType)
@@ -385,7 +394,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getServiceAttributes(
      *      com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.lang.String,
@@ -404,7 +413,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
             args);
     }
 
-    /* 
+    /*
      * (non-Javadoc)
      *
      * @see com.sun.identity.idm.IdRepo#getBinaryServiceAttributes(
@@ -429,7 +438,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#isExists(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String)
      */
@@ -443,7 +452,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#modifyMemberShip(
      *      com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Set,
@@ -467,7 +476,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#modifyService(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.lang.String,
      *      com.sun.identity.sm.SchemaType, java.util.Map)
@@ -490,7 +499,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#removeAttributes(
      *      com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Set)
@@ -512,7 +521,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#removeListener()
      */
     public void removeListener() {
@@ -523,8 +532,8 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
         if (ssm != null) {
             ssm.removeListener(ssmListenerId);
             ssm = null;   //make sure old reference get GCed asap
-            
-            //unfortunately, because reposervice is special this is required to 
+
+            //unfortunately, because reposervice is special this is required to
             //make sure any old lingering object would be cleaned.
             try {
                 SSOToken adminToken = (SSOToken) AccessController.doPrivileged(
@@ -543,7 +552,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#search(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, int, int,
      *      java.util.Set, boolean, int, java.util.Map, boolean)
@@ -621,7 +630,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#search(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Map,
      *      boolean, int, int, java.util.Set)
@@ -635,7 +644,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#setAttributes(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Map,
      *      boolean)
@@ -813,7 +822,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#unassignService(
      *      com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.lang.String,
@@ -840,7 +849,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getSupportedOperations(
      *      com.sun.identity.idm.IdType)
      */
@@ -851,7 +860,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getSupportedTypes()
      */
     @Override
@@ -861,7 +870,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#initialize(java.util.Map)
      */
     @Override
@@ -871,7 +880,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#isActive(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String)
      */
@@ -914,7 +923,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#shutdown()
      */
     @Override
@@ -1045,7 +1054,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.sm.ServiceListener#globalConfigChanged(
      *      java.lang.String,
      *      java.lang.String, java.lang.String, java.lang.String, int)
@@ -1068,7 +1077,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.sm.ServiceListener#organizationConfigChanged(
      *      java.lang.String,
      *      java.lang.String, java.lang.String, java.lang.String,
@@ -1082,7 +1091,7 @@ public class SpecialRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.sm.ServiceListener#schemaChanged(java.lang.String,
      *      java.lang.String)
      */

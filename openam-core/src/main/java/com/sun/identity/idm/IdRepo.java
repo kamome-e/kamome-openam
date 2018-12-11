@@ -43,7 +43,7 @@ import com.iplanet.sso.SSOToken;
 import com.sun.identity.sm.SchemaType;
 
 /**
- * 
+ *
  * This interface defines the methods which need to be implemented by plugins.
  * Two plugins are supported, <code> ldap </code> and <code> remote </code>.
  *
@@ -68,9 +68,9 @@ public abstract class IdRepo {
 
     /**
      * Initialization paramters as configred for a given plugin.
-     * 
+     *
      * @param configParams
-     * @throws IdRepoException 
+     * @throws IdRepoException
      */
     public void initialize(Map<String, Set<String>> configParams) throws IdRepoException {
         configMap = Collections.unmodifiableMap(configParams);
@@ -81,7 +81,7 @@ public abstract class IdRepo {
      * cache of plugins. This helps the plugin clean up after itself
      * (connections, persistent searches etc.). This method should be overridden
      * by plugins that need to do this.
-     * 
+     *
      */
     public void shutdown() {
         // do nothing
@@ -89,7 +89,7 @@ public abstract class IdRepo {
 
     /**
      * Return supported operations for a given IdType
-     * 
+     *
      * @param type
      *     Identity type
      * @return set of IdOperation supported for this IdType.
@@ -364,7 +364,7 @@ public abstract class IdRepo {
      */
     public abstract RepoSearchResults search(SSOToken token, IdType type,
             String pattern, int maxTime, int maxResults, Set<String> returnAttrs,
-            boolean returnAllAttrs, int filterOp, Map<String, Set<String>> avPairs, 
+            boolean returnAllAttrs, int filterOp, Map<String, Set<String>> avPairs,
             boolean recursive) throws IdRepoException, SSOException;
 
     /**
@@ -588,13 +588,15 @@ public abstract class IdRepo {
      * is called by the IdRepo framework when the plugin is being shutdown due
      * to configuration change, so that a new instance can be created with the
      * new configuration map.
-     * 
+     *
      */
     public abstract void removeListener();
 
+    public abstract IdRepoListener getListener();
+
     /**
      * Return the configuration map
-     * 
+     *
      * @return configuration map
      */
     public Map<String, Set<String>> getConfiguration() {
@@ -606,7 +608,7 @@ public abstract class IdRepo {
      * the fully qualified name would be unique, hence it is recommended to
      * prefix the name with the data store name or protocol. Used by IdRepo
      * framework to check for equality of two identities
-     * 
+     *
      * @param token
      *            administrator SSOToken that can be used by the datastore to
      *            determine the fully qualified name
@@ -614,12 +616,12 @@ public abstract class IdRepo {
      *            type of the identity
      * @param name
      *            name of the identity
-     * 
+     *
      * @return fully qualified name for the identity within the data store
      * @throws IdRepoException If there are repository related error conditions.
      * @throws SSOException If identity's single sign on token is invalid.
      */
-    public String getFullyQualifiedName(SSOToken token, IdType type, 
+    public String getFullyQualifiedName(SSOToken token, IdType type,
             String name) throws IdRepoException, SSOException {
         return ("default://" + type.toString() + "/" + name);
     }
@@ -627,7 +629,7 @@ public abstract class IdRepo {
     /**
      * Returns <code>true</code> if the data store supports authentication of
      * identities. Used by IdRepo framework to authenticate identities.
-     * 
+     *
      * @return <code>true</code> if data store supports authentication of of
      *         identities; else <code>false</code>
      */
@@ -640,11 +642,11 @@ public abstract class IdRepo {
      * the identity with the provided credentials. In case the data store
      * requires additional credentials, the list would be returned via the
      * <code>IdRepoException</code> exception.
-     * 
+     *
      * @param credentials
      *            Array of callback objects containing information such as
      *            username and password.
-     * 
+     *
      * @return <code>true</code> if data store authenticates the identity;
      *         else <code>false</code>
      */

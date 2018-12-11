@@ -80,11 +80,11 @@ import com.sun.identity.shared.ldap.util.DN;
 
 public class AgentsRepo extends IdRepo implements ServiceListener {
 
-    public static final String NAME = 
+    public static final String NAME =
         "com.sun.identity.idm.plugins.internal.AgentsRepo";
 
     // Status attribute
-    private static final String statusAttribute = 
+    private static final String statusAttribute =
         "sunIdentityServerDeviceStatus";
     private static final String statusActive = "Active";
     private static final String statusInactive = "Inactive";
@@ -111,7 +111,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     String ssmListenerId, scmListenerId;
 
-    private static String notificationURLname = 
+    private static String notificationURLname =
         "com.sun.identity.client.notification.url";
     private static String notificationURLenabled =
         "com.sun.identity.agents.config.change.notification.enable";
@@ -131,11 +131,11 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
             debug.message(": AgentsRepo adding Listener");
         }
         try {
-            ssm = new ServiceSchemaManager(adminToken, agentserviceName, 
+            ssm = new ServiceSchemaManager(adminToken, agentserviceName,
                 version);
-            scm = new ServiceConfigManager(adminToken, agentserviceName, 
+            scm = new ServiceConfigManager(adminToken, agentserviceName,
                 version);
-                    
+
             if (ssm != null) {
                 ssmListenerId = ssm.addListener(this);
             }
@@ -154,7 +154,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                         + "Unable to init ssm and scm due to " + ssoe);
             }
         }
-        
+
         loadSupportedOps();
         if (debug.messageEnabled()) {
             debug.message("AgentsRepo invoked");
@@ -163,7 +163,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#addListener(com.iplanet.sso.SSOToken,
      *      com.iplanet.am.sdk.IdRepoListener)
      */
@@ -180,11 +180,20 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
+     * @see com.sun.identity.idm.IdRepo#getListener()
+     */
+    public IdRepoListener getListener() {
+        return repoListener;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see com.sun.identity.idm.IdRepo#create(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Map)
      */
-    public String create(SSOToken token, IdType type, String agentName, 
+    public String create(SSOToken token, IdType type, String agentName,
         Map attrMap) throws IdRepoException, SSOException {
 
         if (agentName.startsWith("\"")) {
@@ -219,15 +228,15 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                        + " Agent Type "+aTypeSet+ " is empty");
                     throw new IdRepoException(IdRepoBundle.BUNDLE_NAME, "201",
                         null);
-                } 
-            } else { 
-                // To be backward compatible, look for 'AgentType' attribute 
-                // in the attribute map which is passed as a parameter and if 
-                // not present/sent, check if the IdType.AGENTONLY and then 
-                // assume that it is '2.2_Agent' type and create that agent 
-                // under the 2.2_Agent node.  
+                }
+            } else {
+                // To be backward compatible, look for 'AgentType' attribute
+                // in the attribute map which is passed as a parameter and if
+                // not present/sent, check if the IdType.AGENTONLY and then
+                // assume that it is '2.2_Agent' type and create that agent
+                // under the 2.2_Agent node.
 
-                if (type.equals(IdType.AGENTONLY) || 
+                if (type.equals(IdType.AGENTONLY) ||
                     type.equals(IdType.AGENT)) {
                     agentType = "2.2_Agent";
                 } else {
@@ -235,7 +244,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                        + " Agent Type "+agentType+ " is empty");
                     throw new IdRepoException(IdRepoBundle.BUNDLE_NAME, "201",
                         null);
-                } 
+                }
             }
         }
         try {
@@ -256,11 +265,11 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                 if (!orgConfig.getSubConfigNames().contains(agentName)) {
                     /*
                      * While migrating 2.2 agents to new ones, look for the
-                     * attribute 'entrydn' and  remove this 'entrydn' while 
-                     * creating the agent, as it gets added in a 
-                     * getAttributes() call explicitly to the result set and 
+                     * attribute 'entrydn' and  remove this 'entrydn' while
+                     * creating the agent, as it gets added in a
+                     * getAttributes() call explicitly to the result set and
                      * returned. Reason:
-                     *  When queried with this entrydn/dn the lower level 
+                     *  When queried with this entrydn/dn the lower level
                      *  api/ ldapjdk does not return this operational attribute.
                      */
                     if (attrMap.containsKey("entrydn")) {
@@ -281,7 +290,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                 }
                 if (!agentGroupConfig.getSubConfigNames().
                     contains(agentName)) {
-                    agentGroupConfig.addSubConfig(agentName, agentType, 0, 
+                    agentGroupConfig.addSubConfig(agentName, agentType, 0,
                         attrMap);
                     aTypeConfig = agentGroupConfig.getSubConfig(agentName);
                 } else {
@@ -301,7 +310,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#delete(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String)
      */
@@ -372,7 +381,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getAttributes(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Set)
      */
@@ -380,7 +389,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         Set attrNames) throws IdRepoException, SSOException {
 
         if (debug.messageEnabled()) {
-            debug.message("AgentsRepo.getAttributes() with attrNames called: " 
+            debug.message("AgentsRepo.getAttributes() with attrNames called: "
                 + type + ": " + name);
         }
         if (initializationException != null) {
@@ -403,7 +412,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getAttributes(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String)
      */
@@ -424,15 +433,15 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
             Map agentsAttrMap = new HashMap(2);
             try {
                 if (type.equals(IdType.AGENTONLY)) {
-                    // Return the attributes for the given agent under 
+                    // Return the attributes for the given agent under
                     // default group.
                     ServiceConfig orgConfig = getOrgConfig(token);
                     agentsAttrMap = getAgentAttrs(orgConfig, name, type);
                 } else if (type.equals(IdType.AGENTGROUP)) {
-                    ServiceConfig agentGroupConfig = 
+                    ServiceConfig agentGroupConfig =
                         getAgentGroupConfig(token);
                     // Return the attributes of agent under specified group.
-                    agentsAttrMap = 
+                    agentsAttrMap =
                         getAgentAttrs(agentGroupConfig, name, type);
                 } else if (type.equals(IdType.AGENT)) {
                     // By default return the union of agents under
@@ -443,12 +452,12 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                     String groupName = getGroupName(orgConfig, name);
                     if ((groupName != null) &&
                         (groupName.trim().length() > 0)) {
-                        ServiceConfig agentGroupConfig = 
+                        ServiceConfig agentGroupConfig =
                             getAgentGroupConfig(token);
-                        Map agentGroupMap = getAgentAttrs(agentGroupConfig, 
+                        Map agentGroupMap = getAgentAttrs(agentGroupConfig,
                             groupName, type);
 
-                        if ((agentsAttrMap != null) && 
+                        if ((agentsAttrMap != null) &&
                             (agentGroupMap != null)) {
                             agentGroupMap.putAll(agentsAttrMap);
                             agentsAttrMap = agentGroupMap;
@@ -463,7 +472,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                         e.getMessage());
                 }
                 Object args[] = { NAME };
-                throw new IdRepoException(IdRepoBundle.BUNDLE_NAME, "200", 
+                throw new IdRepoException(IdRepoBundle.BUNDLE_NAME, "200",
                     args);
             } catch (IdRepoException idpe) {
                 if (debug.warningEnabled()) {
@@ -472,7 +481,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                         idpe.getMessage(), idpe);
                 }
                 Object args[] = { NAME };
-                throw new IdRepoException(IdRepoBundle.BUNDLE_NAME, "200", 
+                throw new IdRepoException(IdRepoBundle.BUNDLE_NAME, "200",
                     args);
             }
         }
@@ -482,7 +491,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
     }
 
 
-    private Map getAgentAttrs(ServiceConfig svcConfig, String agentName, 
+    private Map getAgentAttrs(ServiceConfig svcConfig, String agentName,
         IdType type)
         throws IdRepoException, SSOException {
 
@@ -513,10 +522,10 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         }
         return (answer);
     }
-                            
+
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getBinaryAttributes(
      *      com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Set)
@@ -531,15 +540,15 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#setBinaryAttributes(
      *      com.iplanet.sso.SSOToken, com.sun.identity.idm.IdType,
      *      java.lang.String, java.util.Map, boolean)
      */
     public void setBinaryAttributes(SSOToken token, IdType type, String name,
-            Map attributes, boolean isAdd) throws IdRepoException, 
+            Map attributes, boolean isAdd) throws IdRepoException,
             SSOException {
-    
+
         Object args[] = { NAME, IdOperation.EDIT.getName() };
         throw new IdRepoUnsupportedOpException(IdRepoBundle.BUNDLE_NAME, "305",
                 args);
@@ -548,7 +557,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getMembers(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String,
      *      com.sun.identity.idm.IdType)
@@ -576,7 +585,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                 + "not supported for Users or Agents");
             throw new IdRepoException(IdRepoBundle.BUNDLE_NAME, "203", null);
         }
-        if (!membersType.equals(IdType.AGENTONLY) && 
+        if (!membersType.equals(IdType.AGENTONLY) &&
             !membersType.equals(IdType.AGENT)) {
             debug.error("AgentsRepo.getMembers: Cannot get member from a "
                 + "non-agent type "+ membersType.getName());
@@ -603,12 +612,12 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                         + "exception while getting agents"
                         + " from groups", sme);
                 Object args[] = { NAME, type.getName(), name };
-                throw new IdRepoException(IdRepoBundle.BUNDLE_NAME, "212", 
+                throw new IdRepoException(IdRepoBundle.BUNDLE_NAME, "212",
                     args);
             }
         } else {
             Object args[] = { NAME, IdOperation.READ.getName() };
-            throw new IdRepoUnsupportedOpException(IdRepoBundle.BUNDLE_NAME, 
+            throw new IdRepoUnsupportedOpException(IdRepoBundle.BUNDLE_NAME,
                 "305", args);
         }
         return (results);
@@ -616,7 +625,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getMemberships(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String,
      *      com.sun.identity.idm.IdType)
@@ -661,7 +670,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                         + "exception while getting memberships"
                         + " for Agent", sme);
                 Object args[] = { NAME, type.getName(), name };
-                throw new IdRepoException(IdRepoBundle.BUNDLE_NAME, "212", 
+                throw new IdRepoException(IdRepoBundle.BUNDLE_NAME, "212",
                     args);
             }
         } else {
@@ -678,7 +687,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         Set<String> groups = getGroupNames(orgConfig, agentName);
         return (groups != null && !groups.isEmpty()) ? groups.iterator().next() : null;
     }
-    
+
     private Set<String> getGroupNames(ServiceConfig orgConfig, String agentName) throws SSOException, SMSException {
         Set<String> results = new HashSet<String>(2);
         ServiceConfig agentConfig = orgConfig.getSubConfig(agentName);
@@ -693,7 +702,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getServiceAttributes(
      *      com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.lang.String,
@@ -708,7 +717,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                 args);
     }
 
-    /* 
+    /*
      * (non-Javadoc)
      *
      * @see com.sun.identity.idm.IdRepo#getBinaryServiceAttributes(
@@ -726,7 +735,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#isExists(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String)
      */
@@ -752,7 +761,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#modifyMemberShip(
      *      com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Set,
@@ -762,7 +771,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
             int operation) throws IdRepoException, SSOException {
         /*
          * name would be the name of the agentgroup.
-         * members would include the name of the agents to be added/removed 
+         * members would include the name of the agents to be added/removed
          * to/from the group.
          * membersType would be the IdType of the agent to be added/removed.
          * type would be the IdType of the agentgroup.
@@ -829,7 +838,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#removeAttributes(
      *      com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Set)
@@ -838,7 +847,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
             Set attrNames) throws IdRepoException, SSOException {
 
         if (debug.messageEnabled()) {
-            debug.message("AgentsRepo.removeAttributes() called: " + type + 
+            debug.message("AgentsRepo.removeAttributes() called: " + type +
                 ": " + name);
         }
         if (initializationException != null) {
@@ -887,7 +896,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#removeListener()
      */
     public void removeListener() {
@@ -901,14 +910,14 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#search(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, int, int,
      *      java.util.Set, boolean, int, java.util.Map, boolean)
      */
     public RepoSearchResults search(SSOToken token, IdType type,
             String pattern, int maxTime, int maxResults, Set returnAttrs,
-            boolean returnAllAttrs, int filterOp, Map avPairs, 
+            boolean returnAllAttrs, int filterOp, Map avPairs,
             boolean recursive) throws IdRepoException, SSOException {
 
         if (debug.messageEnabled()) {
@@ -928,12 +937,12 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
             if (type.equals(IdType.AGENTONLY) || type.equals(IdType.AGENT)) {
                 // Get the config from 'default' group.
                 ServiceConfig orgConfig = getOrgConfig(token);
-                agentRes = getAgentPattern(token, type, orgConfig, pattern, 
+                agentRes = getAgentPattern(token, type, orgConfig, pattern,
                     avPairs);
             } else if (type.equals(IdType.AGENTGROUP)) {
                 // Get the config from specified group.
                 ServiceConfig agentGroupConfig = getAgentGroupConfig(token);
-                agentRes = getAgentPattern(token, type, agentGroupConfig, 
+                agentRes = getAgentPattern(token, type, agentGroupConfig,
                     pattern, avPairs);
             }
             if (agentRes != null && (!agentRes.isEmpty())) {
@@ -945,7 +954,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                         agentAttrs.put(agName, attrsMap);
                     } else {
                         return new RepoSearchResults(new HashSet(),
-                            RepoSearchResults.SUCCESS, Collections.EMPTY_MAP, 
+                            RepoSearchResults.SUCCESS, Collections.EMPTY_MAP,
                                 type);
                     }
                 }
@@ -961,7 +970,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#search(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Map,
      *      boolean, int, int, java.util.Set)
@@ -976,15 +985,15 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#setAttributes(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Map,
      *      boolean)
      */
     public void setAttributes(SSOToken token, IdType type, String name,
-        Map attributes, boolean isAdd) 
+        Map attributes, boolean isAdd)
         throws IdRepoException, SSOException {
-    
+
         if (debug.messageEnabled()) {
             debug.message("AgentsRepo.setAttributes() called: " + type + ": "
                     + name);
@@ -1053,7 +1062,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getSupportedOperations(
      *      com.sun.identity.idm.IdType)
      */
@@ -1063,7 +1072,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getSupportedTypes()
      */
     public Set getSupportedTypes() {
@@ -1072,7 +1081,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#initialize(java.util.Map)
      */
     public void initialize(Map configParams) throws IdRepoException {
@@ -1090,8 +1099,8 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                 String slashRealmName;
                 slashRealmName = DNMapper.orgNameToRealmName(realmName);
                 Object[] args = { slashRealmName };
-                initializationException = 
-                    new IdRepoException(IdRepoBundle.BUNDLE_NAME, "312", args);    
+                initializationException =
+                    new IdRepoException(IdRepoBundle.BUNDLE_NAME, "312", args);
             }
             getAgentGroupConfig(adminToken);
         }
@@ -1099,7 +1108,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#isActive(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String)
      */
@@ -1144,7 +1153,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#shutdown()
      */
     public void shutdown() {
@@ -1174,11 +1183,11 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                     + "supportedOps Map = " + supportedOps);
         }
     }
- 
+
     // The following three methods implement ServiceListener interface
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.sm.ServiceListener#globalConfigChanged(
      *      java.lang.String,
      *      java.lang.String, java.lang.String, java.lang.String, int)
@@ -1196,23 +1205,23 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         }
         String name =
             serviceComponent.substring(serviceComponent.indexOf('/') + 1);
-        
+
         if (name.isEmpty()) {
             return;
         }
-        
+
         // If notification URLs are present, send notifications
         sendNotificationSet(type, idType, name);
 
-        if (repoListener != null) { 
-            repoListener.objectChanged(name, idType, type, 
+        if (repoListener != null) {
+            repoListener.objectChanged(name, idType, type,
                 repoListener.getConfigMap());
         }
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.sm.ServiceListener#organizationConfigChanged(
      *      java.lang.String,
      *      java.lang.String, java.lang.String, java.lang.String,
@@ -1220,7 +1229,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
      */
     public void organizationConfigChanged(String serviceName, String version,
         String orgName, String groupName, String serviceComponent, int type)
-        
+
     {
         if (debug.messageEnabled()) {
             debug.message("AgentsRepo.organizationConfigChanged..");
@@ -1233,13 +1242,13 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
             // Get the Agent name
             String name = serviceComponent.substring(
                 serviceComponent.indexOf('/') + 1);
-            
+
             if (name.isEmpty()) {
                 return;
             }
-            
+
             // Send local notification first
-            if (repoListener != null) { 
+            if (repoListener != null) {
                 if (groupName.equalsIgnoreCase("default")) {
                     repoListener.objectChanged(name, IdType.AGENT, type,
                         repoListener.getConfigMap());
@@ -1248,21 +1257,21 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                 } else {
                     repoListener.objectChanged(name, IdType.AGENTGROUP, type,
                         repoListener.getConfigMap());
-                } 
+                }
             }
-            
+
             // If notification URLs are present, send notification
             if (groupName.equalsIgnoreCase("default")) {
                 sendNotificationSet(type, IdType.AGENTONLY, name);
             } else {
                 sendNotificationSet(type, IdType.AGENTGROUP, name);
-            } 
+            }
         }
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.sm.ServiceListener#schemaChanged(java.lang.String,
      *      java.lang.String)
      */
@@ -1270,12 +1279,12 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         if (debug.messageEnabled()) {
             debug.message("AgentsRepo.schemaChanged..");
         }
-        if (repoListener != null) { 
+        if (repoListener != null) {
             repoListener.allObjectsChanged();
         }
     }
 
-    public String getFullyQualifiedName(SSOToken token, IdType type, 
+    public String getFullyQualifiedName(SSOToken token, IdType type,
             String name) throws IdRepoException, SSOException {
         RepoSearchResults results = search(token, type, name, null, true, 0, 0,
                 null);
@@ -1291,7 +1300,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         return (true);
     }
 
-    public boolean authenticate(Callback[] credentials) 
+    public boolean authenticate(Callback[] credentials)
         throws IdRepoException, AuthLoginException {
 
         if (debug.messageEnabled()) {
@@ -1321,7 +1330,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                 }
             }
         }
-        if (username == null || (username.length() == 0) || 
+        if (username == null || (username.length() == 0) ||
             password == null) {
             Object args[] = { NAME };
             throw new IdRepoException(IdRepoBundle.BUNDLE_NAME, "221", args);
@@ -1343,9 +1352,9 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
             pSet.add("userpassword");
             Map ansMap = new HashMap();
             String userPwd = null;
-            ansMap = getAttributes(adminToken, IdType.AGENTONLY, 
+            ansMap = getAttributes(adminToken, IdType.AGENTONLY,
                 userid, pSet);
-            Set userPwdSet = (Set) ansMap.get("userpassword"); 
+            Set userPwdSet = (Set) ansMap.get("userpassword");
             if ((userPwdSet != null) && (!userPwdSet.isEmpty())) {
                 userPwd = (String) userPwdSet.iterator().next();
                 if (!(answer = password.equals(userPwd))) {
@@ -1441,7 +1450,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         try {
             if ((orgConfigCache == null) || !orgConfigCache.isValid()) {
                 if (scm == null) {
-                    scm = new ServiceConfigManager(token, agentserviceName, 
+                    scm = new ServiceConfigManager(token, agentserviceName,
                         version);
                 }
                 orgConfigCache = scm.getOrganizationConfig(realmName, null);
@@ -1470,9 +1479,9 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         try {
             // Always get from ServiceConfigManager which checks the cache
             // and returns latest values stored in cache.
-            agentGroupConfigCache = 
+            agentGroupConfigCache =
                 scm.getOrganizationConfig(realmName, AGENT_GROUP);
-                        
+
         } catch (SMSException smse) {
             if (debug.warningEnabled()) {
                 debug.warning("AgentsRepo.getAgentGroupConfig: "
@@ -1488,28 +1497,28 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         }
         return (agentGroupConfigCache);
     }
-    
+
     public ServiceConfig createAgentGroupConfig(SSOToken token) {
     	if (debug.messageEnabled()) {
             debug.message("createAgentGroupConfig(): called. ");
         }
         try {
             if (scm == null) {
-                scm = new ServiceConfigManager(token, agentserviceName, 
+                scm = new ServiceConfigManager(token, agentserviceName,
                     version);
             }
             String agentGroupDN = constructDN(AGENT_GROUP,
                 instancesNode, realmName, version, agentserviceName);
             ServiceConfig orgConfig = getOrgConfig(token);
             if (orgConfig != null) {
-                orgConfig.checkAndCreateGroup(agentGroupDN, 
+                orgConfig.checkAndCreateGroup(agentGroupDN,
                     AGENT_GROUP);
             }
             // Always get from ServiceConfigManager which checks the cache
             // and returns latest values stored in cache.
-            agentGroupConfigCache = 
+            agentGroupConfigCache =
                 scm.getOrganizationConfig(realmName, AGENT_GROUP);
-                        
+
         } catch (SMSException smse) {
             if (debug.warningEnabled()) {
                 debug.warning("createAgentGroupConfig: "
@@ -1526,7 +1535,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         return (agentGroupConfigCache);
     }
 
-    private boolean isAgentTypeSearch(ServiceConfig aConfig, String pattern) 
+    private boolean isAgentTypeSearch(ServiceConfig aConfig, String pattern)
         throws IdRepoException {
 
         if (debug.messageEnabled()) {
@@ -1553,12 +1562,12 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         return (agentTypeflg);
     }
 
-    private Set getAgentPattern(SSOToken token, IdType type, 
+    private Set getAgentPattern(SSOToken token, IdType type,
         ServiceConfig aConfig, String pattern, Map avPairs)
         throws IdRepoException {
 
         if (debug.messageEnabled()) {
-            debug.message("AgentsRepo.getAgentPattern() called: pattern : " + 
+            debug.message("AgentsRepo.getAgentPattern() called: pattern : " +
                 pattern + "\navPairs : " + avPairs);
         }
 
@@ -1577,7 +1586,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         }
 
         if (debug.messageEnabled()) {
-            debug.message("AgentsRepo.getAgentPattern() agentType : " + 
+            debug.message("AgentsRepo.getAgentPattern() agentType : " +
                 agentType);
         }
 
@@ -1590,7 +1599,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
             }
 
             if (debug.messageEnabled()) {
-                debug.message("AgentsRepo.getAgentPattern() agentRes : " + 
+                debug.message("AgentsRepo.getAgentPattern() agentRes : " +
                     agentRes);
             }
 
@@ -1615,14 +1624,14 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                 for (Iterator it = avPairs.keySet().iterator();
                     it.hasNext();) {
                     String attr = (String) it.next();
-                    
+
                      /* 'attrValues' are values from avPairs sent by client.
                       * 'presentValues' are from Directory Server.
                       * The element in attrValues is compared with the
-                      * values from DS, and then the agent name is added to 
+                      * values from DS, and then the agent name is added to
                       * resultant set to be returned if matches.
                      */
-   
+
                     Set attrValues = (Set) avPairs.get(attr);
                     Set presentSet = (Set) attrMap.get(attr);
                     if (presentSet != null && !presentSet.isEmpty()) {
@@ -1630,7 +1639,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
                             presentSet);
                         for (Iterator i = attrValues.iterator();i.hasNext();) {
                             String avName = (String) i.next();
-                            if ((presentValues != null) && 
+                            if ((presentValues != null) &&
                                 (presentValues.contains(avName))) {
                                 agents.add(name);
                                 break;
@@ -1651,9 +1660,9 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
         }
     }
 
-    String constructDN(String groupName, String configName, String orgName, 
+    String constructDN(String groupName, String configName, String orgName,
         String version, String serviceName) throws SMSException {
-       
+
         StringBuilder sb = new StringBuilder(50);
         sb.append("ou=").append(groupName).append(comma).append(
                 configName).append("ou=").append(version)
@@ -1790,7 +1799,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
             }
         }
     }
-    
+
     private void removeIdentityFromAgentAuthenticators(String name) {
        SSOToken superAdminToken = (SSOToken) AccessController.doPrivileged(
            AdminTokenAction.getInstance());
@@ -1802,7 +1811,7 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
            RepoSearchResults results = search(
                superAdminToken, IdType.AGENTONLY, "*", map, false, 0, 0, null);
            Set res = results.getSearchResults();
-           
+
            if ((res != null) && !res.isEmpty()) {
                for (Iterator i = res.iterator(); i.hasNext();) {
                    String agentName = (String) i.next();
@@ -1828,5 +1837,5 @@ public class AgentsRepo extends IdRepo implements ServiceListener {
            debug.warning(
                "AgentRepo.removeIdentityFromAgentAuthenticators", e);
        }
-    } 
+    }
 }

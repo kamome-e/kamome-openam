@@ -90,7 +90,7 @@ import com.sun.identity.sm.SchemaType;
  */
 public class FilesRepo extends IdRepo {
     // Class name
-    public static final String NAME = 
+    public static final String NAME =
         "com.sun.identity.idm.plugins.files.FilesRepo";
 
     public static final Debug debug = Debug.getInstance("amIdRepoFiles");
@@ -180,7 +180,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#initialize(java.util.Map)
      */
     public void initialize(Map configParams) throws IdRepoException {
@@ -263,7 +263,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#addListener(com.iplanet.sso.SSOToken,
      *      com.iplanet.am.sdk.IdRepoListener)
      */
@@ -278,7 +278,16 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
+     * @see com.sun.identity.idm.IdRepo#getListener()
+     */
+    public IdRepoListener getListener() {
+        return repoListener;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see com.sun.identity.idm.IdRepo#assignService(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.lang.String,
      *      com.sun.identity.sm.SchemaType, java.util.Map)
@@ -321,7 +330,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#create(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Map)
      */
@@ -371,7 +380,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#delete(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String)
      */
@@ -387,7 +396,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getAssignedServices(
      *      com.iplanet.sso.SSOToken, com.sun.identity.idm.IdType,
      *      java.lang.String, java.util.Map)
@@ -429,7 +438,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getAttributes(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Set)
      */
@@ -464,7 +473,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getAttributes(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String)
      */
@@ -484,7 +493,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getBinaryAttributes(
      *      com.iplanet.sso.SSOToken, com.sun.identity.idm.IdType,
      *      java.lang.String, java.util.Set)
@@ -513,7 +522,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#setBinaryAttributes(
      *      com.iplanet.sso.SSOToken, com.sun.identity.idm.IdType,
      *      java.lang.String, java.util.Map, boolean)
@@ -530,7 +539,7 @@ public class FilesRepo extends IdRepo {
         }
         // Convert byte[][] attributes values to Set and save it
         Map attrs = new HashMap();
-        for (Iterator items = attributes.keySet().iterator(); items.hasNext();) 
+        for (Iterator items = attributes.keySet().iterator(); items.hasNext();)
         {
             String attrName = (String) items.next();
             byte[][] attrBytes = (byte[][]) attributes.get(attrName);
@@ -550,7 +559,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getMembers(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String,
      *      com.sun.identity.idm.IdType)
@@ -632,7 +641,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getMemberships(
      *      com.iplanet.sso.SSOToken, com.sun.identity.idm.IdType,
      *      java.lang.String, com.sun.identity.idm.IdType)
@@ -702,7 +711,7 @@ public class FilesRepo extends IdRepo {
     }
 
 
-    /* 
+    /*
      * (non-Javadoc)
      *
      * @see com.sun.identity.idm.IdRepo#getServiceAttributes(
@@ -734,7 +743,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getServiceAttributes(
      *      com.iplanet.sso.SSOToken, com.sun.identity.idm.IdType,
      *      java.lang.String, java.lang.String, java.util.Set)
@@ -785,7 +794,7 @@ public class FilesRepo extends IdRepo {
                     : getBinaryAttributes(token, IdType.ROLE,
                         role, attrNames));
             } catch (FilesRepoEntryNotFoundException fnf) {
-                roleAttrs = Collections.EMPTY_MAP; 
+                roleAttrs = Collections.EMPTY_MAP;
             }
             // Add the attributes to results
             for (Iterator ris = roleAttrs.keySet().iterator(); ris.hasNext();) {
@@ -857,7 +866,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#isExists(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String)
      */
@@ -867,20 +876,20 @@ public class FilesRepo extends IdRepo {
             debug.error("FilesRepo: throwing initialization exception");
             throw (initializationException);
         }
-        
+
         boolean entryExists = true;
         try {
-            getAttributes(token, type, name);            
+            getAttributes(token, type, name);
         } catch (FilesRepoEntryNotFoundException fe) {
             entryExists = false;
         }
-        
+
         return entryExists;
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#modifyMemberShip(
      *      com.iplanet.sso.SSOToken, com.sun.identity.idm.IdType,
      *      java.lang.String, java.util.Set, com.sun.identity.idm.IdType, int)
@@ -972,7 +981,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#modifyService(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.lang.String,
      *      com.sun.identity.sm.SchemaType, java.util.Map)
@@ -1004,7 +1013,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#removeAttributes(
      *      com.iplanet.sso.SSOToken, com.sun.identity.idm.IdType,
      *      java.lang.String, java.util.Set)
@@ -1027,7 +1036,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#removeListener()
      */
     public void removeListener() {
@@ -1036,14 +1045,14 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#search(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, int, int,
      *      java.util.Set, boolean, int, java.util.Map, boolean)
      */
     public RepoSearchResults search(SSOToken token, IdType type,
             String pattern, int maxTime, int maxResults, Set returnAttrs,
-            boolean returnAllAttrs, int filterOp, Map avPairs, 
+            boolean returnAllAttrs, int filterOp, Map avPairs,
             boolean recursive) throws IdRepoException, SSOException {
         if (initializationException != null) {
             debug.error("FilesRepo.search: throwing initialization exception");
@@ -1136,7 +1145,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#search(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Map,
      *      boolean, int, int, java.util.Set)
@@ -1157,7 +1166,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#setAttributes(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String, java.util.Map,
      *      boolean)
@@ -1214,7 +1223,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#unassignService(
      *      com.iplanet.sso.SSOToken, com.sun.identity.idm.IdType,
      *      java.lang.String, java.lang.String, java.util.Map)
@@ -1251,7 +1260,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getSupportedOperations(
      *      com.sun.identity.idm.IdType)
      */
@@ -1261,7 +1270,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#getSupportedTypes()
      */
     public Set getSupportedTypes() {
@@ -1270,7 +1279,7 @@ public class FilesRepo extends IdRepo {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sun.identity.idm.IdRepo#isActive(com.iplanet.sso.SSOToken,
      *      com.sun.identity.idm.IdType, java.lang.String)
      */
@@ -1337,7 +1346,7 @@ public class FilesRepo extends IdRepo {
         }
     }
 
-    public String getFullyQualifiedName(SSOToken token, IdType type, 
+    public String getFullyQualifiedName(SSOToken token, IdType type,
             String name) throws IdRepoException, SSOException {
         if (initializationException != null) {
             debug.error("FilesRepo: throwing initialization exception");
@@ -1390,12 +1399,12 @@ public class FilesRepo extends IdRepo {
 
         // Get user's password attribute
         Map attrs = searchForAuthN(IdType.USER, username);
-                          
+
         if (attrs == null) {
-            // Try agent        
+            // Try agent
             attrs = searchForAuthN(IdType.AGENT, username);
         }
-        
+
         if ((attrs == null) || attrs.isEmpty() ||
             !attrs.containsKey(passwordAttribute)
         ) {
@@ -1420,26 +1429,26 @@ public class FilesRepo extends IdRepo {
         }
         return (password.equals(storedPassword));
     }
-    
-    private Map searchForAuthN(IdType type, String userName) 
-        throws IdRepoException 
-    {        
+
+    private Map searchForAuthN(IdType type, String userName)
+        throws IdRepoException
+    {
         Map attributes = null;
         try {
             attributes = getAttributes(null, type, userName);
             if (debug.messageEnabled()) {
-                debug.message("FilesRepo:searchForAuthN found " + 
+                debug.message("FilesRepo:searchForAuthN found " +
                         type.getName() + " entry: " + userName);
             }
         } catch (FilesRepoEntryNotFoundException fe) {
             if (debug.messageEnabled()) {
-                debug.message("FilesRepo:searchForAuthn did not find " + 
+                debug.message("FilesRepo:searchForAuthn did not find " +
                         type.getName() + " entry: " + userName);
-            }                
+            }
         } catch (SSOException ssoe) {
             // Can ignore this as this won't happen. No token was passed.
         }
-        
+
         return attributes;
     }
 
@@ -1538,8 +1547,8 @@ public class FilesRepo extends IdRepo {
         }
         for (Iterator it = identityCache.keySet().iterator(); it.hasNext();) {
             String origFileName = (String) it.next();
-            // At times the incoming object name is all normalized to 
-            // lowercase. This avoids the filenotfound exception when the 
+            // At times the incoming object name is all normalized to
+            // lowercase. This avoids the filenotfound exception when the
             // object in flatfile repository is saved as mixed case filenames.
             if (!fileName.equals(origFileName)) {
                 if (fileName.equalsIgnoreCase(origFileName)) {
@@ -1548,7 +1557,7 @@ public class FilesRepo extends IdRepo {
                 }
             } else {
                 break;
-            } 
+            }
         }
         BufferedReader br = null;
         try {
@@ -1755,22 +1764,22 @@ public class FilesRepo extends IdRepo {
                 }
             }
         }
-        
+
         public boolean addElement(Object key) {
             return false;
         }
-        
+
         public boolean removeElement(Object key) {
             return false;
         }
-        
+
         public boolean isEmpty() {
             return false;
         }
-        
+
         public long getRunPeriod() {
             return repo.updateCacheInterval * 60 * 1000;
         }
-        
+
     }
 }

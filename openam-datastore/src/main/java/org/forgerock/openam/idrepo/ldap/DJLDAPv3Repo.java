@@ -1060,7 +1060,7 @@ public class DJLDAPv3Repo extends IdRepo implements IdentityMovedOrRenamedListen
      * Performs a search in the directory based on the provided parameters.
      * Using the pattern and avPairs parameters an example search filter would look something like:
      * <code>(&(|(attr1=value1)(attr2=value2))(searchAttr=pattern)(objectclassfilter))</code>.
-     * 
+     *
      * @param token Not used.
      * @param type The type of the identity.
      * @param pattern The pattern to be used in the search filter as the search attribute value.
@@ -1899,7 +1899,7 @@ public class DJLDAPv3Repo extends IdRepo implements IdentityMovedOrRenamedListen
      * @param serviceName The name of the service that needs to be modified.
      * @param sType The type of the service schema.
      * @param attrMap The attributes that needs to be set for the service.
-     * @throws IdRepoException If the type was invalid, or if there was an error while setting the service attributes. 
+     * @throws IdRepoException If the type was invalid, or if there was an error while setting the service attributes.
      */
     @Override
     public void modifyService(SSOToken token, IdType type, String name, String serviceName,
@@ -2082,6 +2082,14 @@ public class DJLDAPv3Repo extends IdRepo implements IdentityMovedOrRenamedListen
                 }
             }
         }
+    }
+
+    @Override
+    public IdRepoListener getListener() {
+        if (DEBUG.messageEnabled()) {
+            DEBUG.message("getlistener invoked");
+        }
+        return idRepoListener;
     }
 
     /**
