@@ -101,7 +101,7 @@ public class DSAMEResBundleTag
         try {
             resValue = rb.getString (resKey);
             final String copyRightKey = "copyright.notice";
-            if (copyRightKey.equalsIgnoreCase(copyRightKey)) {
+            if (copyRightKey.equalsIgnoreCase(resKey) && resValue != null) {
                 Calendar calendar = Calendar.getInstance();
                 int year = calendar.get(Calendar.YEAR);
                 resValue = resValue.replace("{0}", String.valueOf(year));

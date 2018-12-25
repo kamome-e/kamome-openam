@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Calendar;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import javax.servlet.http.HttpServletRequest;
@@ -52,31 +53,31 @@ import org.apache.click.control.ActionLink;
 
 public abstract class AjaxPage extends Page {
 
-    public ActionLink checkPasswordsLink = 
+    public ActionLink checkPasswordsLink =
         new ActionLink("checkPasswords", this, "checkPasswords");
-    
+
     public ActionLink validateInputLink =
         new ActionLink("validateInput", this, "validateInput" );
-    
+
     public ActionLink resetSessionAttributesLink =
         new ActionLink("resetSessionAttributes", this,
         "resetSessionAttributes");
-    
+
     public static final String RESPONSE_TEMPLATE = "{\"valid\":\"${valid}\", \"body\":\"${body}\"}";
     public static final String OLD_RESPONSE_TEMPLATE = "{\"isValid\":${isValid}, \"errorMessage\":\"${errorMessage}\"}";
-   
+
     private static int MIN_PASSWORD_SIZE = 8;
     private boolean rendering = false;
     private String hostName;
     protected java.util.Locale configLocale = null;
-    
+
     // localization properties
     protected ResourceBundle rb = null;
     protected static final String RB_NAME = "amConfigurator";
-    
+
     public String responseString = "true";
     public static Debug debug = Debug.getInstance("amConfigurator");
-    
+
     public AjaxPage() {
     }
 
@@ -161,9 +162,9 @@ public abstract class AjaxPage extends Page {
     }
 
     public void initializeResourceBundle() {
-        HttpServletRequest req = 
+        HttpServletRequest req =
             (HttpServletRequest)getContext().getRequest();
-        HttpServletResponse res = 
+        HttpServletResponse res =
             (HttpServletResponse)getContext().getResponse();
 
         setLocale(req);
@@ -175,15 +176,15 @@ public abstract class AjaxPage extends Page {
             String superLocale = request.getParameter("locale");
             if (superLocale != null && superLocale.length() > 0) {
                 configLocale = Locale.getLocaleObjFromAcceptLangHeader(
-                    superLocale); 
+                    superLocale);
             } else {
                 String acceptLangHeader =
                     (String)request.getHeader("Accept-Language");
                 if ((acceptLangHeader !=  null) &&
-                    (acceptLangHeader.length() > 0)) 
+                    (acceptLangHeader.length() > 0))
                 {
                     configLocale = Locale.getLocaleObjFromAcceptLangHeader(
-                        acceptLangHeader); 
+                        acceptLangHeader);
                 } else {
                     configLocale = java.util.Locale.getDefault();
                 }
@@ -205,47 +206,53 @@ public abstract class AjaxPage extends Page {
         if (rb == null) {
             initializeResourceBundle();
         }
-        
-        String localizedValue = null;     
+
+        String localizedValue = null;
         try {
             localizedValue = Locale.getString(rb, i18nKey, debug);
+            final String copyRightKey = "product.copyrights";
+            if (copyRightKey.equalsIgnoreCase(i18nKey) && localizedValue != null) {
+                Calendar calendar = Calendar.getInstance();
+                int year = calendar.get(Calendar.YEAR);
+                localizedValue = localizedValue.replace("{0}", String.valueOf(year));
+            }
         } catch (MissingResourceException mre) {
             // do nothing
         }
         return (localizedValue == null) ? i18nKey : localizedValue;
     }
-    
-    public String getHostName() { 
+
+    public String getHostName() {
         if (hostName == null) {
             hostName = getContext().getRequest().getServerName();
-        }        
+        }
         return hostName;
     }
-    
+
     public String getHostName(String serverUrl, String defaultHostName) {
         URL url = null;
-        
+
         try {
             url = new URL(serverUrl);
         } catch (MalformedURLException mue) {
             return defaultHostName;
         }
-        
+
         return url.getHost();
     }
-    
+
     public int getServerPort(String serverUrl, int defaultPort) {
         URL url = null;
-        
+
         try {
             url = new URL(serverUrl);
         } catch (MalformedURLException mue) {
             return defaultPort;
         }
-        
-        return url.getPort();        
+
+        return url.getPort();
     }
-    
+
     public String getBaseDir(HttpServletRequest req) {
         String basedir = AMSetupServlet.getPresetConfigDir();
         if ((basedir == null) || (basedir.length() == 0)) {
@@ -258,15 +265,15 @@ public abstract class AjaxPage extends Page {
             if (idx != -1) {
                 uri = uri.substring(0, idx);
             }
-            
+
             basedir = (tmp.endsWith("/")) ? tmp.substring(0, tmp.length()-1) :
                 tmp;
             basedir += uri;
-        } 
+        }
 
         return basedir;
     }
-    
+
     public String getCookieDomain() {
     	return getHostName();
     }
@@ -278,14 +285,14 @@ public abstract class AjaxPage extends Page {
         if (value == null) {
             responseString = "missing.required.field";
         } else {
-            getContext().setSessionAttribute(key, value);            
+            getContext().setSessionAttribute(key, value);
         }
-        
+
         writeToResponse(getLocalizedString(responseString));
         setPath(null);
         return false;
     }
-    
+
     public boolean resetSessionAttributes() {
         try {
             Field[] fields = SessionAttributeNames.class.getDeclaredFields();
@@ -303,23 +310,23 @@ public abstract class AjaxPage extends Page {
         setPath(null);
         return false;
     }
-    
+
     public String getAttribute(String attr, String defaultValue) {
         String value = (String)getContext().getSessionAttribute(attr);
         return (value != null) ? value : defaultValue;
     }
-          
+
     public String getAvailablePort(int portNumber) {
         return Integer.toString(
             AMSetupServlet.getUnusedPort(getHostName(), portNumber, 1000));
-    }  
-    
+    }
+
     public boolean checkPasswords() {
         String confirm = toString("confirm");
         String password = toString("password");
         String otherPassword = toString("otherPassword");
         String type = toString("type");
-        
+
         if (password == null) {
             responseString = getLocalizedString("missing.password");
         } else if (password.length() < MIN_PASSWORD_SIZE) {
@@ -332,7 +339,7 @@ public abstract class AjaxPage extends Page {
             responseString = getLocalizedString("password.dont.match");
         } else if ((otherPassword != null) && (otherPassword.equals(password))) {
             responseString = getLocalizedString("agent.admin.password.same");
-        } else {            
+        } else {
             if (type.equals("agent")) {
                 type = SessionAttributeNames.CONFIG_VAR_AMLDAPUSERPASSWD;
             } else {
@@ -340,7 +347,7 @@ public abstract class AjaxPage extends Page {
             }
             getContext().setSessionAttribute(type, password);
         }
-        
+
         writeToResponse(responseString);
         setPath(null);
         return false;
