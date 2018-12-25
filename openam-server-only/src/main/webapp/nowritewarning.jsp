@@ -1,8 +1,8 @@
 <%--
    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
-  
+
    Copyright (c) 2007 Sun Microsystems Inc. All Rights Reserved
-  
+
    The contents of this file are subject to the terms
    of the Common Development and Distribution License
    (the License). You may not use this file except in
@@ -36,6 +36,7 @@
 <%@ page import="com.sun.identity.setup.AMSetupServlet"%>
 <%@ page import="com.sun.identity.setup.SetupConstants"%>
 <%@ page import="java.text.MessageFormat"%>
+<%@ page import="java.util.Calendar"%>
 <%@ page import="java.util.ResourceBundle"%>
 <%@ page import="javax.servlet.ServletContext"%>
 
@@ -50,11 +51,11 @@
 <script type="text/javascript"><!--// Empty script so IE5.0 Windows will draw table and button borders
 //-->
 </script>
-  
+
 </head>
 
 <body class="LogBdy" onload="placeCursorOnFirstElm();">
-<%  
+<%
     String deployURI = request.getRequestURI();
     if (deployURI != null) {
         int idx = deployURI.indexOf("/nowritewarning.jsp");
@@ -64,6 +65,10 @@
     }
 
     ResourceBundle rb = ResourceBundle.getBundle("amConfigurator", request.getLocale());
+    String copyright = rb.getString("product.copyrights");
+    Calendar calendar = Calendar.getInstance();
+    int year = calendar.get(Calendar.YEAR);
+    copyright = copyright.replace("{0}", String.valueOf(year));
 %>
   <table border="0" cellpadding="0" cellspacing="0" align="center" title="">
     <tr>
@@ -71,7 +76,7 @@
       <td><img src="<%= deployURI %>/images/dot.gif" width="728" height="1" alt="" /></td>
       <td width="50%"><img src="<%= deployURI %>/images/dot.gif" width="1" height="1" alt="" /></td>
     </tr>
-    <tr class="LogTopBnd" style="background-image: url(/fam/images/gradlogtop.jpg); 
+    <tr class="LogTopBnd" style="background-image: url(/fam/images/gradlogtop.jpg);
     background-repeat: repeat-x; background-position: left top;">
       <td>&nbsp;</td>
       <td><img src="<%= deployURI %>/images/dot.gif" width="1" height="30" alt="" /></td>
@@ -101,7 +106,7 @@
                                 <li><a href="<%= deployURI %>/config/options.htm"><% out.print(rb.getString("nowriteaccess.proceed")); %></a><br />
                                 <% out.print(rb.getString("nowriteaccess.proceed.note")); %>
                             </ul>
-                        </div>   
+                        </div>
                     </td>
                 </tr>
             </table>
@@ -113,8 +118,8 @@
     <tr class="LogBotBnd" style="background-image: url(<%= deployURI %>/images/gradlogbot.jpg);
         background-repeat:repeat-x;background-position:left top;">
           <td>&nbsp;</td>
-          <td>  
-              <div class="logCpy"><span class="logTxtCpy"><% out.print(rb.getString("product.copyrights")); %>
+          <td>
+              <div class="logCpy"><span class="logTxtCpy"><% out.print(copyright); %>
               </span></div>
           </td>
           <td>&nbsp;</td>

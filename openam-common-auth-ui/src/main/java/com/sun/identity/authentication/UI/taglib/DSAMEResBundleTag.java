@@ -38,6 +38,7 @@ import com.iplanet.jato.view.ViewBean;
 import com.sun.identity.authentication.UI.AuthViewBeanBase;
 import com.sun.identity.shared.locale.AMResourceBundleCache;
 import java.util.ResourceBundle;
+import java.util.Calendar;
 import java.util.MissingResourceException;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyContent;
@@ -64,7 +65,7 @@ public class DSAMEResBundleTag
     }
 
     /**
-     * reset tag 
+     * reset tag
      */
     public void reset() {
         super.reset();
@@ -99,6 +100,12 @@ public class DSAMEResBundleTag
             rbName, locale);
         try {
             resValue = rb.getString (resKey);
+            final String copyRightKey = "copyright.notice";
+            if (copyRightKey.equalsIgnoreCase(copyRightKey)) {
+                Calendar calendar = Calendar.getInstance();
+                int year = calendar.get(Calendar.YEAR);
+                resValue = resValue.replace("{0}", String.valueOf(year));
+            }
         } catch (MissingResourceException ex) {
             resValue = resKey;
         }
@@ -127,7 +134,7 @@ public class DSAMEResBundleTag
     /**
      * does nothing here
      *
-     * 
+     *
      */
     public int doEndTag()
         throws JspException
