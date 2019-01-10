@@ -29,7 +29,7 @@
                 <div class="grid_9">
                     <div class="box-content clear-float">
                         <div class="message">
-                            <span class="icon info"></span>
+                            <span class="icon error"></span>
                             <h3>404 Not Found</h3>
                             <p class="message_detail">This is not the web page you are looking for.</p>
                         </div>

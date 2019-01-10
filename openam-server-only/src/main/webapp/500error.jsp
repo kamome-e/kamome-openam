@@ -30,7 +30,7 @@
                 <div class="grid_9">
                     <div class="box-content clear-float">
                         <div class="message">
-                            <span class="icon info"></span>
+                            <span class="icon error"></span>
                             <h3>500 Error</h3>
                             <p class="message_detail">
                                 <% if(exception != null){ %>
