@@ -52,7 +52,7 @@ on Libraries node in Projects view can be used to add the JSTL 1.1 library.
     <%!
         static String openssoCookieName = OAuthProperties.get(
                                 PathDefs.OPENSSO_COOKIE_NAME);
-        String getUid(String cookieValue) 
+        String getUid(String cookieValue)
             throws OAuthServiceException {
             String uuid = null;
             try {
@@ -76,19 +76,13 @@ on Libraries node in Projects view can be used to add the JSTL 1.1 library.
             function makeithappen(oauthtk, id) {
                 var path = window.location.pathname;
                 var strs = path.split("/");
-                var contextRoot = strs[1]; 
+                var contextRoot = strs[1];
                 var redir = window.location.protocol;
                 redir += "//" + window.location.host;
                 redir += "/" + contextRoot;
                 redir += "/resources/1/oauth/AuthorizationFactory";
                 redir += "?oauth_token=" + oauthtk.toString();
                 redir += "&id=" + id.toString();
-                window.location = redir;
-            }
-            
-            function revoke(oauthtk) {
-                var redir = "./deletetoken.jsp?oauth_token=";
-                redir += oauthtk.toString();
                 window.location = redir;
             }
         </script>
@@ -131,7 +125,7 @@ on Libraries node in Projects view can be used to add the JSTL 1.1 library.
         }
         if (uid == null) {
             // session is not valid so redirect the user to OpenAM login page
-            String loginURL = 
+            String loginURL =
                 OAuthProperties.get(PathDefs.OPENSSO_SERVER_URL) +
                 OAuthProperties.get(PathDefs.OPENSSO_SERVER_LOGIN_URI);
             StringBuffer requestURL = httpRequest.getRequestURL();
