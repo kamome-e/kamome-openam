@@ -61,15 +61,15 @@ public final class AMSetupFilter implements Filter {
     private static final String UPGRADE_URI = "/config/upgrade/upgrade.htm";
     private static final String SETUP_PROGRESS_URI = "/setup/setSetupProgress";
     private static final String UPGRADE_PROGESS_URI = "/upgrade/setUpgradeProgress";
-    private static final String NOWRITE_PERMISSION = "/nowritewarning.jsp";
+    private static final String NOWRITE_PERMISSION_ERROR_CODE = "nowrite.permission";
 
-    private static String[] fList = { 
+    private static String[] fList = {
         ".ico", ".htm", ".css", ".js", ".jpg", ".gif", ".png",".JPG", "SMSObjectIF" , "setSetupProgress",
         "setUpgradeProgress"
-    }; 
+    };
 
     /**
-     * Redirects request to configuration page if the product is not yet 
+     * Redirects request to configuration page if the product is not yet
      * configured.
      *
      * @param request Servlet Request.
@@ -79,10 +79,10 @@ public final class AMSetupFilter implements Filter {
      * @throws ServletException if there are errors in the servlet space.
      */
     public void doFilter(
-        ServletRequest request, 
-        ServletResponse response, 
+        ServletRequest request,
+        ServletResponse response,
         FilterChain filterChain
-    ) throws IOException, ServletException 
+    ) throws IOException, ServletException
     {
         HttpServletRequest  httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response ;
@@ -100,7 +100,7 @@ public final class AMSetupFilter implements Filter {
                     filterChain.doFilter(httpRequest, httpResponse);
                 }
             } else {
-                if (AMSetupServlet.getBootStrapFile() != null && !UpgradeUtils.isVersionNewer() 
+                if (AMSetupServlet.getBootStrapFile() != null && !UpgradeUtils.isVersionNewer()
                         && !AMSetupServlet.isUpgradeCompleted()) {
                     String redirectUrl = System.getProperty(Constants.CONFIG_STORE_DOWN_REDIRECT_URL);
                     if (redirectUrl != null && redirectUrl.length() > 0) {
@@ -111,10 +111,10 @@ public final class AMSetupFilter implements Filter {
                 } else {
                     if (isPassthrough() && validateStream(httpRequest)) {
                         filterChain.doFilter(httpRequest, httpResponse);
-                    } else {        
+                    } else {
                         String incomingURL = httpRequest.getRequestURI();
                         if (incomingURL.endsWith("configurator")) {
-                            filterChain.doFilter(httpRequest, httpResponse);  
+                            filterChain.doFilter(httpRequest, httpResponse);
                         } else {
                             String url = httpRequest.getScheme() + "://" +
                                 httpRequest.getServerName() + ":" +
@@ -123,11 +123,12 @@ public final class AMSetupFilter implements Filter {
                             if ((new File(System.getProperty("user.home"))).canWrite()){
                                 url += SETUP_URI;
                             } else {
-                                url += NOWRITE_PERMISSION;
+                                throw new ConfigurationException(NOWRITE_PERMISSION_ERROR_CODE,
+                                        new String[] {System.getProperty("user.home")});
                             }
                             httpResponse.sendRedirect(url);
                             markPassthrough();
-                        }    
+                        }
                     }
                 }
             }
@@ -149,16 +150,16 @@ public final class AMSetupFilter implements Filter {
         for (int i = 0; (i < fList.length) && !ok; i++) {
             ok = (uri.indexOf(fList[i]) != -1);
         }
-        return ok;     
+        return ok;
     }
 
     /**
-     * Destroy the filter config on sever shutdowm 
+     * Destroy the filter config on sever shutdowm
      */
     public void destroy() {
         config = null;
     }
-    
+
     /**
      * Initializes the filter.
      *
@@ -167,14 +168,14 @@ public final class AMSetupFilter implements Filter {
     public void init(FilterConfig filterConfig) {
         setFilterConfig(filterConfig);
         servletCtx = filterConfig.getServletContext();
-        initialized = AMSetupServlet.checkInitState(servletCtx); 
+        initialized = AMSetupServlet.checkInitState(servletCtx);
         if (!initialized) {
             //Set the encryption Key
             servletCtx.setAttribute("am.enc.pwd",
                 AMSetupServlet.getRandomString());
         }
     }
-    
+
     /**
      * Initializes the filter configuration.
      *
@@ -183,7 +184,7 @@ public final class AMSetupFilter implements Filter {
     public void setFilterConfig(FilterConfig fconfig) {
         config = fconfig;
     }
-    
+
     /**
      * Returns <code>true</code> if the request is allowed without processing.
      *

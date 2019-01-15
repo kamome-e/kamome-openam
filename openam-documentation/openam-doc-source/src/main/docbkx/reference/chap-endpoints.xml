@@ -46,8 +46,8 @@
      http://stackoverflow.com/questions/9807382/what-is-a-web-service-endpoint
      http://www.oracle.com/technetwork/articles/erl-wsdl-087381.html
  -->
-    
-    
+
+
         <para>As every service endpoint is a potential security issue, it may be appropriate to
         restrict access to some of those endpoints that you do not use. But be careful.
         Some endpoints, such as <literal>isAlive.jsp</literal> in the main /path/to/tomcat/webapps/openam directory, are
@@ -57,7 +57,7 @@
         of available endpoints, this chapter has been organized primarily by subdirectory.
         Most of the directories were created when the OpenAM war archive was copied to the appropriate web application
         container, such as the webapps/ subdirectory. </para>
-        
+
 <!--
      Is there a webapps/ subdirectory in all the containers we support?
      Where these things end up on the file system probably depends on the container.
@@ -220,15 +220,6 @@
         <para>Verifies the current status of the OpenAM service; the "Server is ALIVE:" message also verifies
             activity on OpenAM systems behind load balancers. This can be a useful tool in a production environment.</para>
         <!-- Verified with Allan -->
-    </listitem>
-</varlistentry>
-
-
-
-<varlistentry>
-    <term><literal>nowritewarning.jsp</literal></term>
-    <listitem>
-        <para>Displays a permission error message, used by the GUI-based installation wizard.</para>
     </listitem>
 </varlistentry>
 
@@ -4729,7 +4720,7 @@ to a runtime exception with messages that I think suggest that it needed to be c
 
         <para>The endpoints in this section document the REST-based JSON interfaces used for authentication
         and authorization.</para>
-        
+
         <variablelist>
             <varlistentry>
                 <term>/json/agents</term>
