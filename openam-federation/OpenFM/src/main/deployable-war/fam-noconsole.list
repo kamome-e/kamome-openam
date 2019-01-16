@@ -2124,9 +2124,6 @@
 ./login_images/master-style.css
 ./login_images/spacer.gif
 ./login_images/warning_32_sunplex.gif
-./oauth/index.jsp
-./oauth/registerconsumer.jsp
-./oauth/userconsole.jsp
 ./password/css/adminstyle.css
 ./password/css/css_ie5win.css
 ./password/css/css_ie6up.css

@@ -3212,30 +3212,6 @@ to a runtime exception with messages that I think suggest that it needed to be c
         <variablelist>
 
             <varlistentry>
-                <term><literal>index.jsp</literal></term>
-                <listitem>
-                    <para>Specifies an endpoint used to register service consumers, which get resources from SPs.
-                    Provides access to registerconsumer.jsp. Associated with OAuth 1.0.
-                    </para>
-                </listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><literal>registerconsumer.jsp</literal></term>
-                <listitem>
-                    <para>Defines an endpoint used to register a consumer of services from SPs. Associated with OAuth
-                    1.0.</para>
-                </listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><literal>userconsole.jsp</literal></term>
-                <listitem>
-                    <para>Allows a user to authorize or revoke a request for an OAuth 1.0 token..</para>
-                </listitem>
-            </varlistentry>
-
-            <varlistentry>
                 <term><literal>registerClient.jsp</literal></term>
                 <listitem>
                     <para>Enables registration of an OAuth 2.0 client with the OpenAM OAuth 2.0 authorization service.
