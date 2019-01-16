@@ -21,6 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import org.owasp.esapi.ESAPI;
 
 /**
  * Validates the provided redirect URL against the list of valid goto URL domains.
@@ -33,6 +34,9 @@ public class RedirectUrlValidator<T> {
      * Go to url query parameter name.
      */
     public final static String GOTO = "goto";
+
+    // See http://stackoverflow.com/a/417184
+    private final static int MAX_URL_LENGTH = 2000;
 
     /**
      * Go to on fail query parameter name.
@@ -63,26 +67,35 @@ public class RedirectUrlValidator<T> {
         if (DEBUG.messageEnabled()) {
             DEBUG.message("Validating goto URL " + url + " against patterns:\n" + patterns);
         }
-        if (patterns == null || patterns.isEmpty()) {
-            if (DEBUG.messageEnabled()) {
-                DEBUG.message("There are no patterns to validate the URL against, the goto URL is considered valid");
-            }
-            return true;
+
+        // JavaScript URIs are a common vector for XSS attacks.
+        if (url.toLowerCase().startsWith("javascript:")) {
+            return false;
         }
 
         try {
             final URI uri = new URI(url);
+         // Both Absolute and scheme relative URLs should be validated.
             if (!uri.isAbsolute() && !url.startsWith("//")) {
-                if (DEBUG.messageEnabled()) {
-                    DEBUG.message(url + " is a relative URI, the goto URL is considered valid");
-                }
-                return true;
+                return ESAPI.validator().isValidInput("isRedirectUrlValid", url, "HTTPURI", MAX_URL_LENGTH,
+                        false);
             }
         } catch (final URISyntaxException urise) {
             if (DEBUG.messageEnabled()) {
                 DEBUG.message("The goto URL " + url + " is not a valid URI", urise);
             }
             return false;
+        }
+
+        if (!ESAPI.validator().isValidInput("isRedirectUrlValid", url, "URL", MAX_URL_LENGTH, false)) {
+            return false;
+        }
+
+        if (patterns == null || patterns.isEmpty()) {
+            if (DEBUG.messageEnabled()) {
+                DEBUG.message("There are no patterns to validate the URL against, the goto URL is considered valid");
+            }
+            return true;
         }
 
         final URLPatternMatcher patternMatcher = new URLPatternMatcher();
