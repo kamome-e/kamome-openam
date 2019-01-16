@@ -29,11 +29,14 @@
 package com.sun.identity.console.idm;
 
 import com.iplanet.jato.RequestManager;
+import com.iplanet.jato.ViewBeanManager;
 import com.iplanet.jato.model.ModelControlException;
 import com.iplanet.jato.view.View;
+import com.iplanet.jato.view.ViewBean;
 import com.iplanet.jato.view.event.DisplayEvent;
 import com.iplanet.jato.view.event.RequestInvocationEvent;
 import com.iplanet.jato.view.html.HREF;
+import com.sun.identity.console.base.AMInvalidURLViewBean;
 import com.sun.identity.console.base.AMPrimaryMastHeadViewBean;
 import com.sun.identity.console.base.AMPostViewBean;
 import com.sun.identity.console.base.AMPropertySheet;
@@ -44,24 +47,32 @@ import com.sun.identity.console.base.model.AMPropertySheetModel;
 import com.sun.identity.console.idm.model.EntitiesModel;
 import com.sun.identity.console.idm.model.EntitiesModelImpl;
 import com.sun.identity.console.property.PropertyTemplate;
+import com.sun.identity.shared.debug.Debug;
 import com.sun.web.ui.model.CCPageTitleModel;
 import com.sun.web.ui.view.alert.CCAlert;
 import com.sun.web.ui.view.tabs.CCTabs;
 import javax.servlet.http.HttpServletRequest;
 
-public abstract class EntityOpViewBeanBase
-    extends AMPrimaryMastHeadViewBean {
+import org.forgerock.openam.security.whitelist.ValidGotoUrlExtractor;
+import org.forgerock.openam.shared.security.whitelist.RedirectUrlValidator;
+
+public abstract class EntityOpViewBeanBase extends AMPrimaryMastHeadViewBean {
+
     protected static final String PROPERTY_ATTRIBUTE = "propertyAttributes";
 
     public static final String ENTITY_NAME = "tfEntityName";
     public static final String ENTITY_TYPE = "entityTypeName";
     public static final String ENTITY_AGENT_TYPE = "entityAgentType";
-    public static final String ENTITY_TYPE_NAME = "tfEntityTypeName";
 
     protected CCPageTitleModel ptModel;
     protected AMPropertySheetModel propertySheetModel;
     protected boolean hasNoAttributeToDisplay;
     protected boolean submitCycle;
+
+    protected static final RedirectUrlValidator<String> REDIRECT_URL_VALIDATOR =
+            new RedirectUrlValidator<>(ValidGotoUrlExtractor.getInstance());
+
+    private static final Debug DEBUG = Debug.getInstance(AMAdminConstants.CONSOLE_DEBUG_FILENAME);
 
     public EntityOpViewBeanBase(String name, String defaultDisplayURL) {
         super(name);
@@ -113,7 +124,7 @@ public abstract class EntityOpViewBeanBase
             ENTITY_AGENT_TYPE);
         try {
             psModel = new AMPropertySheetModel(
-                model.getPropertyXMLString(realmName, type, 
+                model.getPropertyXMLString(realmName, type,
                 agentType, isCreateViewBean(),
                 getClass().getName()));
         } catch (AMConsoleException e) {
@@ -168,10 +179,6 @@ public abstract class EntityOpViewBeanBase
         super.beginDisplay(event);
 
         if (!submitCycle) {
-            String realmName = (String)getPageSessionAttribute(
-                AMAdminConstants.CURRENT_REALM);
-            EntitiesModel model = (EntitiesModel)getModel();
-
             try {
                 String entityType = (String)getPageSessionAttribute(
                     ENTITY_TYPE);
@@ -190,7 +197,7 @@ public abstract class EntityOpViewBeanBase
 
         String tabId = Integer.toString(entityType.hashCode());
         setPageSessionAttribute(super.getTrackingTabIDName(), tabId);
-        setPageSessionAttribute("CCTabs.SelectedTabId", tabId); 
+        setPageSessionAttribute("CCTabs.SelectedTabId", tabId);
         backTrail();
         passPgSessionMap(vb);
         vb.forwardTo(getRequestContext());
@@ -206,17 +213,24 @@ public abstract class EntityOpViewBeanBase
     }
 
     protected abstract void createPageTitleModel();
-    protected abstract void setDefaultValues(String type)
-        throws AMConsoleException;
+    protected abstract void setDefaultValues(String type) throws AMConsoleException;
     protected abstract boolean isCreateViewBean();
 
     public void handleDynLinkRequest(RequestInvocationEvent event) {
         HttpServletRequest req = getRequestContext().getRequest();
-        String url = req.getParameter(
-            PropertyTemplate.PARAM_PROPERTIES_VIEW_BEAN_URL);
-        AMPostViewBean vb = (AMPostViewBean)getViewBean(AMPostViewBean.class);
-        passPgSessionMap(vb);
-        vb.setTargetViewBeanURL(url);
-        vb.forwardTo(getRequestContext());
+        String url = req.getParameter(PropertyTemplate.PARAM_PROPERTIES_VIEW_BEAN_URL);
+        String realmName = (String) getPageSessionAttribute(AMAdminConstants.CURRENT_REALM);
+        if (REDIRECT_URL_VALIDATOR.isRedirectUrlValid(url, realmName)) {
+            AMPostViewBean vb = (AMPostViewBean) getViewBean(AMPostViewBean.class);
+            passPgSessionMap(vb);
+            vb.setTargetViewBeanURL(url);
+            vb.forwardTo(getRequestContext());
+        } else {
+            DEBUG.error("EntityOpViewBeanBase.handleDynLinkRequest: Invalid url: {" + url + "}, "
+                    + "from request param: {" + PropertyTemplate.PARAM_PROPERTIES_VIEW_BEAN_URL + "}");
+            ViewBeanManager viewBeanManager = getRequestContext().getViewBeanManager();
+            ViewBean targetView = viewBeanManager.getViewBean(AMInvalidURLViewBean.class);
+            targetView.forwardTo(getRequestContext());
+        }
     }
 }
