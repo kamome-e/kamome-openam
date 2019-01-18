@@ -24,9 +24,6 @@
  *
  * $Id: DSAMEHrefTag.java,v 1.3 2008/06/25 05:41:50 qcheng Exp $
  *
- */
-
-/**
  * Portions Copyrighted 2011 ForgeRock Inc.
  * Portions Copyrighted 2012 Open Source Solution Technology Corporation
  */
@@ -41,10 +38,11 @@ import com.iplanet.jato.view.ViewBean;
 import com.iplanet.jato.view.ViewBeanBase;
 import com.sun.identity.authentication.UI.AuthViewBeanBase;
 import com.sun.identity.shared.debug.Debug;
-import java.util.StringTokenizer;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyContent;
 import javax.servlet.jsp.tagext.BodyTag;
+
+import org.owasp.esapi.ESAPI;
 
 /**
  * Href tag reimplements JATO Href tag.  It adds a content encoding
@@ -62,12 +60,12 @@ implements BodyTag {
     static {
         debug = Debug.getInstance("amTagLib");
     }
-    
+
     /** constructs a href tag */
     public DSAMEHrefTag() {
         super();
     }
-    
+
     /**
      * reset tag
      */
@@ -78,7 +76,7 @@ implements BodyTag {
         displayed = false;
         abortedException = null;
     }
-    
+
     /**
      * performs start tag
      *
@@ -88,70 +86,41 @@ implements BodyTag {
     public int doStartTag()
     throws JspException {
         reset();
-        
+
         try {
             if (fireBeginDisplayEvent()) {
-                
                 ViewBean viewBean = getParentViewBean();
                 AuthViewBeanBase dsameVB = (AuthViewBeanBase) viewBean;
                 String value = (String)viewBean.getDisplayFieldValue(getName());
-                /*if (debug.messageEnabled()) {
-                 *  debug.message("URL value is : " + value);
-                 *}
-                 */ 
-                buffer = new NonSyncStringBuffer("<a href=\"");
-                String pgEncoding =
-                (String) dsameVB.getDisplayFieldValue(
-                AuthViewBeanBase.PAGE_ENCODING);
-                
-                int paramIdx = value.indexOf('?');
-                if (paramIdx != -1) {
-                    buffer.append(value.substring(0,paramIdx+1));
-                    String qStr = value.substring(paramIdx+1);
-                    // parameter values followed by URL must be encoded
-                    if ((qStr != null) && qStr.length() != 0) {
-                        encodeValues(buffer,pgEncoding, qStr);
-                        String tmpStr = buffer.toString();
-                        if (!tmpStr.endsWith("&amp;") && !tmpStr.endsWith("?")){
-                            buffer.append("&amp;");
-                        }
-                    }
-                } else {
-                    buffer.append(value);
-                    buffer.append('?');
-                }
-                
+                String pgEncoding = (String) dsameVB.getDisplayFieldValue(AuthViewBeanBase.PAGE_ENCODING);
+
+                NonSyncStringBuffer url = new NonSyncStringBuffer(value);
+                url.append(value.contains("?") ? '&' : '?');
+                url.append(AuthViewBeanBase.PAGE_ENCODING).append('=').append(pgEncoding);
+                // Append the Query String NVP's that might have been added as JSP tag attributes
+                appendQueryParams(url);
                 if (getAnchor()!=null) {
-                    buffer.append("#").append(getAnchor());
+                    url.append("#").append(getAnchor());
                 }
-                buffer.append(AuthViewBeanBase.PAGE_ENCODING)
-                .append('=')
-                .append(dsameVB.getDisplayFieldValue(
-                AuthViewBeanBase.PAGE_ENCODING));
-                // buffer.append ("&val="+getName()+"&val2="+value);
-                // Append the Query String NVP's that might have been added
-                // as JSP tag attributes
-                appendQueryParams(buffer);
-                
-                buffer.append("\"");
-                
+                buffer.append(ESAPI.encoder().encodeForHTMLAttribute(url.toString())).append('\"');
+
                 if (getTarget() != null) {
                     buffer.append(" target=\"")
                     .append(getTarget())
                     .append("\"");
                 }
-                
+
                 if (getTitle() != null) {
                     buffer.append(" title=\"")
                     .append(getTitle())
                     .append("\"");
                 }
-                
+
                 // Append the additional "standard" attributes
                 appendCommonHtmlAttributes(buffer);
                 appendJavaScriptAttributes(buffer);
                 appendStyleAttributes(buffer);
-                
+
                 buffer.append(">");
                 displayed = true;
             } else {
@@ -168,65 +137,21 @@ implements BodyTag {
             abortedException = e;
             return SKIP_BODY;
         }
-        
+
         if (displayed) {
             return EVAL_BODY_BUFFERED;
         } else {
             return SKIP_BODY;
         }
     }
-    
-    private void encodeValues( NonSyncStringBuffer buffer, String encoding,
-    String qStr) {
-        int idx = 0;
-        int lastProcessedIdx = 0;
-        char[] carr = null ;
-        try {
-            if (debug.messageEnabled()) {
-                debug.message("in encodeValue");
-                debug.message("buffer is : " + buffer);
-                debug.message("encoding.. : " + encoding);
-                //debug.message("query string : " + qStr);
-            }
-            // If the encoded value has gx_charset , we need to remove it Since 
-            // it may not have the correct value.
-            if (qStr != null) {
-                StringTokenizer st = new StringTokenizer(qStr,"&");
-                while (st.hasMoreTokens()) {
-                    String keyValuePair = (String)st.nextToken();
-                    int valueIdx = keyValuePair.indexOf('=');
-                    if (valueIdx != -1) {
-                        String key = keyValuePair.substring(0,valueIdx);
-                        if (!key.equals("gx_charset")) {
-                            String keyValue =keyValuePair.substring(valueIdx+1);
-                            String hrefName = key;
-                            buffer.append(hrefName).append("=");
-                            buffer.append(keyValue);
-                            buffer.append("&amp;");
-                        }  // end if
-                    } // end if (valueIdx != -1)
-                }  // end while
-            }
-            /*if (debug.messageEnabled()) {
-             *  debug.message("Final buffer is : " + buffer);
-             *}
-             */
-        } catch (ArrayIndexOutOfBoundsException ex) {
-            return;
-        } catch (Exception e) {
-            debug.error("Error : " +e.getMessage());
-            return;
-        }
-    }
-    
-    
+
     /**
      * does nothing here
      */
     public void doInitBody()
     throws JspException {
     }
-    
+
     /**
      * does nothing here
      */
@@ -234,7 +159,7 @@ implements BodyTag {
     throws JspException {
         return SKIP_BODY;
     }
-    
+
     /**
      * does end tag
      *
@@ -246,14 +171,14 @@ implements BodyTag {
             // If the display was aborted during the beginning of the process by
             // a CompleteRequestException, we retrhow that exception here,
             // because this is the only location we can safely return SKIP_PAGE
-            
+
             if (abortedException != null) {
                 throw abortedException;
             }
-            
+
             if (displayed) {
                 BodyContent bodyContent = getBodyContent();
-                
+
                 if (bodyContent != null) {
                     // Assume that "true" is default for trim
                     if (getTrim() == null || isTrue(getTrim())) {
@@ -262,7 +187,7 @@ implements BodyTag {
                         buffer.append(bodyContent.getString());
                     }
                 }
-                
+
                 buffer.append("</a>");
                 writeOutput(fireEndDisplayEvent(buffer.toString()));
             }
@@ -273,7 +198,7 @@ implements BodyTag {
             // The problem is that some containers catch this exception in
             // their JSP rendering subsystem, and so we need to tunnel it
             // through for the developer.
-            
+
             // Mark the JSP rendering as cancelled.  The calling
             // ViewBean.foward() or ViewBean.include() methods
             // should pick this up and then throw a complete request
@@ -282,18 +207,18 @@ implements BodyTag {
             ViewBeanBase.DISPLAY_EVENT_COMPLETED_REQUEST_ATTRIBUTE_NAME, e);
             return SKIP_PAGE;
         }
-        
+
         return EVAL_PAGE;
     }
-    
+
     public BodyContent getBodyContent() {
         return bodyContent;
     }
-    
+
     public void setBodyContent(BodyContent value) {
         bodyContent = value;
     }
-    
+
     /**
      * Appends the Query String name/value pairs (NVP) that have been supplied
      * via the JSP tag attribute "queryParams".
@@ -307,16 +232,16 @@ implements BodyTag {
     protected void appendQueryParams(NonSyncStringBuffer buffer)
     throws JspException {
         String nvPairs = getQueryParams();
-        
+
         if ((nvPairs != null) && (nvPairs.length() > 0)) {
             buffer.append("&amp;");
             buffer.append(nvPairs);
         }
     }
-    
-    
-    
-    
+
+
+
+
     /**
      * takes an arbitrarily deep namePath (e.g. "Page1.Repeated2.Foo") which
      * describes the containment relationship of a given display field to
@@ -332,7 +257,7 @@ implements BodyTag {
         // We can assume that the source class must be the parent view bean !!!
         // The same is not true for the target though.
         ContainerView parentView=getParentViewBean();
-        
+
         /*
          * Descend through view hierarchy until you get to the direct parent
          * field the direct parent may be a tiled view, arbitrarily nested
@@ -341,46 +266,46 @@ implements BodyTag {
         for (int j = 1; j < namePath.length-1; j++) {
             parentView = (ContainerView)parentView.getChild(namePath[j]);
         }
-        
+
         return (DisplayField) parentView.getChild(namePath[namePath.length-1]);
     }
-    
+
     public String getTarget() {
         return (String)getValue("target");
     }
-    
+
     public void setTarget(String value) {
         setValue("target",value);
     }
-    
+
     public String getTitle() {
         return (String)getValue("title");
     }
-    
+
     public void setTitle(String value) {
         setValue("title",value);
     }
-    
+
     public String getAnchor() {
         return (String)getValue("anchor");
     }
-    
+
     public void setAnchor(String value) {
         setValue("anchor",value);
     }
-    
+
     public String getQueryParams() {
         return (String)getValue("queryParams");
     }
-    
+
     public void setQueryParams(String value) {
         setValue("queryParams",value);
     }
-    
+
     public String getTrim() {
         return (String)getValue("trim");
     }
-    
+
     public void setTrim(String value) {
         setValue("trim",value);
     }
