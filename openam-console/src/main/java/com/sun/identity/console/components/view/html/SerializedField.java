@@ -27,11 +27,14 @@
  */
 
 package com.sun.identity.console.components.view.html;
+
 import com.iplanet.jato.model.Model;
 import com.iplanet.jato.util.Encoder;
 import com.iplanet.jato.view.ContainerView;
 import com.iplanet.jato.view.View;
 import com.iplanet.jato.view.html.HtmlDisplayFieldBase;
+import org.forgerock.openam.utils.IOUtils;
+
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -50,8 +53,8 @@ public class SerializedField extends HtmlDisplayFieldBase
      * and the field's name as its bound name
      *
      * @param parent view of this object
-     * @param name and model bound name. 
-     * @param value - serializable object 
+     * @param name and model bound name.
+     * @param value - serializable object
      */
     public SerializedField(
         ContainerView parent,
@@ -68,7 +71,7 @@ public class SerializedField extends HtmlDisplayFieldBase
      *
      * @param parent view of this object
      * @param model to which this <code>DisplayField</code> is bound
-     * @param name and model bound name. 
+     * @param name and model bound name.
      * @param value - serializable object
      */
     public SerializedField(
@@ -87,15 +90,15 @@ public class SerializedField extends HtmlDisplayFieldBase
      *
      * @param parent view of this object
      * @param model to which this <code>DisplayField</code> is bound
-     * @param name  this view's name. 
-     * @param boundName  name of the model field to which this 
+     * @param name  this view's name.
+     * @param boundName  name of the model field to which this
      *        <code>DisplayField</code> is bound
      * @param value - serializable object
      */
     public SerializedField(
         View parent,
         Model model,
-        String name, 
+        String name,
         String boundName,
         Serializable value
     ) {
@@ -108,21 +111,22 @@ public class SerializedField extends HtmlDisplayFieldBase
      *
      * @return serializable object
      */
-    public Object getSerializedObj() {
-        Object obj = null;
-        String serializedStr = (String)super.getValue();
+    public <T> T getSerializedObj() {
+
+        T result = null;
+        final String serializedStr = (String) super.getValue();
 
         if (serializedStr != null) {
             try {
-                obj = Encoder.deserialize(Encoder.decode(serializedStr), true);
+                result = IOUtils.deserialise(Encoder.decode(serializedStr), true);
             } catch (IOException ioe) {
-                obj = null;
+                result = null;
             } catch (ClassNotFoundException cnfe) {
-                obj = null;
+                result = null;
             }
         }
 
-        return obj;
+        return result;
     }
 
     /**

@@ -1,8 +1,8 @@
 <!--
    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
-  
+
    Copyright (c) 2007 Sun Microsystems Inc. All Rights Reserved
-  
+
    The contents of this file are subject to the terms
    of the Common Development and Distribution License
    (the License). You may not use this file except in
@@ -178,7 +178,7 @@
             tagclass="com.sun.web.ui.taglib.html.CCTextFieldTag">
             <attribute name="size" value="50" />
         </cc>
-        <fieldhelp name="helpcsccom-sun-identity-saml-zmlsig-certalias" 
+        <fieldhelp name="helpcsccom-sun-identity-saml-zmlsig-certalias"
             defaultValue="amconfig.help.com.sun.identity.saml.xmlsig.certalias" />
     </property>
     </section>
@@ -244,7 +244,7 @@
             tagclass="com.sun.web.ui.taglib.html.CCTextFieldTag">
             <attribute name="size" value="50" />
         </cc>
-        <fieldhelp name="helpcsccom-sun-identity-crl-cache-directory-searchattr" 
+        <fieldhelp name="helpcsccom-sun-identity-crl-cache-directory-searchattr"
             defaultValue="amconfig.help.com.sun.identity.crl.cache.directory.searchattr" />
     </property>
     </section>
@@ -287,5 +287,20 @@
             <attribute name="label" value="amconfig.choice.yes" />
         </cc>
     </property>
+    </section>
+    <section name="secDeserialisationWhitelist" defaultValue="amconfig.header.deserialisationwhitelist" >
+        <property>
+            <label name="deserialisationwhitelistLabel"
+                defaultValue="amconfig.openam.deserialisation.classes.whitelist"
+                labelFor="cscopenam.deserialisation.classes.whitelist" />
+            <cc name="cscopenam.deserialisation.classes.whitelist"
+                tagclass="com.sun.web.ui.taglib.editablelist.CCEditableListTag">
+                <attribute name="name" value="list" />
+                <attribute name="listboxLabel" value="label.current.value" />
+                <attribute name="textboxLabel" value="label.new.value" />
+            </cc>
+            <fieldhelp name="helpcsccscopenam.deserialisation.classes.whitelist"
+                       defaultValue="amconfig.help.openam.deserialisation.classes.whitelist" />
+        </property>
     </section>
 </propertysheet>

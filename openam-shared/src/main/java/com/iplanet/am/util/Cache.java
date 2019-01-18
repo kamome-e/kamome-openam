@@ -31,8 +31,6 @@
  */
 package com.iplanet.am.util;
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.Collection;
@@ -57,23 +55,23 @@ import java.util.Set;
  * concept. The synchronization functionality that exists in a Hashtable has
  * been removed to improve performance.
  * <p>
- * 
+ *
  * The class <code>Cache</code> provides the functionality to cache objects
  * based on their usage. The maximum size of the cache can be set using the
  * constructor. If the maximum size is not set the default cache size for
  * <code>Cache</code> will be obtained from the config file <code>???</code>
- * file, defined using the key <code>???</code>. The 
+ * file, defined using the key <code>???</code>. The
  * object that needs to be cached can be supplied to the instance of this class
  * using the put method. The object can be obtained by invoking the get method
- * on the instance. Each object that is cached is tracked based on its usage. 
- * If a new object needs to added to the cache and the maximum size limit of 
+ * on the instance. Each object that is cached is tracked based on its usage.
+ * If a new object needs to added to the cache and the maximum size limit of
  * the cache is reached, then the least recently used object is replaced.
  *
- * This class implements a Cache, which maps keys to values. Any 
+ * This class implements a Cache, which maps keys to values. Any
  * non-<code>null</code> object can be used as a key or as a value. <p>
  *
- * To successfully store and retrieve objects from a Cache, the 
- * objects used as keys must implement the <code>hashCode</code> 
+ * To successfully store and retrieve objects from a Cache, the
+ * objects used as keys must implement the <code>hashCode</code>
  * method and the <code>equals</code> method. <p>
  *
  * An instance of <code>Cache</code> has two parameters that affect its
@@ -95,18 +93,18 @@ import java.util.Set;
  *
  * The capacity controls a tradeoff between wasted space and the
  * need for <code>rehash</code> operations, which are time-consuming.
- * No <code>rehash</code> operations will <i>ever</i> occur if the 
+ * No <code>rehash</code> operations will <i>ever</i> occur if the
  * capacity is greater than the maximum number of entries the
  * <tt>Cache</tt> will contain divided by its load factor.  However,
  * setting the capacity too high can waste space.<p>
  *
- * If many entries are to be made into a <code>Cache</code>, 
- * creating it with a sufficiently large capacity may allow the 
- * entries to be inserted more efficiently than letting it perform 
+ * If many entries are to be made into a <code>Cache</code>,
+ * creating it with a sufficiently large capacity may allow the
+ * entries to be inserted more efficiently than letting it perform
  * automatic rehashing as needed to grow the table. <p>
  *
- * This class has been retrofitted to implement Map, so that it becomes a 
- * part of Java's collection framework.  
+ * This class has been retrofitted to implement Map, so that it becomes a
+ * part of Java's collection framework.
  *
  * The Iterators returned by the iterator and listIterator methods
  * of the Collections returned by all of Cache's "collection view methods"
@@ -125,7 +123,7 @@ import java.util.Set;
  * @see            Map
  * @since JDK1.0
  */
-public class Cache extends Dictionary implements Map, java.io.Serializable {
+public class Cache extends Dictionary implements Map {
 
     // Default Cache size.
     private final static int DEFAULT_CACHE_SIZE = 10000;
@@ -154,14 +152,14 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
     /**
      * The table is rehashed when its size exceeds this threshold. (The value of
      * this field is (int)(capacity * loadFactor).)
-     * 
+     *
      * @serial
      */
     private int threshold;
 
     /**
      * The load factor for the Cache.
-     * 
+     *
      * @serial
      */
     private float loadFactor;
@@ -175,13 +173,10 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      */
     private transient int modCount = 0;
 
-    /** use serialVersionUID from JDK 1.0.2 for interoperability */
-    private static final long serialVersionUID = 1421746759512286392L;
-
     /**
      * Constructs a new, empty Cache with the specified capacity and the
      * specified load factor.
-     * 
+     *
      * @param capacity
      *            the capacity of the Cache.
      * @param loadFactor
@@ -211,7 +206,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
     /**
      * Constructs a new, empty Cache with the specified capacity and default
      * load factor, which is <tt>0.75</tt>.
-     * 
+     *
      * @param capacity
      *            the capacity of the Cache.
      * @exception IllegalArgumentException
@@ -236,7 +231,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
 
     /**
      * Returns the number of keys in this Cache.
-     * 
+     *
      * @return the number of keys in this Cache.
      */
     public int size() {
@@ -245,7 +240,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
 
     /**
      * Tests if this Cache maps no keys to values.
-     * 
+     *
      * @return <code>true</code> if this Cache maps no keys to values;
      *         <code>false</code> otherwise.
      */
@@ -255,7 +250,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
 
     /**
      * Returns an enumeration of the keys in this Cache.
-     * 
+     *
      * @return an enumeration of the keys in this Cache.
      * @see Enumeration
      * @see #elements()
@@ -269,7 +264,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
     /**
      * Returns an enumeration of the values in this Cache. Use the Enumeration
      * methods on the returned object to fetch the elements sequentially.
-     * 
+     *
      * @return an enumeration of the values in this Cache.
      * @see java.util.Enumeration
      * @see #keys()
@@ -284,10 +279,10 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * Tests if some key maps into the specified value in this Cache. This
      * operation is more expensive than the <code>containsKey</code> method.
      * <p>
-     * 
+     *
      * Note that this method is identical in functionality to containsValue,
      * (which is part of the Map interface in the PolicyCollections framework).
-     * 
+     *
      * @param value
      *            a value to search for.
      * @return <code>true</code> if and only if some key maps to the
@@ -318,10 +313,10 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
     /**
      * Returns true if this Cache maps one or more keys to this value.
      * <p>
-     * 
+     *
      * Note that this method is identical in functionality to contains (which
      * predates the Map interface).
-     * 
+     *
      * @param value
      *            value whose presence in this Cache is to be tested.
      * @see Map
@@ -333,7 +328,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
 
     /**
      * Tests if the specified object is a key in this Cache.
-     * 
+     *
      * @param key
      *            possible key.
      * @return <code>true</code> if and only if the specified object is a key
@@ -355,7 +350,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
 
     /**
      * Returns the value to which the specified key is mapped in this Cache.
-     * 
+     *
      * @param key
      *            a key in the Cache.
      * @return the value to which the key is mapped in this Cache;
@@ -411,11 +406,11 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * If the cache is full to its capacity, then the least recently used entry
      * in the cache will be replaced.
      * <p>
-     * 
-     * 
+     *
+     *
      * The value can be retrieved by calling the <code>get</code> method with
      * a key that is equal to the original key.
-     * 
+     *
      * @param key
      *            the Cache key.
      * @param value
@@ -494,7 +489,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
     /**
      * Removes the key (and its corresponding value) from this Cache. This
      * method does nothing if the key is not in the Cache.
-     * 
+     *
      * @param key
      *            the key that needs to be removed.
      * @return the value to which the key had been mapped in this Cache, or
@@ -527,7 +522,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * Copies all of the mappings from the specified Map to this Hashtable These
      * mappings will replace any mappings that this Hashtable had for any of the
      * keys currently in the specified Map.
-     * 
+     *
      * @since JDK1.2
      */
     public synchronized void putAll(Map t) {
@@ -560,7 +555,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * and element to strings.
      * <p>
      * Overrides to <tt>toString</tt> method of <tt>Object</tt>.
-     * 
+     *
      * @return a string representation of this Cache.
      */
     public synchronized String toString() {
@@ -603,7 +598,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * by the Cache, so changes to the Cache are reflected in the Set, and
      * vice-versa. The Set supports element removal (which removes the
      * corresponding entry from the Cache), but not element addition.
-     * 
+     *
      * @since JDK1.2
      */
     public Set keySet() {
@@ -640,7 +635,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * changes to the Cache are reflected in the Set, and vice-versa. The Set
      * supports element removal (which removes the corresponding entry from the
      * Cache), but not element addition.
-     * 
+     *
      * @see java.util.Map.Entry
      * @since JDK1.2
      */
@@ -679,8 +674,8 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
             int hash = key.hashCode();
             int index = (hash & 0x7FFFFFFF) % tab.length;
 
-            for (Entry e = tab[index], prev = null; e != null; 
-                                        prev = e, e = e.next) 
+            for (Entry e = tab[index], prev = null; e != null;
+                                        prev = e, e = e.next)
             {
                 if (e.hash == hash && e.equals(entry)) {
                     modCount++;
@@ -712,7 +707,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * in the Collection, and vice-versa. The Collection supports element
      * removal (which removes the corresponding entry from the Cache), but not
      * element addition.
-     * 
+     *
      * @since JDK1.2
      */
     public Collection values() {
@@ -744,7 +739,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
     /**
      * Compares the specified Object with this Map for equality, as per the
      * definition in the Map interface.
-     * 
+     *
      * @return true if the specified Object is equal to this Map.
      * @see Map#equals(Object)
      * @since JDK1.2
@@ -778,7 +773,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
     /**
      * Returns the hash code value for this Map as per the definition in the Map
      * interface.
-     * 
+     *
      * @see Map#hashCode()
      * @since JDK1.2
      */
@@ -788,66 +783,6 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
         while (i.hasNext())
             h += i.next().hashCode();
         return h;
-    }
-
-    /**
-     * Save the state of the Cache to a stream (i.e., serialize it).
-     * 
-     * @param s
-     *            object output stream instance.
-     * @throws IOException
-     *             if object cannot be written.
-     */
-    private synchronized void writeObject(java.io.ObjectOutputStream s)
-            throws IOException {
-        // Write out the length, threshold, loadfactor
-        s.defaultWriteObject();
-
-        // Write out length, count of elements and then the key/value objects
-        s.writeInt(table.length);
-        s.writeInt(count);
-        for (int index = table.length - 1; index >= 0; index--) {
-            Entry entry = table[index];
-
-            while (entry != null) {
-                s.writeObject(entry.key);
-                s.writeObject(entry.value);
-                entry = entry.next;
-            }
-        }
-    }
-
-    /**
-     * Reconstitute the Cache from a stream (i.e., deserialize it).
-     */
-    private synchronized void readObject(java.io.ObjectInputStream s)
-            throws IOException, ClassNotFoundException {
-        // Read in the length, threshold, and loadfactor
-        s.defaultReadObject();
-
-        // Read the original length of the array and number of elements
-        int origlength = s.readInt();
-        int elements = s.readInt();
-
-        // Compute new size with a bit of room 5% to grow but
-        // No larger than the original size. Make the length
-        // odd if it's large enough, this helps distribute the entries.
-        // Guard against the length ending up zero, that's not valid.
-        int length = (int) (elements * loadFactor) + (elements / 20) + 3;
-        if (length > elements && (length & 1) == 0)
-            length--;
-        if (origlength > 0 && length > origlength)
-            length = origlength;
-
-        table = new Entry[length];
-        count = 0;
-
-        // Read the number of elements and then all the key/value objects
-        for (; elements > 0; elements--) {
-            Object key = s.readObject();
-            Object value = s.readObject();
-            put(key, value);
-        }
     }
 
     /**
@@ -921,7 +856,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
         protected int length() {
             return (size);
         }
-        
+
         protected void clear() {
             header = new Entry(0, null, null, null);
         }
@@ -1090,8 +1025,8 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
                 Entry[] tab = Cache.this.table;
                 int index = (lastReturned.hash & 0x7FFFFFFF) % tab.length;
 
-                for (Entry e = tab[index], prev = null; e != null; 
-                                                prev = e, e = e.next) 
+                for (Entry e = tab[index], prev = null; e != null;
+                                                prev = e, e = e.next)
                 {
                     if (e == lastReturned) {
                         modCount++;
@@ -1110,9 +1045,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
         }
     }
 
-    static class SynchronizedCollection implements Collection, Serializable {
-        // use serialVersionUID from JDK 1.2.2 for interoperability
-        private static final long serialVersionUID = 3053995032091335093L;
+    static class SynchronizedCollection implements Collection {
 
         Collection c; // Backing Collection
 

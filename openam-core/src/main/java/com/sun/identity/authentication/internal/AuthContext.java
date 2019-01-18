@@ -31,11 +31,6 @@
  */
 package com.sun.identity.authentication.internal;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.security.Principal;
 import java.security.SecureRandom;
@@ -177,7 +172,7 @@ public final class AuthContext extends Object {
      * <code>AuthContext</code>. Caller would then use
      * <code>getRequirements()</code> and <code>submitRequirements()</code>
      * to pass the credentials needed for authentication by the plugin modules.
-     * 
+     *
      * @throws LoginException
      *
      * @supported.api
@@ -192,7 +187,7 @@ public final class AuthContext extends Object {
      * of this class given the <code>java.security.Principal</code> the user
      * would like to be authenticated as, and the <code>password</code> for
      * the user.
-     * 
+     *
      * @param principal
      *            name of the user to be authenticated
      * @param password
@@ -222,7 +217,7 @@ public final class AuthContext extends Object {
      * access, the <code>java.security.Principal
      * </code>the user would like to
      * be authenticated as, and the <code>password</code> for the user.
-     * 
+     *
      * @param orgName
      *            name of the user's organization
      * @param principal
@@ -244,7 +239,7 @@ public final class AuthContext extends Object {
                     .getString("com.iplanet.auth.invalid-password")));
 
         AuthSubject subject = new AuthSubject();
-        
+
         if (orgName != null)
             organizationName = orgName;
         reset(subject);
@@ -437,7 +432,7 @@ public final class AuthContext extends Object {
      * Constructor to get an instance of this class
      * given the organization name <code>orgName</code>. The plug-in modules
      * would then query for the user name and related information.
-     * 
+     *
      * @param orgName organization name.
      * @throws LoginException
      *
@@ -447,38 +442,6 @@ public final class AuthContext extends Object {
         this(orgName, null);
         authDebug.message("Instantiated AuthContext with organization name: "
                 + orgName);
-    }
-
-    /**
-     * Constructor to re-create a limited instance of this class given the
-     * ByteArray, which was originally obtained using the
-     * <code>toByteArray()</code> method. Using this constructor, the only
-     * methods that will provide valid return values are
-     * <code>getSubject()</code>, <code>getLoginStatus()</code>,
-     * <code>getAuthPrincipal()</code>, and <code>getAuthPrincipals()</code>.
-     */
-    protected AuthContext(byte[] bArray) throws LoginException {
-        try {
-            ByteArrayInputStream bis = new ByteArrayInputStream(bArray);
-            ObjectInputStream bin = new ObjectInputStream(bis);
-
-            String readOrgName = (String) bin.readObject();
-            int readStatus = bin.readInt();
-            AuthSubject readSubject = (AuthSubject) bin.readObject();
-
-            this.organizationName = readOrgName;
-            reset(readSubject);
-            setLoginStatus(readStatus); // change status from starting
-        } catch (IOException e) {
-            authDebug.message("AuthContext::bArray constructor():IOException"
-                    + e);
-            throw (new LoginException(e.getMessage()));
-        } catch (ClassNotFoundException e) {
-            authDebug.message(
-                    "AuthContext::bArray constructor():ClassNotFoundException"
-                            + e);
-            throw (new LoginException(e.getMessage()));
-        }
     }
 
     /**
@@ -553,7 +516,7 @@ public final class AuthContext extends Object {
     /**
      * Method to start the login process. This method will
      * read the plug-ins configured for the application and initialize them.
-     * 
+     *
      * @throws LoginException
      *
      * @supported.api
@@ -590,7 +553,7 @@ public final class AuthContext extends Object {
     /**
      * Returns true if the login process requires more
      * information from the user to complete the authentication.
-     * 
+     *
      * @return true if the login process requires more information from the user
      *         to complete the authentication.
      *
@@ -611,7 +574,7 @@ public final class AuthContext extends Object {
      * requested by the authentication plug-ins, and these are usually displayed
      * to the user. The user then provides the requested information for it to
      * be authenticated.
-     * 
+     *
      * @return an array of <code>Callback</code> objects that must be
      *         populated by the user and returned back.
      *
@@ -661,7 +624,7 @@ public final class AuthContext extends Object {
      * objects to the authentication plug-in modules. Called after
      * <code>getInformationRequired</code> method and obtaining user's
      * response to these requests.
-     * 
+     *
      * @param info
      *            array of <code>Callback</code> objects.
      *
@@ -683,7 +646,7 @@ public final class AuthContext extends Object {
 
     /**
      * Logs the user out.
-     * 
+     *
      * @throws LoginException
      *
      * @supported.api
@@ -699,7 +662,7 @@ public final class AuthContext extends Object {
     /**
      * Returns login exception, if any, during the
      * authentication process. Typically set when the login fails.
-     * 
+     *
      * @return login exception.
      *
      * @supported.api
@@ -712,7 +675,7 @@ public final class AuthContext extends Object {
     /**
      * Returns the current state of the login process.
      * Possible states are listed above.
-     * 
+     *
      * @return the current state of the login process.
      *
      * @supported.api
@@ -735,7 +698,7 @@ public final class AuthContext extends Object {
      * Returns the (first) <code>AuthPrincipal</code> in
      * the <code>Subject</code>. Returns the first <code>Principal</code>,
      * if more than one exists.
-     * 
+     *
      * @return the (first) <code>AuthPrincipal</code> in the
      *         <code>Subject</code>.
      *
@@ -758,7 +721,7 @@ public final class AuthContext extends Object {
      * Method to get the (first) <code>AuthPrincipal</code> in the
      * <code>Subject</code>. Returns the first <code>Principal</code>, if
      * more than one exists.
-     * 
+     *
      * @deprecated Use getPrincipal() instead
      */
     public AuthPrincipal getAuthPrincipal() {
@@ -782,36 +745,9 @@ public final class AuthContext extends Object {
     }
 
     /**
-     * Method to retrieve a Byte array of serializable portions of the
-     * <code>AuthContext</code>.
-     */
-    protected byte[] toByteArray() {
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream bout = new ObjectOutputStream(bos);
-
-            bout.writeObject(((organizationName == null) ? " "
-                    : organizationName));
-            bout.writeInt(loginStatus);
-            bout.writeObject(loginContext.getSubject());
-            byte[] bytestuff = bos.toByteArray();
-            return (bytestuff);
-        } catch (IOException iox) {
-            if (authDebug.messageEnabled()) {
-                authDebug.message("AuthContext:toByteArray():IOException", iox);
-            }
-        } catch (Exception e) {
-            if (authDebug.messageEnabled()) {
-                authDebug.message("AuthContext:toByteArray():Exception", e);
-            }
-        }
-        return null;
-    }
-
-    /**
      * Method to get organization name that was set during
      * construction of this instance.
-     * 
+     *
      * @return organization name; <code>null</code> if it was not initialized
      *         during construction of this instance
      *
@@ -836,7 +772,7 @@ public final class AuthContext extends Object {
     /**
      * Method to get the Single-Sign-On (SSO) Token. This
      * token can be used as the authenticated token.
-     * 
+     *
      * @return single-sign-on token.
      * @throws InvalidAuthContextException
      *
@@ -903,10 +839,10 @@ public final class AuthContext extends Object {
             // Set AuthLevel
             token.setProperty("AuthLevel", Integer.toString(0));
 
-            //Set ContextId 
-            SecureRandom secureRandom = 
+            //Set ContextId
+            SecureRandom secureRandom =
                 SecureRandomManager.getSecureRandom();
-            String amCtxId = 
+            String amCtxId =
                 Long.toHexString(secureRandom.nextLong());
             token.setProperty(Constants.AM_CTX_ID, amCtxId);
 

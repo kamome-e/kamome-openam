@@ -32,14 +32,13 @@
 
 package com.sun.identity.session.util;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import com.sun.identity.shared.encode.Base64;
 import com.iplanet.sso.SSOToken;
 import com.iplanet.sso.SSOTokenManager;
+import org.forgerock.openam.utils.IOUtils;
 
 /**
  * Utility to attach the context for token restriction checking to the current
@@ -59,7 +58,7 @@ public class RestrictedTokenContext {
 
     /**
      * Returns the current context of the running thread
-     * 
+     *
      * @return object containing the current context
      */
     public static Object getCurrent() {
@@ -70,7 +69,7 @@ public class RestrictedTokenContext {
      * Performs an action while temporary replacing the current token
      * restriction checking context associated with the running thread After
      * returning from action run() method original context is restored
-     * 
+     *
      * @param context
      *            context to be used with the action
      * @param action
@@ -91,7 +90,7 @@ public class RestrictedTokenContext {
 
     /**
      * Serialize the current context to a string
-     * 
+     *
      * @param context
      *            to be serialized
      * @return string containing the serialized object
@@ -114,7 +113,7 @@ public class RestrictedTokenContext {
     /**
      * Deserialize the context from the string created by previous call to
      * marshal()
-     * 
+     *
      * @param data
      *            string containing serialized context
      * @return deserialized context object
@@ -126,10 +125,7 @@ public class RestrictedTokenContext {
                     data.substring(TOKEN_PREFIX.length()));
         } else if (data.startsWith(OBJECT_PREFIX)) {
             // perform general Java deserialization
-            ObjectInputStream is = new ObjectInputStream(
-                    new ByteArrayInputStream(Base64.decode(data
-                            .substring(OBJECT_PREFIX.length()))));
-            return is.readObject();
+            return IOUtils.deserialise(Base64.decode(data.substring(OBJECT_PREFIX.length())), false);
         } else {
             throw new IllegalArgumentException("Bad context value:" + data);
         }

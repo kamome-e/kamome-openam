@@ -210,7 +210,7 @@ public class JSONSerialisationTest {
                 long start = System.currentTimeMillis();
                 for (int ii = 0; ii < iterations; ii++) {
                     try {
-                        SessionUtils.encode(generateSession());
+//                        SessionUtils.encode(generateSession());
                     } catch (Exception e) {
                         throw new IllegalStateException(e);
                     }

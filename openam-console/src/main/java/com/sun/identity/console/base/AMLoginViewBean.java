@@ -29,16 +29,15 @@
 package com.sun.identity.console.base;
 
 import com.iplanet.jato.view.View;
-import com.iplanet.jato.view.ViewBeanBase;
 import com.iplanet.jato.view.event.DisplayEvent;
 import com.iplanet.jato.view.html.StaticTextField;
+import org.forgerock.openam.console.base.ConsoleViewBeanBase;
 
 /**
  * This view bean takes a login URL and make sure that login page occupies the
  * entire browser.
  */
-public class AMLoginViewBean
-    extends ViewBeanBase
+public class AMLoginViewBean extends ConsoleViewBeanBase
 {
     /** page name of view bean */
     public static final String PAGE_NAME = "AMLogin";
@@ -46,7 +45,7 @@ public class AMLoginViewBean
     /**
      * Default display URL of this view bean
      */
-    public static final String DEFAULT_DISPLAY_URL 
+    public static final String DEFAULT_DISPLAY_URL
         = "/console/base/AMLogin.jsp";
 
     private String loginURL;
@@ -64,7 +63,7 @@ public class AMLoginViewBean
         setDefaultDisplayURL(DEFAULT_DISPLAY_URL);
     }
 
-    /** 
+    /**
      * Registers child components/views
      */
     protected void registerChildren() {

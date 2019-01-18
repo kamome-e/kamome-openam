@@ -1357,6 +1357,12 @@ public interface Constants {
     public static final String DEFAULT_LDAP_TIME_LIMIT = "org.forgerock.openam.ldap.default.time.limit";
 
     /**
+     * Property that defines a comma separated list of classes that are valid during deserialisation of Java classes
+     * in OpenAM, for example, in the JATO framework
+     */
+    public static final String DESERIALISATION_CLASSES_WHITELIST = "openam.deserialisation.classes.whitelist";
+
+    /**
      * Property string for deployment URL.
      */
     public static final String OAUTH2_DEPLOYMENT_URL = "org.openam.oauth2.deploymentURL";

@@ -24,9 +24,6 @@
  *
  * $Id: AMViewBeanBase.java,v 1.15 2009/10/19 18:17:33 asyhuang Exp $
  *
- */
-
-/*
  * Portions Copyrighted [2011] [ForgeRock AS]
  */
 package com.sun.identity.console.base;
@@ -40,7 +37,6 @@ import com.iplanet.jato.util.Encoder;
 import com.iplanet.jato.view.DisplayField;
 import com.iplanet.jato.view.View;
 import com.iplanet.jato.view.ViewBean;
-import com.iplanet.jato.view.ViewBeanBase;
 import com.iplanet.jato.view.event.ChildDisplayEvent;
 import com.iplanet.jato.view.event.DisplayEvent;
 import com.iplanet.jato.view.event.RequestInvocationEvent;
@@ -94,17 +90,19 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.forgerock.openam.console.base.ConsoleViewBeanBase;
+import org.forgerock.openam.utils.IOUtils;
 import org.owasp.esapi.ESAPI;
 
 /**
  * This is the base class for all view beans in Console.
  */
-public abstract class AMViewBeanBase
-    extends ViewBeanBase
+public abstract class AMViewBeanBase extends ConsoleViewBeanBase
 {
     public static Debug debug = Debug.getInstance(
         AMAdminConstants.CONSOLE_DEBUG_FILENAME);
-        
+
     private static final int MAX_PG_SESSION_SIZE = 1024-32;
     private static final String TXT_LOCATION = "txtLocation";
     private static final String TXT_RANDOM_STR = "txtRandomStr";
@@ -139,11 +137,11 @@ public abstract class AMViewBeanBase
             SystemProperties.get(Constants.AM_SERVER_PORT);
         System.setProperty("com.sun.web.console.secureport", port);
         System.setProperty("com.sun.web.console.unsecureport", port);
-        
+
         String protocol = (remote) ?
             SystemProperties.get(Constants.AM_CONSOLE_PROTOCOL) :
             SystemProperties.get(Constants.AM_SERVER_PROTOCOL);
-        CCPrivateConfiguration.setSecureHelp(protocol.equals("https")); 
+        CCPrivateConfiguration.setSecureHelp(protocol.equals("https"));
     }
 
     /**
@@ -166,7 +164,7 @@ public abstract class AMViewBeanBase
         handlePageSessionThruURL(context);
         setRequestContentInitialize(context);
     }
-    
+
     protected void setRequestContentInitialize(RequestContext context) {
         initialize();
     }
@@ -235,8 +233,7 @@ public abstract class AMViewBeanBase
 
         if (pgSession != null) {
             try {
-                Map map = (Map) Encoder.deserialize(
-                    Encoder.decodeHttp64(pgSession), false);
+                Map map = IOUtils.deserialise(Encoder.decodeHttp64(pgSession), false);
 
                 if (map != null) {
                     for (Iterator i = map.keySet().iterator(); i.hasNext(); ) {
@@ -453,19 +450,19 @@ public abstract class AMViewBeanBase
     }
 
     /**
-     * Returns an option list object that contains options for a given 
+     * Returns an option list object that contains options for a given
      * collection of string.
      *
      * @param collection Collection of strings to be included in option list.
      * @param locale Locale defining how the entries should be sorted.
-     * @return a option list object that contains options for a given 
+     * @return a option list object that contains options for a given
      *        collection of string.
      */
     public static OptionList createOptionList(
         Collection collection,
         Locale locale
     ) {
-        return createOptionList(collection, locale, true); 
+        return createOptionList(collection, locale, true);
     }
 
     /**
@@ -478,7 +475,7 @@ public abstract class AMViewBeanBase
      */
     public OptionList createOptionList(Collection collection) {
         OptionList optionList = new OptionList();
-        
+
         if ((collection != null) && !collection.isEmpty()) {
             // first sort the entries in the collection
             collection = AMFormatUtils.sortItems(
@@ -489,7 +486,7 @@ public abstract class AMViewBeanBase
                 optionList.add(value, value);
             }
         }
-        
+
         return optionList;
     }
 
@@ -507,7 +504,7 @@ public abstract class AMViewBeanBase
         Collection collection,
         Locale locale,
         boolean bSort
-    ) {        
+    ) {
         OptionList optionList = new OptionList();
 
         if ((collection != null) && !collection.isEmpty()) {
@@ -516,12 +513,12 @@ public abstract class AMViewBeanBase
             }
             for (Iterator iter = collection.iterator(); iter.hasNext(); ) {
                   String value = (String)iter.next();
-                  optionList.add(value, value); 
+                  optionList.add(value, value);
             }
         }
-        return optionList; 
+        return optionList;
     }
-    
+
     /**
      * Returns a set of string from a option list items.
      *
@@ -581,7 +578,7 @@ public abstract class AMViewBeanBase
 
     private String encodePageSessionMap() {
         String encoded = "";
-                                                                                
+
         try {
             HashMap map = new HashMap(getPageSessionAttributes());
             encoded = Encoder.encodeHttp64(Encoder.serialize(map, false), 800);
@@ -811,18 +808,18 @@ public abstract class AMViewBeanBase
                 Map attributes = getPageSessionAttributes();
                 store.put(vbUID, attributes);
 
-                /* 
-                 * We are storing the SSOToken ID because it is needed to 
+                /*
+                 * We are storing the SSOToken ID because it is needed to
                  * retrieve the page session map later on. We cannot call
                  * getModel().getUserSSOToken() because the model may depend on
-                 * the page session map for initialization. This avoids getting 
+                 * the page session map for initialization. This avoids getting
                  * into a chicken or the egg problem.
-                 */                
+                 */
                 Map tmp = new HashMap(4);
                 tmp.put(PG_SESSION_ATTR_ID, vbUID);
                 tmp.put(PG_SESSION_SSO_ID, ssoTokenID);
                 super.setPageSessionAttributes(tmp);
-                
+
                 strAttr = super.getPageSessionAttributeString();
                 pageSessionInSessionStore = true;
             }
@@ -984,7 +981,7 @@ public abstract class AMViewBeanBase
         return req.getScheme() + "://" + req.getServerName() +
             ":" + req.getServerPort() + uri;
     }
-    
+
     public static String stringToHex(String str) {
         StringBuilder buff = new StringBuilder();
         str = str.replaceAll("\\\\u", "\\\\\\\\u");
@@ -994,7 +991,7 @@ public abstract class AMViewBeanBase
         }
         return buff.toString();
     }
-    
+
     public static String charToHex(char c) {
         StringBuilder buffer = new StringBuilder();
         if (c <= 0x7E) {
@@ -1009,7 +1006,7 @@ public abstract class AMViewBeanBase
         }
         return buffer.toString();
     }
-    
+
     public static String hexToString(String str) {
         StringBuilder buff = new StringBuilder();
         int idx = str.indexOf("\\u");

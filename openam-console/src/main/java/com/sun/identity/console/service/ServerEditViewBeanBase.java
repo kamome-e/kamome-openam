@@ -53,11 +53,14 @@ import com.sun.identity.shared.xml.XMLUtils;
 import com.sun.web.ui.model.CCNavNode;
 import com.sun.web.ui.model.CCPageTitleModel;
 import com.sun.web.ui.view.alert.CCAlert;
+import com.sun.web.ui.view.editablelist.CCEditableList;
 import com.sun.web.ui.view.html.CCCheckBox;
 import com.sun.web.ui.view.html.CCButton;
 import com.sun.web.ui.view.html.CCPassword;
 import com.sun.web.ui.view.pagetitle.CCPageTitle;
 import com.sun.web.ui.view.tabs.CCTabs;
+import org.apache.commons.lang.StringUtils;
+import org.forgerock.openam.utils.CollectionUtils;
 
 import java.security.AccessController;
 import java.text.MessageFormat;
@@ -83,7 +86,7 @@ public abstract class ServerEditViewBeanBase
     private static final String PROPERTY_ATTRIBUTE = "propertyAttributes";
 
     private static final String BTN_INHERIT = "btnInherit";
-    
+
     private CCPageTitleModel ptModel;
     private AMPropertySheetModel propertySheetModel;
     private Set allPropertyNames = new HashSet();
@@ -97,7 +100,7 @@ public abstract class ServerEditViewBeanBase
         super(name);
         setDefaultDisplayURL(url);
     }
-    
+
     protected void initialize() {
         if (!initialized) {
             String serverName = (String)getPageSessionAttribute(
@@ -166,7 +169,7 @@ public abstract class ServerEditViewBeanBase
                 e.getMessage());
         }
     }
-    
+
     private void setConfigProperties(String serverName, ServerSiteModel model)
         throws AMConsoleException {
         if (!submitCycle) {
@@ -183,6 +186,12 @@ public abstract class ServerEditViewBeanBase
                             propertyName);
                         String v = (val.equals(trueValue)) ? "true" : "false";
                         propertySheetModel.setValue(name, v);
+                    } else if (view instanceof CCEditableList) {
+                        CCEditableList list = (CCEditableList)view;
+                        list.resetStateData();
+                        // The list is stored as a comma delimited String
+                        list.getModel().setOptionList(CollectionUtils.asSet(val.split(",")));
+                        propertySheetModel.setValue(name, val);
                     } else {
                         propertySheetModel.setValue(name, XMLUtils.escapeSpecialCharacters(val));
                     }
@@ -195,7 +204,7 @@ public abstract class ServerEditViewBeanBase
         name = name.substring(3);
         return name.replaceAll("-", ".");
     }
-    
+
     private void createPageTitleModel() {
         ptModel = new CCPageTitleModel(
             getClass().getClassLoader().getResourceAsStream(
@@ -246,7 +255,7 @@ public abstract class ServerEditViewBeanBase
             Map attrValues = model.getServerConfiguration(serverName);
             Map defaultValues = model.getServerDefaults();
             Map textValues = new HashMap();
-            
+
             for (Iterator i = uiNames.iterator(); i.hasNext(); ) {
                 String uiName = (String)i.next();
                 String propertyName = getActualPropertyName(uiName);
@@ -258,7 +267,7 @@ public abstract class ServerEditViewBeanBase
                 }
                 allPropertyNames.add(uiName);
             }
-            
+
             if (!textValues.isEmpty()) {
                 xml = textifyXML(xml, uiNames, textValues);
             }
@@ -270,15 +279,15 @@ public abstract class ServerEditViewBeanBase
         // this is because default server configuration does not have
         // parent site.
         xml = removeParentSiteBlob(xml);
-        
+
         propertySheetModel = new AMPropertySheetModel(xml);
         propertySheetModel.clear();
     }
-    
+
     static Set getAllConfigUINames(String xml) {
         Set names = new HashSet();
         int start = xml.indexOf("<cc name=\"csc");
-        
+
         while (start != -1) {
             int end = xml.indexOf("\"", start +14);
             names.add(xml.substring(start+10, end));
@@ -286,7 +295,7 @@ public abstract class ServerEditViewBeanBase
         }
         return names;
     }
-    
+
     private String textifyXML(String xml, Set names, Map values) {
         for (Iterator i = names.iterator(); i.hasNext(); ) {
             String name = (String)i.next();
@@ -331,12 +340,20 @@ public abstract class ServerEditViewBeanBase
 
     protected Map<String, String> getAttributeValues() {
         Map<String, String> map = new HashMap<String, String>();
-        for (Iterator i = activePropertyNames.iterator(); i.hasNext(); ) {
-            String uiName = (String)i.next();
-            String value = (String)getDisplayFieldValue(uiName);
+        for (String uiName : activePropertyNames) {
+            View view = getChild(uiName);
+            String value;
+            if (view instanceof CCEditableList) {
+                CCEditableList list = (CCEditableList)view;
+                list.restoreStateData();
+                // Create a comma delimited String from the items in the OptionList for storage.
+                value = StringUtils.join(getValues(list.getModel().getOptionList()), ",");
+            } else {
+                value = (String)getDisplayFieldValue(uiName);
+            }
+
             String propertyName = getActualPropertyName(uiName);
 
-            View view = getChild(uiName);
             if (view instanceof CCCheckBox) {
                 value = (value.equals("true")) ?
                     ServerPropertyValidator.getTrueValue(propertyName) :
@@ -357,7 +374,7 @@ public abstract class ServerEditViewBeanBase
         }
         return map;
     }
-   
+
     /**
      * Handles reset request.
      *
@@ -376,25 +393,25 @@ public abstract class ServerEditViewBeanBase
         throws ModelControlException {
         returnToHomePage();
     }
-    
-    
+
+
     public void handleBtnInheritRequest(RequestInvocationEvent event)
         throws ModelControlException {
         ServerConfigInheritViewBean vb =(ServerConfigInheritViewBean)
             getViewBean(ServerConfigInheritViewBean.class);
         vb.setPageSessionAttribute(
-            ServerConfigInheritViewBean.PG_ATTR_CONFIG_PAGE, 
+            ServerConfigInheritViewBean.PG_ATTR_CONFIG_PAGE,
             getClass().getName());
         vb.setPageSessionAttribute(
-            ServerConfigInheritViewBean.PG_ATTR_PROPERTY_NAMES, 
+            ServerConfigInheritViewBean.PG_ATTR_PROPERTY_NAMES,
             (HashSet)allPropertyNames);
         unlockPageTrailForSwapping();
         passPgSessionMap(vb);
         vb.forwardTo(getRequestContext());
     }
- 
+
     /**
-     * Handles tab selected event. 
+     * Handles tab selected event.
      *
      * @param event Request Invocation Event.
      * @param nodeID Selected Node ID.
@@ -422,7 +439,7 @@ public abstract class ServerEditViewBeanBase
         passPgSessionMap(vb);
         vb.forwardTo(getRequestContext());
     }
-    
+
     protected String getBreadCrumbDisplayName() {
         return "breadcrumbs.editserver";
     }
@@ -430,7 +447,7 @@ public abstract class ServerEditViewBeanBase
     protected boolean startPageTrail() {
         return false;
     }
-    
+
     protected String getBackButtonLabel() {
         return getBackButtonLabel("page.title.serversite.config");
     }
