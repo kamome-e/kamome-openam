@@ -28,10 +28,15 @@
 package com.sun.identity.console.version;
 
 import javax.servlet.http.HttpServletRequest;
+
+import com.sun.identity.console.base.AMViewBeanBase;
+import com.sun.identity.console.base.model.AMAdminConstants;
+import com.sun.identity.saml2.idpdiscovery.Debug;
 import org.owasp.esapi.ESAPI;
 
-public class VersionViewBean extends 
-    com.sun.web.ui.servlet.version.VersionViewBean {
+public class VersionViewBean extends com.sun.web.ui.servlet.version.VersionViewBean {
+
+    public static Debug debug = Debug.getInstance(AMAdminConstants.CONSOLE_DEBUG_FILENAME);
 
     public VersionViewBean() {
         super();
@@ -60,9 +65,14 @@ public class VersionViewBean extends
         if (!productImage.startsWith("../")) {
             return "";
         }
+
+        if (!ESAPI.validator().isValidInput("productImage", productImage, "HTTPURI", 1024, true)) {
+            debug.error("VersionViewBean.validateProductImage Parameters 'productImage' is not valid: " + productImage);
+            return "";
+        }
+
         return productImage;
     }
-
 
     public static String getCurrentURL(HttpServletRequest httpRequest) {
         return httpRequest.getScheme() + "://" +

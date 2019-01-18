@@ -3,7 +3,7 @@
  *
  * Copyright © 2011-2015 ForgeRock AS.
  * Copyright 2011 Cybernetica AS.
- * 
+ *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
  * (the License). You may not use this file except in
@@ -34,7 +34,7 @@ import static org.forgerock.openam.authentication.modules.oauth2.OAuthParam.*;
 
 
 /*
- * OAuth module specific Get2Post gateway. 
+ * OAuth module specific Get2Post gateway.
  * In some conditions OpenAM would prefer POST method over GET.
  * OAuthProxy is more like workaround over some specific scenarios,
  * that did not work. OAuthProxy may not be needed with future
@@ -48,24 +48,24 @@ public class OAuthProxy  {
 
             OAuthUtil.debugMessage("toPostForm: started");
 
- 
+
         String action = OAuthUtil.findCookie(req, COOKIE_ORIG_URL);
-        
+
         if (OAuthUtil.isEmpty(action)) {
             return getError("Request not valid !");
         }
 
         Map<String, String[]> params = req.getParameterMap();
-        
+
         if (!params.keySet().contains(PARAM_CODE)
                 && !params.keySet().contains(PARAM_ACTIVATION)) {
             OAuthUtil.debugError("OAuthProxy.toPostForm: Parameters " + PARAM_CODE
                     + " or " + PARAM_ACTIVATION + " were not present in the request");
             return getError("Request not valid, perhaps a permission problem");
         }
-        
+
         StringBuilder html = new StringBuilder();
-        
+
         try {
             String code = req.getParameter(PARAM_CODE);
             if (code != null && !OAuthUtil.isEmpty(code)) {
@@ -83,6 +83,8 @@ public class OAuthProxy  {
             } else {
                 action += "?" + req.getQueryString();
             }
+
+            action = ESAPI.encoder().encodeForHTMLAttribute(action);
 
             String onLoad = "document.postform.submit()";
 
@@ -102,11 +104,11 @@ public class OAuthProxy  {
                     return getError("Request not valid");
                 }
             }
-            
+
         } catch (Exception e) {
             return getError(e.getMessage());
         }
-        
+
         html.append("<noscript>\n<center>\n");
         html.append("<p>Your browser does not have JavaScript enabled, you must click"
                 + " the button below to continue</p>\n");
@@ -118,14 +120,14 @@ public class OAuthProxy  {
 
         return html.toString();
     }
-   
+
     private static StringBuilder input(String name, String value) {
         return new StringBuilder()
             .append("<input type=\"hidden\" name=\"")
             .append(name).append("\" value=\"")
             .append(value).append("\"/>\n");
     }
- 
+
     private static String getError(String message) {
         StringBuffer html = new StringBuffer();
         html.append("<html>\n").append("<body>\n")
