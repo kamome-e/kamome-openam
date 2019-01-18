@@ -1,4 +1,4 @@
-/**
+/*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
  * Copyright (c) 2006 Sun Microsystems Inc. All Rights Reserved
@@ -24,10 +24,7 @@
  *
  * $Id: SAMLPOSTProfileServlet.java,v 1.4 2009/06/12 22:21:39 mallas Exp $
  *
- */
-
-/**
- * Portions Copyrighted 2011-2014 ForgeRock AS
+ * Portions Copyrighted 2011-2019 ForgeRock AS
  */
 
 package com.sun.identity.saml.servlet;
@@ -69,11 +66,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.owasp.esapi.ESAPI;
+
 /**
  * This servlet is used to support SAML 1.x Web Browser/POST Profile.
  */
 public class SAMLPOSTProfileServlet extends HttpServlet {
-    
+
     /**
      * Initiates <code>SAML</code> web browser POST profile.
      * This method takes in a TARGET in the request, creates a SAMLResponse,
@@ -96,16 +95,16 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 SAMLUtils.bundle.getString("nullInputParameter"));
             return;
         }
-        
+
         SAMLUtils.checkHTTPContentLength(request);
-        
+
         // get Session
         Object token = getSession(request);
         if (token == null) {
             response.sendRedirect(SAMLUtils.getLoginRedirectURL(request));
             return;
         }
-        
+
         // obtain TARGET
         String target = request.getParameter(SAMLConstants.POST_TARGET_PARAM);
         if (target == null || target.length() == 0) {
@@ -118,7 +117,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 SAMLUtils.bundle.getString("missingTargetSite"));
             return;
         }
-        
+
         // Get the Destination site Entry
         // find the destSite POST URL, which is the Receipient
         SAMLServiceManager.SiteEntry destSite = getDestSite(target);
@@ -135,7 +134,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 SAMLUtils.bundle.getString("targetForbidden") + " " + target);
             return;
         }
-        
+
         Response samlResponse = null;
         try {
             String version = destSite.getVersion();
@@ -167,7 +166,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
             samlResponse.setMinorVersion(minorVersion);
         } catch (SessionException sse) {
             SAMLUtils.debug.error("SAMLPOSTProfileServlet.doGet: Exception "
-                + "Couldn't get SessionProvider:", sse); 
+                + "Couldn't get SessionProvider:", sse);
            SAMLUtils.sendError(request, response,
                 HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                 "couldNotCreateResponse",
@@ -190,7 +189,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 se.getMessage());
             return;
         }
-        
+
         // sign the samlResponse
         byte signedBytes[] = null;
         try {
@@ -210,7 +209,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 SAMLUtils.bundle.getString("errorSigningResponse"));
             return;
         }
-        
+
         // base64 encode the signed samlResponse
         String encodedResponse = null;
         try {
@@ -224,7 +223,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 SAMLUtils.bundle.getString("errorEncodeResponse"));
             return;
         }
-        
+
         if (LogUtils.isAccessLoggable(java.util.logging.Level.FINE)) {
             String[] data = {SAMLUtils.bundle.getString("redirectTo"),
                 target, destSiteUrl, new String(signedBytes, "UTF-8")};
@@ -237,20 +236,21 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 LogUtils.REDIRECT_TO_URL, data, token);
         }
         response.setContentType("text/html; charset=UTF-8");
-        PrintWriter out = response.getWriter();
-        out.println("<HTML>");
-        out.println("<BODY Onload=\"document.forms[0].submit()\">");
-        out.println("<FORM METHOD=\"POST\" ACTION=\"" + destSiteUrl + "\">");
-        out.println("<INPUT TYPE=\"HIDDEN\" NAME=\"" +
-        SAMLConstants.POST_SAML_RESPONSE_PARAM + "\" ");
-        out.println("VALUE=\"" + encodedResponse + "\">");
-        out.println("<INPUT TYPE=\"HIDDEN\" NAME=\"" +
-        SAMLConstants.POST_TARGET_PARAM + "\" VALUE=\"" + target
-        + "\"> </FORM>");
-        out.println("</BODY></HTML>");
-        out.close();
+        try (PrintWriter out = response.getWriter()) {
+            out.println("<HTML>");
+            out.println("<BODY Onload=\"document.forms[0].submit()\">");
+            out.println("<FORM METHOD=\"POST\" ACTION=\""
+                    + ESAPI.encoder().encodeForHTMLAttribute(destSiteUrl) + "\">");
+            out.println("<INPUT TYPE=\"HIDDEN\" NAME=\"" +
+                    SAMLConstants.POST_SAML_RESPONSE_PARAM + "\" ");
+            out.println("VALUE=\"" + ESAPI.encoder().encodeForHTMLAttribute(encodedResponse) + "\">");
+            out.println("<INPUT TYPE=\"HIDDEN\" NAME=\"" +
+                    SAMLConstants.POST_TARGET_PARAM + "\" VALUE=\"" + ESAPI.encoder().encodeForHTMLAttribute(target)
+                    + "\"> </FORM>");
+            out.println("</BODY></HTML>");
+        }
     }
-    
+
     private SAMLServiceManager.SiteEntry getDestSite(String target) {
         SAMLServiceManager.SiteEntry destSite = null;
         try {
@@ -286,7 +286,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                     }
                 }
             }
-            
+
             if (destSite == null) {
                 SAMLUtils.debug.error("SAMLPOSTProfileServlet.getDestSite: "
                 + " No destSite found from the target.");
@@ -296,13 +296,13 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
             SAMLUtils.debug.error("SAMLPOSTProfileServlet.getDestSite: ", e);
             return null;
         }
-        
+
         return destSite;
     }
-    
+
     private Object getSession(HttpServletRequest request) {
         Object token = null;
-        try { 
+        try {
             SessionProvider sessionProvider =
                 SessionManager.getProvider();
             token = sessionProvider.getSession(request);
@@ -323,7 +323,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
         }
         return token;
     }
-    
+
     /**
      * This method processes TARGET and SAMLResponse info from the request,
      * validates the response/assertion(s), then redirects user to the
@@ -337,7 +337,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response)
                        throws ServletException, IOException {
         response.setContentType("text/html; charset=UTF-8");
-        
+
         if ((request == null) || (response == null)) {
             String[] data = {SAMLUtils.bundle.getString("nullInputParameter")};
             LogUtils.error(java.util.logging.Level.INFO,
@@ -348,9 +348,9 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 SAMLUtils.bundle.getString("nullInputParameter"));
             return;
         }
-        
+
         SAMLUtils.checkHTTPContentLength(request);
-        
+
         // obtain TARGET
         String target = request.getParameter(SAMLConstants.POST_TARGET_PARAM);
         if (target == null || target.length() == 0) {
@@ -363,7 +363,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 SAMLUtils.bundle.getString("missingTargetSite"));
             return;
         }
-        
+
         // obtain SAMLResponse
         String samlResponse = request.getParameter(
         SAMLConstants.POST_SAML_RESPONSE_PARAM);
@@ -377,7 +377,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 SAMLUtils.bundle.getString("missingSAMLResponse"));
             return;
         }
-        
+
         // decode the Response
         byte raw[] = null;
         try {
@@ -391,7 +391,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 SAMLUtils.bundle.getString("errorDecodeResponse"));
             return;
         }
-        
+
         // Get Response back
         Response sResponse = SAMLUtils.getResponse(raw);
         if (sResponse == null) {
@@ -404,12 +404,12 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 SAMLUtils.bundle.getString("errorObtainResponse"));
             return;
         }
-        
+
         if (SAMLUtils.debug.messageEnabled()) {
             SAMLUtils.debug.message("SAMLPOSTProfileServlet.doPost: Received "
             + sResponse.toString());
         }
-        
+
         // verify that Response is correct
         StringBuffer requestUrl = request.getRequestURL();
         if (SAMLUtils.debug.messageEnabled()) {
@@ -429,7 +429,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 SAMLUtils.bundle.getString("invalidResponse"));
             return;
         }
-        
+
         Map attrMap = null;
         List assertions = null;
         javax.security.auth.Subject authSubject = null;
@@ -450,7 +450,7 @@ public class SAMLPOSTProfileServlet extends HttpServlet {
                 ex.getMessage());;
             return;
         }
-        
+
         if (LogUtils.isAccessLoggable(java.util.logging.Level.FINE)) {
             String[] data = {SAMLUtils.bundle.getString("accessGranted"),
                 new String(raw, "UTF-8")};

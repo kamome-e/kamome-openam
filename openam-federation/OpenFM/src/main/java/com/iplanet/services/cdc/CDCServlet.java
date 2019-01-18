@@ -93,6 +93,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.owasp.esapi.ESAPI;
 
 /**
  * The <code>CDCServlet</code> is the heart of the Cross Domain Single
@@ -134,7 +135,7 @@ public class CDCServlet extends HttpServlet {
             "true";
     private static final String FORBIDDEN_STR_MATCH = "#403x";
     private static final String SERVER_ERROR_STR_MATCH = "#500x";
-    
+
     private static final List adviceParams = new ArrayList();
     private static final Set<String> INVALID_SET = new HashSet<String>();
     private static final Set<String> VALID_LOGIN_URIS = new HashSet<String>();
@@ -154,7 +155,7 @@ public class CDCServlet extends HttpServlet {
     static {
         initConfig();
     }
-    
+
     private SSOTokenManager tokenManager;
     private SessionService sessionService;
     private SPValidator spValidator;
@@ -165,7 +166,7 @@ public class CDCServlet extends HttpServlet {
     private String deployDescriptor;
     private String responseID;
     private boolean uniqueCookieEnabled;
-    
+
     /**
      * Initiates the servlet.
      *
@@ -176,12 +177,12 @@ public class CDCServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         debug.message("CDCServlet Initializing...");
-        
+
         try {
             tokenManager = SSOTokenManager.getInstance();
             sessionService = SessionService.getSessionService();
             spValidator = new LdapSPValidator();
-            
+
             DNSAddress = SystemConfigurationUtil.getProperty(
                 Constants.AM_SERVER_HOST);
             IPAddress = InetAddress.getByName(DNSAddress).getHostAddress();
@@ -191,12 +192,12 @@ public class CDCServlet extends HttpServlet {
                 Constants.AUTH_UNIQUE_COOKIE_DOMAIN, "");
             deployDescriptor = SystemConfigurationUtil.getProperty(
                 Constants.AM_SERVICES_DEPLOYMENT_DESCRIPTOR, DEFAULT_DEPLOY_URI);
-            
+
             // Check if CDC needs to generate restricted SSO Tokens
             uniqueCookieEnabled = Boolean.valueOf(
                 SystemConfigurationUtil.getProperty(
                 Constants.IS_ENABLE_UNIQUE_COOKIE, "false")).booleanValue();
-            
+
             if (debug.messageEnabled()) {
                 debug.message("CDCServlet init params:" +
                     " Restricted Token Enabled = " + uniqueCookieEnabled +
@@ -211,9 +212,9 @@ public class CDCServlet extends HttpServlet {
             debug.error("CDCServlet.init", e);
             throw new ServletException(e.getMessage());
         }
-        
+
     }
-    
+
     /**
      * Handles the HTTP GET request.
      *
@@ -230,7 +231,7 @@ public class CDCServlet extends HttpServlet {
         throws ServletException, IOException {
         doGetPost(request, response);
     }
-    
+
     /**
      * Handles the HTTP POST request.
      *
@@ -247,7 +248,7 @@ public class CDCServlet extends HttpServlet {
         throws ServletException, IOException {
         doGetPost(request, response);
     }
-    
+
     /**
      * Redirects the user to the authentication module if he is not
      * authenticated; otherwise redirects him back to the original referrer.
@@ -295,7 +296,7 @@ public class CDCServlet extends HttpServlet {
          * 1. If no SSOToken, forward to authentication
          * 2. If SSOToken is valid construct AuthN response and return
          */
-        
+
         /*
          * Check for a valid SSOToken in the request. If it is not found or
          * it is invalid, redirect the user for authentication URL.
@@ -320,12 +321,12 @@ public class CDCServlet extends HttpServlet {
                         if (!domains.isEmpty()) {
                             for (Iterator it = domains.iterator(); it.hasNext(); ) {
                                 String domain = (String)it.next();
-                                Cookie cookie = CookieUtils.newCookie(cookieName, 
+                                Cookie cookie = CookieUtils.newCookie(cookieName,
                                         cookieValue,"/", domain);
                                 CookieUtils.addCookieToResponse(response, cookie);
                             }
                         } else {
-                            Cookie cookie = CookieUtils.newCookie(cookieName, 
+                            Cookie cookie = CookieUtils.newCookie(cookieName,
                                     cookieValue,"/", null);
                             CookieUtils.addCookieToResponse(response, cookie);
                         }
@@ -340,7 +341,7 @@ public class CDCServlet extends HttpServlet {
             redirectWithAuthNResponse(request, response, token);
         }
     }
-    
+
     /**
      * Constructs the Liberty AuthNResponse with Restricted SSOToken
      * and redirects the user to the requested resouce
@@ -363,13 +364,13 @@ public class CDCServlet extends HttpServlet {
             try {
                 String inResponseTo = request.getParameter(REQUEST_ID);
                 String spDescriptor = request.getParameter(PROVIDER_ID);
-                
+
                 String resTokenID = null;
                 /**
                  * validateAndGetRestriction throws an exception if an agent
                  * profile with provider id and goto url is not present
                  */
-                TokenRestriction tokenRes = 
+                TokenRestriction tokenRes =
                     spValidator.validateAndGetRestriction(
                             FSAuthnRequest.parseURLEncodedRequest(request),
                             gotoURL);
@@ -379,12 +380,12 @@ public class CDCServlet extends HttpServlet {
                 } else {
                     resTokenID = token.getTokenID().toString();
                 }
-                
+
                 FSAssertion assertion = createAssertion(spDescriptor,
                     SELF_PROVIDER_ID,  resTokenID, token.getAuthType(),
                     token.getProperty("authInstant"),
                     token.getPrincipal().getName(), inResponseTo);
-                
+
                 String relayState = request.getParameter(RELAY_STATE);
                 Status status = new Status(
                     new StatusCode(IFSConstants.STATUS_CODE_SUCCESS));
@@ -412,7 +413,7 @@ public class CDCServlet extends HttpServlet {
             }
         }
     }
-    
+
     private String getRedirectURL(
         HttpServletRequest request,
         HttpServletResponse response
@@ -422,7 +423,7 @@ public class CDCServlet extends HttpServlet {
         if (gotoURL == null || (gotoURL.length() == 0)) {
             gotoURL = request.getParameter(TARGET_PARAMETER);
         }
-        
+
         if (gotoURL == null || (gotoURL.length() == 0)) {
             // this is unlikely to happen in a normal execution.
             debug.error("No GOTO or TARGET URL present in the Query !!");
@@ -435,7 +436,7 @@ public class CDCServlet extends HttpServlet {
             return gotoURL;
         }
     }
-    
+
     /**
      * Returns the parameters in the request as a HTTP URL string.
      * It returns all the parameters from the original request except
@@ -449,10 +450,10 @@ public class CDCServlet extends HttpServlet {
      */
     private String getParameterString(HttpServletRequest request) {
         StringBuilder parameterString = new StringBuilder(1024);
-        
+
         for (Enumeration e = request.getParameterNames(); e.hasMoreElements();){
             String paramName = ((String)e.nextElement());
-            
+
             if (!paramName.equalsIgnoreCase(GOTO_PARAMETER) &&
                 !adviceParams.contains(paramName)
             ) {
@@ -469,7 +470,7 @@ public class CDCServlet extends HttpServlet {
         }
         return (parameterString.deleteCharAt(0).toString());
     }
-    
+
     /**
      * Returns policy advices
      */
@@ -479,11 +480,11 @@ public class CDCServlet extends HttpServlet {
         HttpServletResponse response
     ) {
         StringBuilder adviceList = null;
-        
+
         for (Enumeration e = request.getParameterNames(); e.hasMoreElements();){
             String paramName = (String)e.nextElement();
-            
-            // this is to workaround cross domain SSO scenario where user 
+
+            // this is to workaround cross domain SSO scenario where user
             // has logged in against openAM server, but not with PA in different domain
             // we will assume we don't need to re-authenticate user if it's not session
             // upgrade
@@ -530,10 +531,10 @@ public class CDCServlet extends HttpServlet {
             debug.message("CDCServlet.checkForPolicyAdvice: Advice List is : "
                 + adviceList);
         }
-        
+
         return (adviceList == null) ? null : adviceList.toString();
     }
-    
+
     /**
      * Redirects the HTTP request to the Authentication module.
      * It gets the authentication URL from <code>SystemProperties</code>.
@@ -550,7 +551,7 @@ public class CDCServlet extends HttpServlet {
         String policyAdviceList
     ) throws IOException {
         StringBuilder redirectURL = new StringBuilder(1024);
-        
+
         // Check if user has authenticated to another OpenAM
         // instance
         String authURL = null;
@@ -563,14 +564,14 @@ public class CDCServlet extends HttpServlet {
                     "got an authenticated URL: " + authURL);
             }
         }
-        
+
         try {
             if ((authURL == null) || (authURL.length() == 0) ||
                 (policyAdviceList != null) ||
                 !authURL.toLowerCase().startsWith("http")
             ) {
                 String finalURL = getRedirectURL(request, response);
-                
+
                 if (finalURL != null) {
                     StringBuilder gotoURL = new StringBuilder(1024);
                     gotoURL.append(deployDescriptor).append(CDCURI)
@@ -595,17 +596,17 @@ public class CDCServlet extends HttpServlet {
                     if (debug.messageEnabled()) {
                         debug.message("CDCServlet.redirectForAuthentication: redirect URL is set to = " + cdcUri);
                     }
-                    
+
                     if (cdcUri.indexOf(QUESTION_MARK) == -1) {
                         redirectURL.append(cdcUri).append(QUESTION_MARK);
                     } else {
                         redirectURL.append(cdcUri).append(AMP);
                     }
-                    
+
                     // check if this is resource based auth case
                     String resourceAuth = request.getParameter(
                         ISAuthConstants.IP_RESOURCE_ENV_PARAM);
-                    if ((resourceAuth != null) && 
+                    if ((resourceAuth != null) &&
                         resourceAuth.equalsIgnoreCase("true")) {
                         // this is the resource based authentication case,
                         // append resourceURL since original goto is modified
@@ -630,7 +631,7 @@ public class CDCServlet extends HttpServlet {
                     redirectURL.append(GOTO_PARAMETER)
                         .append(EQUALS)
                         .append(URLEncDec.encode(gotoURL.toString()));
-                    
+
                     if (debug.messageEnabled()) {
                         debug.message("CDCServlet.redirectForAuthentication:" +
                             " final forward URL=" + redirectURL.toString());
@@ -644,7 +645,7 @@ public class CDCServlet extends HttpServlet {
                 redirectURL.append(authURL).append(deployDescriptor)
                     .append(CDCURI).append(QUESTION_MARK)
                     .append(request.getQueryString());
-                
+
                 /*
                  * Reset the cookie value to null, to avoid continous loop
                  * when a load balancer is used.
@@ -655,7 +656,7 @@ public class CDCServlet extends HttpServlet {
                 }
                 response.sendRedirect(redirectURL.toString());
             }
-            
+
             if (debug.messageEnabled()) {
                 debug.message("Forwarding for authentication to: " +
                     redirectURL);
@@ -671,11 +672,11 @@ public class CDCServlet extends HttpServlet {
             showError(response);
         }
     }
-    
+
     private void showError(HttpServletResponse response) {
         showError(response, SERVER_ERROR_STR_MATCH);
     }
-    
+
     private void showError(HttpServletResponse response, String msg) {
         ServletOutputStream out = null;
         try {
@@ -695,7 +696,7 @@ public class CDCServlet extends HttpServlet {
             }
         }
     }
-    
+
     /**
      * Returns the SSOToken of the user. If user has not authenticated
      * re-directs the user to login page
@@ -727,9 +728,9 @@ public class CDCServlet extends HttpServlet {
         }
         return token;
     }
-    
+
     private FSAuthnResponse createAuthnResponse(
-        String providerID, 
+        String providerID,
         String responseID,
         String inResponseTo,
         Status status,
@@ -743,7 +744,7 @@ public class CDCServlet extends HttpServlet {
         response.setProviderId(providerID);
         return response;
     }
-    
+
     private FSAssertion createAssertion(
         String destID,
         String sourceID,
@@ -760,21 +761,21 @@ public class CDCServlet extends HttpServlet {
             debug.message("CDCServlet,createAssertion: null input");
             throw new FSException(FSUtils.bundle.getString("nullInput"));
         }
-        
+
         String securityDomain = sourceID;
         NameIdentifier idpHandle = new NameIdentifier(
              URLEncDec.encode(tokenID), sourceID);
         NameIdentifier spHandle = idpHandle;
         String authMethod = authType;
         Date authInstant = convertAuthInstanceToDate(strAuthInst);
-        
+
         if (debug.messageEnabled()) {
             debug.message("CDCServlet.createAssertion " +
                 "Creating Authentication Assertion for user with opaqueHandle ="
-                + spHandle.getName() + " and SecurityDomain = "  + 
+                + spHandle.getName() + " and SecurityDomain = "  +
                 securityDomain);
         }
-        
+
         SubjectConfirmation subConfirmation = new SubjectConfirmation(
             IFSConstants.CONFIRMATION_METHOD_BEARER);
         IDPProvidedNameIdentifier idpNi =
@@ -803,7 +804,7 @@ public class CDCServlet extends HttpServlet {
             debug.message("CDCServlet.createAssertion: " +
                 "Authentication Statement: " + statement.toXMLString());
         }
-        
+
         Conditions cond = new Conditions(issueInstant, notAfter);
         if((destID != null) &&(destID.length() != 0)) {
             List targets = new ArrayList(1);
@@ -811,30 +812,30 @@ public class CDCServlet extends HttpServlet {
             cond.addAudienceRestrictionCondition(
                 new AudienceRestrictionCondition(targets));
         }
-        
+
         if (debug.messageEnabled()) {
             debug.message("CDCServlet.createAssertion: " +
                 "Condition: " + cond.toString());
         }
-        
+
         AssertionIDReference aID = new AssertionIDReference();
         Set statements = new HashSet(2);
         statements.add(statement);
         FSAssertion assertion = new FSAssertion(aID.getAssertionIDReference(),
             sourceID, issueInstant, cond, statements, inResponseTo);
         assertion.setID(aID.getAssertionIDReference());
-        
+
         String[] params = {FSUtils.bundle.getString("assertionCreated") + ":"
             + assertion.toString()};
         LogUtil.access(Level.INFO, "CREATE_ASSERTION", params);
-        
+
         if (debug.messageEnabled()) {
             debug.message("CDCServlet.createAssertion:"
                 + " Returning Assertion: " + assertion.toXMLString());
         }
         return assertion;
     }
-    
+
     private Date convertAuthInstanceToDate(String strAuthInst) {
         Date authInstant = null;
         if (strAuthInst != null){
@@ -849,7 +850,7 @@ public class CDCServlet extends HttpServlet {
         }
         return (authInstant == null) ? new java.util.Date() : authInstant;
     }
-    
+
     private void sendAuthnResponse(HttpServletRequest request,
         HttpServletResponse response, FSAuthnResponse authnResponse, String destURL) {
         if (debug.messageEnabled()) {
@@ -862,13 +863,13 @@ public class CDCServlet extends HttpServlet {
                     "AuthnResponse: " + respStr);
             }
             String b64Resp = Base64.encode(respStr.getBytes());
-            
+
             response.setContentType("text/html");
             response.setHeader("Pragma", "no-cache");
             response.setHeader(RESPONSE_HEADER_ALERT, RESPONSE_HEADER_ALERT_VALUE);
 
-            request.setAttribute("destURL", destURL);
-            request.setAttribute("authnResponse", b64Resp);
+            request.setAttribute("destURL", ESAPI.encoder().encodeForHTML(destURL));
+            request.setAttribute("authnResponse", ESAPI.encoder().encodeForHTML(b64Resp));
             RequestDispatcher rd
                     = request.getRequestDispatcher("config/federation/default/cdclogin.jsp");
             rd.forward(request, response);
