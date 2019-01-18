@@ -33,11 +33,9 @@
 <%@taglib uri="/WEB-INF/tld/com_sun_web_ui/cc.tld" prefix="cc" %>
 
 <%
-    // obtain the versionFile and productSrc attrs from the request params 
+    // obtain the versionFile and productSrc attrs from the request params
     String versionFile = request.getParameter("versionFile") != null
 	? request.getParameter("versionFile") : "";
-    String productNameSrc = request.getParameter("productNameSrc") != null
-        ? request.getParameter("productNameSrc") : "";
     String productNameHeight =
 	request.getParameter("productNameHeight") != null
         ? request.getParameter("productNameHeight") : "";
@@ -46,8 +44,6 @@
 
     versionFile = VersionViewBean.validateVersionFile(
         request, versionFile);
-    productNameSrc = VersionViewBean.validateProductImage(
-        request, productNameSrc);
 %>
 
 <jato:useViewBean className="com.sun.identity.console.version.MastheadViewBean">
@@ -57,9 +53,9 @@
  pageTitle=""
  styleClass="VrsMstBdy"
  baseName="com.sun.web.ui.resources.Resources"
- bundleID="testBundle">             
-       
-<cc:versionbanner versionFile="<%=versionFile%>" productNameSrc="<%=productNameSrc%>" 
+ bundleID="testBundle">
+
+<cc:versionbanner versionFile="<%=versionFile%>" productNameSrc="<%=viewBean.getMastheadLogo()%>"
  productNameHeight="<%=productNameHeight%>" productNameWidth="<%=productNameWidth%>" />
 
 </cc:header>

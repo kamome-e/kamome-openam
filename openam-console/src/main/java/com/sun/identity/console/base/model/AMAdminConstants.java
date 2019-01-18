@@ -24,10 +24,7 @@
  *
  * $Id: AMAdminConstants.java,v 1.11 2009/09/28 19:01:24 babysunil Exp $
  *
- */
-
-/*
- * Portions Copyrighted 2011 ForgeRock AS
+ * Portions Copyrighted 2011-2019 ForgeRock AS
  */
 package com.sun.identity.console.base.model;
 
@@ -52,8 +49,8 @@ public interface AMAdminConstants {
      */
     String CURRENT_PROFILE = "CurrentProfileView";
 
-    /** 
-     * The current organization location in the directory management view 
+    /**
+     * The current organization location in the directory management view
      */
     String CURRENT_ORG = "currentOrganization";
 
@@ -62,7 +59,7 @@ public interface AMAdminConstants {
      */
     String PREVIOUS_REALM = "previousRealm";
 
-    /** 
+    /**
      * Current service being edited in role view
      */
     String SERVICE_NAME = "currentServiceName";
@@ -129,7 +126,7 @@ public interface AMAdminConstants {
 
     /**
      * Active value.
-     */  
+     */
     String STRING_INACTIVE = "Inactive";
 
     /**
@@ -168,7 +165,7 @@ public interface AMAdminConstants {
     String STRING_FALSE = "false";
 
     /**
-     * String used for passing choices 
+     * String used for passing choices
      */
      String CHOICES = "choices";
 
@@ -195,8 +192,8 @@ public interface AMAdminConstants {
     /**
      * Tab Id of Federation tab
      */
-    String FED_TAB_ID = "2"; 
-    
+    String FED_TAB_ID = "2";
+
     /**
      * Organization node identifier.
      */
@@ -206,7 +203,7 @@ public interface AMAdminConstants {
      * Realm node identifier.
      */
     int REALM_NODE_ID = 1;
-    
+
     /**
      * Configuration node identifier.
      */
@@ -226,7 +223,7 @@ public interface AMAdminConstants {
      * Agent tab Id.
      */
     int TAB_AGENT_PREFIX_INT = 18;
-    
+
     /**
      * Subjects node identifier.
      */
@@ -257,7 +254,7 @@ public interface AMAdminConstants {
      */
     String ATTR_USER_PASSWORD = "userpassword";
 
-    /**                                         
+    /**
      * User status attribute name.
      */
     String ATTR_USER_STATUS = "inetuserstatus";
@@ -312,8 +309,8 @@ public interface AMAdminConstants {
      */
     String POLICY_SERVICE = "iPlanetAMPolicyConfigService";
 
-    /** 
-     * User Search key 
+    /**
+     * User Search key
      */
     String CONSOLE_USER_SEARCH_KEY =
         "iplanet-am-admin-console-user-search-key";
@@ -324,8 +321,8 @@ public interface AMAdminConstants {
      String ATTR_USER_OLD_PASSWORD =
          "iplanet-am-admin-console-password-reset-enabled";
 
-    /** 
-     * User Search Result return key 
+    /**
+     * User Search Result return key
      */
     String CONSOLE_USER_SEARCH_RETURN_KEY =
         "iplanet-am-admin-console-user-return-attribute";
@@ -359,10 +356,10 @@ public interface AMAdminConstants {
      */
     String USER_SERVICE_PREFERRED_LOCALE = "preferredlocale";
 
-    /** 
-     * Customized Organization JSP directory 
+    /**
+     * Customized Organization JSP directory
      */
-    String CONSOLE_ORG_CUSTOM_JSP_DIRECTORY = 
+    String CONSOLE_ORG_CUSTOM_JSP_DIRECTORY =
         "iplanet-am-admin-console-custom-jsp-dir";
 
     /**
@@ -424,5 +421,10 @@ public interface AMAdminConstants {
      */
     String AGENT_REPOSITORY_LOCATION_ATTR =
             "com.sun.identity.agents.config.repository.location";
+
+    /**
+     * Image displayed in version popup.
+     */
+    final String IMAGES_PRIMARY_PRODUCT_NAME_PNG = "/images/PrimaryProductName.png";
 
 }

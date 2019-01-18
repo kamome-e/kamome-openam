@@ -24,10 +24,7 @@
  *
  * $Id: AMPrimaryMastHeadViewBean.java,v 1.11 2009/08/18 22:38:10 veiming Exp $
  *
- */
-
-/*
- * Portions Copyrighted 2011-2012 ForgeRock Inc
+ * Portions Copyrighted 2011-2019 ForgeRock Inc
  */
 package com.sun.identity.console.base;
 
@@ -116,7 +113,7 @@ public abstract class AMPrimaryMastHeadViewBean
             super.forwardTo(rc);
         }
     }
-    
+
     protected boolean handleRealmNameInTabSwitch(RequestContext rc) {
         boolean forwarded = false;
         // Need to default realm name if it is not even set at this point.
@@ -224,23 +221,23 @@ public abstract class AMPrimaryMastHeadViewBean
         setPageSessionAttribute("CCTabs.SelectedTabId", Integer.toString(id));
         tabModel.setSelectedNode(id);
     }
-    
+
     protected int getDefaultTabId(String realmName, HttpServletRequest req) {
         return AMViewConfig.getInstance().getDefaultTabId(realmName, req);
-    } 
+    }
 
     private CCMastheadModel createMastheadModel() {
         CCMastheadModel mm = new CCMastheadModel();
- 
+
         AMModel model = getModel();
         String consoleDirectory = model.getConsoleDirectory();
 
         /*
-         * set the logo; can be different for each realm based on 
+         * set the logo; can be different for each realm based on
          * the console jsp directory attribute.
          */
-        String logo = 
-            "../" + consoleDirectory + "/images/PrimaryProductName.png";
+        String logo =
+                "../" + consoleDirectory + AMAdminConstants.IMAGES_PRIMARY_PRODUCT_NAME_PNG;
 
         mm.setSrc(logo);
         mm.setWidth("");
@@ -256,7 +253,7 @@ public abstract class AMPrimaryMastHeadViewBean
         mm.setShowServer(true);
         mm.setShowUserRole(true);
         mm.setVersionFileName("help/version.html");
-        
+
         return mm;
     }
 
@@ -379,7 +376,7 @@ public abstract class AMPrimaryMastHeadViewBean
     protected String getTrackingTabIDName() {
         return "opensso.SelectedTabId";
     }
-    
+
     protected boolean isRootRealm(String realm, String startDN) {
         boolean isRoot = false;
         if ((realm == null) ||

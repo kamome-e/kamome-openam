@@ -27,10 +27,27 @@
 
 package com.sun.identity.console.version;
 
-public class MastheadViewBean extends 
+import com.sun.identity.console.base.model.AMAdminConstants;
+import com.sun.identity.console.base.model.AMModel;
+import com.sun.identity.console.base.model.AMModelBase;
+
+public class MastheadViewBean extends
     com.sun.web.ui.servlet.version.MastheadViewBean {
 
     public MastheadViewBean() {
         super();
+    }
+
+    /**
+     * Gets the path for masthead logo.
+     *
+     * @return the path for masthead logo.
+     */
+    public String getMastheadLogo() {
+        String logo = null;
+        AMModel model = new AMModelBase(getRequestContext().getRequest(), getPageSessionAttributes());
+        String consoleDirectory = model.getConsoleDirectory();
+        logo = "../" + consoleDirectory + AMAdminConstants.IMAGES_PRIMARY_PRODUCT_NAME_PNG;
+        return logo;
     }
 }
