@@ -46,6 +46,9 @@ public class RedirectUrlValidator<T> {
     private static final Debug DEBUG = Debug.getInstance("patternMatching");
     private final ValidDomainExtractor<T> domainExtractor;
 
+    // See http://stackoverflow.com/a/417184
+    private final static int MAX_URL_LENGTH = 2000;
+
     public RedirectUrlValidator(final ValidDomainExtractor<T> domainExtractor) {
         this.domainExtractor = domainExtractor;
     }
@@ -75,10 +78,9 @@ public class RedirectUrlValidator<T> {
 
         try {
             final URI uri = new URI(url);
-         // Both Absolute and scheme relative URLs should be validated.
+            // Both Absolute and scheme relative URLs should be validated.
             if (!uri.isAbsolute() && !url.startsWith("//")) {
-                return ESAPI.validator().isValidInput("isRedirectUrlValid", url, "HTTPURI", MAX_URL_LENGTH,
-                        false);
+                return ESAPI.validator().isValidInput("isRedirectUrlValid", url, "HTTPURI", MAX_URL_LENGTH, false);
             }
         } catch (final URISyntaxException urise) {
             if (DEBUG.messageEnabled()) {

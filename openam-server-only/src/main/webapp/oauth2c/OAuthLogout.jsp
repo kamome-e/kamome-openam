@@ -9,7 +9,7 @@
    compliance with the License.
 
    You can obtain a copy of the License at
-   http://forgerock.org/license/CDDLv1.0.html 
+   http://forgerock.org/license/CDDLv1.0.html
    See the License for the specific language governing
    permission and limitations under the License.
 
@@ -38,6 +38,11 @@
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.MissingResourceException" %>
 <%@ page import="org.forgerock.openam.authentication.modules.oauth2.OAuthUtil" %>
+<%@ page import="com.iplanet.sso.SSOTokenManager" %>
+<%@ page import="com.iplanet.sso.SSOException" %>
+<%@ page import="com.iplanet.sso.SSOToken" %>
+<%@ page import="com.sun.identity.authentication.service.AuthD" %>
+<%@ page import="com.sun.identity.idm.AMIdentity" %>
 <%
    // Internationalization stuff. You can use any internationalization framework
    String lang = request.getParameter("lang");
@@ -59,45 +64,45 @@
         OAuthUtil.debugError("OAuthLogout: Resource Bundle not found", mr);
         resources = ResourceBundle.getBundle("amAuthOAuth");
    }
-   
+
    String logoutForm = ESAPI.encoder().encodeForHTML(LOGOUT_FORM);
    String loggedoutParam = ESAPI.encoder().encodeForHTML(PARAM_LOGGEDOUT);
    String gotoParam = ESAPI.encoder().encodeForHTML(PARAM_GOTO);
    String logoutURLParam = ESAPI.encoder().encodeForHTML(PARAM_LOGOUT_URL);
-   
+
    String logmeoutValue = ESAPI.encoder().encodeForHTML(resources.getString("logmeout"));
-   String donotValue = ESAPI.encoder().encodeForHTML(resources.getString("donot")); 
+   String donotValue = ESAPI.encoder().encodeForHTML(resources.getString("donot"));
    String doYouWantToLogout = resources.getString("doYouWantToLogout");
    String youVeBeenLogedOut = resources.getString("youVeBeenLogedOut");
    String loggingYouOut = resources.getString("loggingYouOut");
-   
+
    // Getting and validating params
    String gotoURL = request.getParameter(PARAM_GOTO);
    String gotoURLencAttr = "";
    String OAuth2IdP = "";
-   
-   String ServiceURI = SystemProperties.get(Constants.AM_SERVICES_DEPLOYMENT_DESCRIPTOR); 
-   if (gotoURL == null || gotoURL.isEmpty() ) {
-      gotoURL = ServiceURI + "/UI/Logout"; 
-   } else {
-       boolean isValidURL = ESAPI.validator().
-               isValidInput("URLContext", gotoURL, "URL", 255, false); 
-       boolean isValidURI = ESAPI.validator().
-               isValidInput("HTTP URI: " + gotoURL, gotoURL, "HTTPURI", 2000, false);      
-       if (!isValidURL && !isValidURI) {
-           OAuthUtil.debugError("OAuthLogout: wrong goto URL attempted to be used "
-                   + "in the Logout page: " + gotoURL);
-           gotoURL = "wronggotoURL";
-       } 
+
+   String ServiceURI = SystemProperties.get(Constants.AM_SERVICES_DEPLOYMENT_DESCRIPTOR);
+   SSOTokenManager manager = SSOTokenManager.getInstance();
+   try {
+       SSOToken ssoToken = manager.createSSOToken(request);
+       String realm = ssoToken.getProperty("Organization");
+       boolean isValidGotoUrl = AuthD.getAuth().isGotoUrlValid(gotoURL, realm);
+       if (!isValidGotoUrl) {
+           OAuthUtil.debugError("OAuthLogout: invalid or empty goto URL ignored on Logout page: " + gotoURL);
+           gotoURL = ServiceURI + "/UI/Logout";
+       }
+   } catch (SSOException e) {
+       OAuthUtil.debugMessage("OAuthLogout: using default goto URL because we failed to get a session");
+       gotoURL = ServiceURI + "/UI/Logout";
    }
-   
+
    String logoutURL = request.getParameter(PARAM_LOGOUT_URL);
    if (logoutURL == null) {
       logoutURL = "";
    } else {
        boolean isValidURL = ESAPI.validator().
-               isValidInput("URLContext", logoutURL, "URL", 255, false); 
-       if (!isValidURL) {   
+               isValidInput("URLContext", logoutURL, "URL", 255, false);
+       if (!isValidURL) {
            OAuthUtil.debugError("OAuthLogout: wrong logoutURL URL attempted to be used "
                    + "in the Logout page: " + logoutURL);
            logoutURL = "wronglogoutURL";
@@ -112,10 +117,10 @@
        copyrightNotice = ResourceBundle.getBundle("amAuthUI", locale).getString("copyright.notice");
    } catch (MissingResourceException mr) {
    }
-    
+
   String loggedout = request.getParameter(PARAM_LOGGEDOUT);
   System.out.println("loggedout=" + loggedout);
-  
+
 %>
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -127,7 +132,7 @@
             function adios() {
                 window.location = "<%= gotoURL %>";
             }
-                
+
             function logoutAll() {
                 // Creates an iFrame to log out from the OAuth 2.0 IdP
                 var frame = document.getElementById('frame');
@@ -186,7 +191,7 @@
                             <form name="<%= logoutForm %>" method="POST" action="">
                                 <input name="<%= loggedoutParam %>" type="button" class="button" onClick="adios()" onmousedown="adios()" value="<%= donotValue %>" />
                                 <input name="<%= loggedoutParam %>" type="button" class="button right" onClick="logoutAll()" onmousedown="adios()" value="<%= logmeoutValue %>" />
-                            </form>  
+                            </form>
                         </div>
                     </div>
                 </div>
