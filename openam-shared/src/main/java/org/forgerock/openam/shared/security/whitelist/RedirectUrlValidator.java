@@ -20,6 +20,7 @@ import com.sun.identity.shared.whitelist.URLPatternMatcher;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collection;
 import org.owasp.esapi.ESAPI;
 
@@ -34,9 +35,6 @@ public class RedirectUrlValidator<T> {
      * Go to url query parameter name.
      */
     public final static String GOTO = "goto";
-
-    // See http://stackoverflow.com/a/417184
-    private final static int MAX_URL_LENGTH = 2000;
 
     /**
      * Go to on fail query parameter name.
