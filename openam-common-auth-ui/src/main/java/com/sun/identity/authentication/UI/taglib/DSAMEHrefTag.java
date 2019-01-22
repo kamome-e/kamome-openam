@@ -92,6 +92,7 @@ implements BodyTag {
                 ViewBean viewBean = getParentViewBean();
                 AuthViewBeanBase dsameVB = (AuthViewBeanBase) viewBean;
                 String value = (String)viewBean.getDisplayFieldValue(getName());
+                buffer = new NonSyncStringBuffer("<a href=\"");
                 String pgEncoding = (String) dsameVB.getDisplayFieldValue(AuthViewBeanBase.PAGE_ENCODING);
 
                 NonSyncStringBuffer url = new NonSyncStringBuffer(value);
