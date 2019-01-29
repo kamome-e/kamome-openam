@@ -120,4 +120,6 @@ $JAVA_HOME/bin/java -Xms256m -Xmx512m -cp "$CLASSPATH" \
     -D"com.sun.identity.idm.remote.notification.enabled=false" \
     -D"opensso.protocol.handler.pkgs=com.sun.identity.protocol" \
     -D"com.iplanet.am.jssproxy.trustAllServerCerts=true" \
+    -D"org.forgerock.openam.ssoadm.auth.indexType=service" \
+    -D"org.forgerock.openam.ssoadm.auth.indexName=ldapService" \
     com.sun.identity.cli.CommandManager "$@"
