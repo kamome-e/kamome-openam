@@ -37,7 +37,6 @@ import com.iplanet.jato.view.ViewBeanBase;
 import com.iplanet.jato.view.event.ChildDisplayEvent;
 import com.iplanet.jato.view.event.DisplayEvent;
 import com.iplanet.jato.view.html.StaticTextField;
-import org.forgerock.openam.console.base.ConsoleViewBeanBase;
 import com.sun.identity.shared.Constants;
 import com.sun.identity.password.ui.model.PWResetModel;
 import com.sun.identity.password.ui.model.PWResetModelImpl;
@@ -46,7 +45,8 @@ import com.sun.identity.password.ui.model.PWResetModelImpl;
 /**
  * <code>PWResetViewBeanBase</code> is the base class for password reset.
  */
-public abstract class PWResetViewBeanBase extends ConsoleViewBeanBase implements Constants {
+public abstract class PWResetViewBeanBase extends ViewBeanBase 
+             implements Constants {
 
     /**
      * Name of HTML title
@@ -59,17 +59,17 @@ public abstract class PWResetViewBeanBase extends ConsoleViewBeanBase implements
     public static final String COPYRIGHT_TEXT = "copyrightText";
 
     /**
-     * Name of the error title
+     * Name of the error title 
      */
     public static final String ERROR_TITLE = "errorTitle";
 
     /**
-     * Name of the error message
+     * Name of the error message 
      */
     public static final String ERROR_MSG = "errorMsg";
 
     /**
-     * Name of the information message
+     * Name of the information message 
      */
     public static final String INFO_MSG = "infoMsg";
 

@@ -1,7 +1,7 @@
 /**
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2009 Sun Microsystems Inc. All Rights Reserved
+ * Copyright (c) 2005 Sun Microsystems Inc. All Rights Reserved
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -22,15 +22,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cache.java,v 1.4 2009/12/12 00:03:13 veiming Exp $
+ * $Id: Cache.java,v 1.1 2009/08/19 05:40:36 veiming Exp $
  *
  */
 
 /*
- * Portions Copyrighted [2011-2013] [ForgeRock AS]
+ * Portions Copyrighted [2011] [ForgeRock AS]
  */
-package com.sun.identity.entitlement.opensso;
+package com.sun.identity.entitlement.util;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
@@ -42,8 +43,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 // IMPORTANT NOTE: The cache has be implemented by modifing the existing
 // java.util.Hashtable code. Its has added functionality of a built in
@@ -77,11 +76,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * objects used as keys must implement the <code>hashCode</code> 
  * method and the <code>equals</code> method. <p>
  *
- * An instance of <code>Cache</code> has three parameters that affect its
- * performance: <i>initial capacity</i>, <i>maximum size</i> and <i>load factor</i>.
- * The <i>maximum capacity</i> is the maximum number of <i>buckets</i> in the hash
- * table, and the <i>initial capacity</i> is simply the capacity at the time the
- * hash table is created.  Note that the hash table is <i>open</i>: in the case a "hash
+ * An instance of <code>Cache</code> has two parameters that affect its
+ * performance: <i>capacity</i> and <i>load factor</i>.  The
+ * <i>capacity</i> is the number of <i>buckets</i> in the hash table, and the
+ * <i>capacity</i> is simply the capacity at the time the hash table
+ * is created.  Note that the hash table is <i>open</i>: in the case a "hash
  * collision", a single bucket stores multiple entries, which must be searched
  * sequentially.  The <i>load factor</i> is a measure of how full the hash
  * table is allowed to get before its capacity is automatically increased.
@@ -127,6 +126,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @since JDK1.0
  */
 public class Cache extends Dictionary implements Map, java.io.Serializable {
+
+    // Default Cache size.
+    private final static int DEFAULT_CACHE_SIZE = 10000;
 
     /**
      * The hash table data.
@@ -176,80 +178,60 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
     /** use serialVersionUID from JDK 1.0.2 for interoperability */
     private static final long serialVersionUID = 1421746759512286392L;
 
-
-    private transient ReadWriteLock rwlock = new ReentrantReadWriteLock();
-
-    private String name;
-
     /**
      * Constructs a new, empty Cache with the specified capacity and the
      * specified load factor.
-     *
-     * @param name Name of cache.
-     * @param initCapacity
+     * 
+     * @param capacity
      *            the capacity of the Cache.
-     * @param maxSize
-     *              the maximum size of the cache.
      * @param loadFactor
      *            the load factor of the Cache.
      * @exception IllegalArgumentException
      *                if the capacity is less than zero, or if the load factor
      *                is nonpositive.
      */
-    public Cache(String name, int initCapacity, int maxSize, float loadFactor) {
-        if (initCapacity < 0) {
-            throw new IllegalArgumentException("Illegal Capacity: " + initCapacity);
-        }
-        if (maxSize < 0) {
-            throw new IllegalArgumentException("Illegal maximum size: " + maxSize);
-        }
-        if (loadFactor <= 0) {
+    public Cache(int capacity, float loadFactor) {
+
+        if (capacity < 0)
+            throw new IllegalArgumentException("Illegal Capacity: " + capacity);
+
+        if (loadFactor <= 0)
             throw new IllegalArgumentException("Illegal Load: " + loadFactor);
-        }
 
-        if (initCapacity == 0) {
-            initCapacity = 1;
-        }
-        if (maxSize == 0) {
-            maxSize = 1;
-        }
-
-        this.name = name;
+        if (capacity == 0)
+            capacity = 1;
         this.loadFactor = loadFactor;
-        this.maxSize = maxSize;
+        table = new Entry[capacity];
+        threshold = (int) (capacity * loadFactor);
 
-        table = new Entry[initCapacity];
-        threshold = (int) (initCapacity * loadFactor);
+        maxSize = capacity;
         lruTracker = new LRUList();
     }
 
     /**
      * Constructs a new, empty Cache with the specified capacity and default
      * load factor, which is <tt>0.75</tt>.
-     *
-     * @param name Name of cache.
-     * @param initCapacity
-     *            the initial capacity of the Cache.
-     * @param maxSize
-     *              the maximum size of the cache.
+     * 
+     * @param capacity
+     *            the capacity of the Cache.
      * @exception IllegalArgumentException
      *                if the capacity is less than zero.
      */
-    public Cache(String name, int initCapacity, int maxSize) {
-        this(name, initCapacity, maxSize, 0.75f);
-    }
-
-    // required for serializable
-    public Cache() {
+    public Cache(int capacity) {
+        this(capacity, 0.75f);
+        maxSize = capacity;
+        lruTracker = new LRUList();
     }
 
     /**
-     * Returns name.
-     *
-     * @return name.
+     * Constructs a new, empty Cache with a default capacity and load factor,
+     * which is <tt>0.75</tt>.
      */
-    public String getName() {
-        return name;
+    public Cache() {
+        // Obtain the cache size
+        this(DEFAULT_CACHE_SIZE, 0.75f);
+        maxSize = DEFAULT_CACHE_SIZE;
+        lruTracker = new LRUList();
     }
 
     /**
@@ -317,25 +299,20 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * @see #containsValue(Object)
      * @see Map
      */
-    public boolean contains(Object value) {
+    public synchronized boolean contains(Object value) {
         if (value == null) {
             throw new NullPointerException();
         }
 
-        boolean found = false;
-        rwlock.readLock().lock();
-
-        try {
-            Entry tab[] = table;
-            for (int i = tab.length; i-- > 0;) {
-                for (Entry e = tab[i]; (e != null) && !found; e = e.next) {
-                    found = e.value.equals(value);
+        Entry tab[] = table;
+        for (int i = tab.length; i-- > 0;) {
+            for (Entry e = tab[i]; e != null; e = e.next) {
+                if (e.value.equals(value)) {
+                    return true;
                 }
             }
-        } finally {
-            rwlock.readLock().unlock();
         }
-        return found;
+        return false;
     }
 
     /**
@@ -364,22 +341,16 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      *         <code>false</code> otherwise.
      * @see #contains(Object)
      */
-    public boolean containsKey(Object key) {
-        rwlock.readLock().lock();
-        boolean found = false;
-
-        try {
-            Entry tab[] = table;
-            int hash = key.hashCode();
-            int index = (hash & 0x7FFFFFFF) % tab.length;
-            for (Entry e = tab[index]; (e != null) && !found; e = e.next) {
-                found = ((e.hash == hash) && e.key.equals(key));
+    public synchronized boolean containsKey(Object key) {
+        Entry tab[] = table;
+        int hash = key.hashCode();
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+        for (Entry e = tab[index]; e != null; e = e.next) {
+            if ((e.hash == hash) && e.key.equals(key)) {
+                return true;
             }
-        } finally {
-            rwlock.readLock().unlock();
         }
-
-        return found;
+        return false;
     }
 
     /**
@@ -392,52 +363,35 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      *         Cache.
      * @see #put(Object, Object)
      */
-    public Object get(Object key) {
-        rwlock.readLock().lock();
-        Object value = null;
-
-        try {
-            Entry tab[] = table;
-            int hash = key.hashCode();
-            int index = (hash & 0x7FFFFFFF) % tab.length;
-            for (Entry e = tab[index]; (e != null) && (value == null);
-                e = e.next) {
-                if ((e.hash == hash) && e.key.equals(key)) {
-                    // Since the entry is accessed, move it to the end of the
-                    // list
-                    lruTracker.replaceLast(e);
-                    value = e.value;
-                }
+    public synchronized Object get(Object key) {
+        Entry tab[] = table;
+        int hash = key.hashCode();
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+        for (Entry e = tab[index]; e != null; e = e.next) {
+            if ((e.hash == hash) && e.key.equals(key)) {
+                // Since the entry is accessed, move it to the end of the list
+                lruTracker.replaceLast(e);
+                return e.value;
             }
-        } finally {
-            rwlock.readLock().unlock();
         }
-        return value;
+        return null;
     }
 
     /**
      * Increases the capacity of and internally reorganizes this Cache, in order
      * to accommodate and access its entries more efficiently. This method is
      * called automatically when the number of keys in the Cache exceeds this
-     * Cache's capacity and load factor. It ensures the new capacity does not
-     * exceed the maximum size.
+     * Cache's capacity and load factor.
      */
     protected void rehash() {
         int oldCapacity = table.length;
         Entry oldMap[] = table;
 
         int newCapacity = oldCapacity * 2 + 1;
-
-        if (newCapacity > maxSize) {
-            newCapacity = maxSize;
-            threshold = newCapacity;
-        } else {
-            threshold = (int) (newCapacity * loadFactor);
-        }
-
         Entry newMap[] = new Entry[newCapacity];
 
         modCount++;
+        threshold = (int) (newCapacity * loadFactor);
         table = newMap;
         for (int i = oldCapacity; i-- > 0;) {
             for (Entry old = oldMap[i]; old != null;) {
@@ -473,62 +427,54 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * @see Object#equals(Object)
      * @see #get(Object)
      */
-    public Object put(Object key, Object value) {
+    public synchronized Object put(Object key, Object value) {
         // Make sure the value is not null
-        if (value == null) {
+        if (value == null)
             throw new NullPointerException();
-        }
 
-        rwlock.writeLock().lock();
-
-        try {
-            // Makes sure the key is not already in the Cache.
-            Entry tab[] = table;
-            int hash = key.hashCode();
-            int index = (hash & 0x7FFFFFFF) % tab.length;
-            for (Entry e = tab[index]; e != null; e = e.next) {
-                if ((e.hash == hash) && e.key.equals(key)) {
-                    Object old = e.value;
-                    e.value = value;
-                    // Since the entry is already present move it to the end of
-                    //the list
-                    lruTracker.replaceLast(e);
-                    return old;
-                }
-            }
-
-            if (count >= threshold && count != maxSize) {
-                // Rehash the table if the threshold is exceeded
-                modCount++;
-                rehash();
-                tab = table;
-                index = (hash & 0x7FFFFFFF) % tab.length;
-            }
-
-            Entry e = null;
-            // Table is full need to replace an entry with new one
-            if (count == maxSize) {
-                // Get the least recently used entry
-                e = lruTracker.getFirst();
-                // Remove the entry from the table to accomidate new entry
-                adjustEntry(e.key);
-                // Modify the values of this entry to reflect new entry
-                // (Avoiding the creation of a new entry object)
+        // Makes sure the key is not already in the Cache.
+        Entry tab[] = table;
+        int hash = key.hashCode();
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+        for (Entry e = tab[index]; e != null; e = e.next) {
+            if ((e.hash == hash) && e.key.equals(key)) {
+                Object old = e.value;
+                e.value = value;
+                // Since the entry is already present move it to the end of the
+                // list
                 lruTracker.replaceLast(e);
-                e.changeValues(hash, key, value, tab[index]);
-            } else {
-                modCount++;
-                count++;
-                // Creates the new entry.
-                e = new Entry(hash, key, value, tab[index]);
-                lruTracker.addLast(e);
+                return old;
             }
-            
-            tab[index] = e;
-        } finally {
-            rwlock.writeLock().unlock();
         }
 
+        if (count >= threshold && count != maxSize) {
+            // Rehash the table if the threshold is exceeded
+            modCount++;
+            rehash();
+
+            tab = table;
+            index = (hash & 0x7FFFFFFF) % tab.length;
+        }
+
+        Entry e = null;
+        if (count == maxSize) { // Table is full need to replace an entry with
+                                // new one
+            // Get the least recently used entry
+            e = lruTracker.getFirst();
+            // Remove the entry from the table to accomidate new entry
+            adjustEntry(e.key);
+            // Modify the values of this entry to reflect new entry
+            // (Avoiding the creation of a new entry object)
+            lruTracker.replaceLast(e);
+            e.changeValues(hash, key, value, tab[index]);
+        } else {
+            modCount++;
+            count++;
+            // Creates the new entry.
+            e = new Entry(hash, key, value, tab[index]);
+            lruTracker.addLast(e);
+        }
+        tab[index] = e;
         return null;
     }
 
@@ -563,31 +509,25 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * @return the value to which the key had been mapped in this Cache, or
      *         <code>null</code> if the key did not have a mapping.
      */
-    public Object remove(Object key) {
-        rwlock.writeLock().lock();
-
-        try {
-            Entry tab[] = table;
-            int hash = key.hashCode();
-            int index = (hash & 0x7FFFFFFF) % tab.length;
-            for (Entry e = tab[index], prev = null; e != null;
-                prev = e, e = e.next) {
-                if ((e.hash == hash) && e.key.equals(key)) {
-                    modCount++;
-                    if (prev != null) {
-                        prev.next = e.next;
-                    } else {
-                        tab[index] = e.next;
-                    }
-                    count--;
-                    Object oldValue = e.value;
-                    e.value = null;
-                    lruTracker.remove(e);
-                    return oldValue;
+    public synchronized Object remove(Object key) {
+        Entry tab[] = table;
+        int hash = key.hashCode();
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+        for (Entry e = tab[index], prev = null; e != null; prev = e, e = e.next)
+        {
+            if ((e.hash == hash) && e.key.equals(key)) {
+                modCount++;
+                if (prev != null) {
+                    prev.next = e.next;
+                } else {
+                    tab[index] = e.next;
                 }
+                count--;
+                Object oldValue = e.value;
+                e.value = null;
+                lruTracker.remove(e);
+                return oldValue;
             }
-        } finally {
-            rwlock.writeLock().unlock();
         }
         return null;
     }
@@ -599,36 +539,25 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * 
      * @since JDK1.2
      */
-    public void putAll(Map t) {
-        rwlock.writeLock().lock();
-
-        try {
-            for (Iterator i = t.entrySet().iterator(); i.hasNext(); ) {
-                Map.Entry e = (Map.Entry) i.next();
-                put(e.getKey(), e.getValue());
-            }
-        } finally {
-            rwlock.writeLock().unlock();
+    public synchronized void putAll(Map t) {
+        Iterator i = t.entrySet().iterator();
+        while (i.hasNext()) {
+            Map.Entry e = (Map.Entry) i.next();
+            put(e.getKey(), e.getValue());
         }
     }
 
     /**
      * Clears this Cache so that it contains no keys.
      */
-    public void clear() {
-        rwlock.writeLock().lock();
-        try {
-            Entry tab[] = table;
-            modCount++;
-            for (int index = tab.length; --index >= 0;) {
-                tab[index] = null;
-            }
-            // Clear the LRU Tracker
-            lruTracker.clear();
-            count = 0;
-        } finally {
-            rwlock.writeLock().unlock();
-        }
+    public synchronized void clear() {
+        Entry tab[] = table;
+        modCount++;
+        for (int index = tab.length; --index >= 0;)
+            tab[index] = null;
+        // Clear the LRU Tracker
+        lruTracker.clear();
+        count = 0;
     }
 
     /**
@@ -643,47 +572,31 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * 
      * @return a string representation of this Cache.
      */
-    @Override
-    public String toString() {
-        rwlock.readLock().lock();
-        
-        try {
-            int max = size() - 1;
-            StringBuilder buf = new StringBuilder();
-            buf.append("{");
+    public synchronized String toString() {
+        int max = size() - 1;
+        StringBuilder buf = new StringBuilder();
+        Iterator it = entrySet().iterator();
 
-            Iterator it = entrySet().iterator();
-            for (int i = 0; i <= max; i++) {
-                Entry e = (Entry) (it.next());
-                buf.append(e.key).append("=").append(e.value);
-                if (i < max) {
-                    buf.append(", ");
-                }
-            }
-
-            buf.append("}");
-            return buf.toString();
-        } finally {
-            rwlock.readLock().unlock();
+        buf.append("{");
+        for (int i = 0; i <= max; i++) {
+            Entry e = (Entry) (it.next());
+            buf.append(e.key).append("=").append(e.value);
+            if (i < max)
+                buf.append(", ");
         }
+        buf.append("}");
+        return buf.toString();
     }
 
-    public String audit() {
-        rwlock.readLock().lock();
-
+    public synchronized String audit() {
         // ensure LRU list length is the same as the number of elements in the
         // cache
-        try {
-            String retStr = "";
-            int ltl = lruTracker.length();
-            if (ltl != count) {
-                retStr = "LRU list length (" + ltl + ") != count (" + count
-                    + ")";
-            }
-            return retStr;
-        } finally {
-            rwlock.readLock().unlock();
+        String retStr = "";
+        int ltl = lruTracker.length();
+        if (ltl != count) {
+            retStr = "LRU list length (" + ltl + ") != count (" + count + ")";
         }
+        return retStr;
     }
 
     // Views
@@ -717,17 +630,14 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
             return count;
         }
 
-        @Override
         public boolean contains(Object o) {
             return containsKey(o);
         }
 
-        @Override
         public boolean remove(Object o) {
             return Cache.this.remove(o) != null;
         }
 
-        @Override
         public void clear() {
             Cache.this.clear();
         }
@@ -754,7 +664,6 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
             return new Enumerator(ENTRIES, true);
         }
 
-        @Override
         public boolean contains(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
@@ -770,7 +679,6 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
             return false;
         }
 
-        @Override
         public boolean remove(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
@@ -802,7 +710,6 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
             return count;
         }
 
-        @Override
         public void clear() {
             Cache.this.clear();
         }
@@ -818,9 +725,8 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * @since JDK1.2
      */
     public Collection values() {
-        if (values == null) {
+        if (values == null)
             values = new SynchronizedCollection(new ValueCollection(), this);
-        }
         return values;
     }
 
@@ -833,12 +739,10 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
             return count;
         }
 
-        @Override
         public boolean contains(Object o) {
             return containsValue(o);
         }
 
-        @Override
         public void clear() {
             Cache.this.clear();
         }
@@ -854,41 +758,30 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * @see Map#equals(Object)
      * @since JDK1.2
      */
-    @Override
-    public boolean equals(Object o) {
-        rwlock.readLock().lock();
-
-        try {
-            if (o == this) {
-                return true;
-            }
-
-            if (!(o instanceof Map)) {
-                return false;
-            }
-            Map t = (Map) o;
-            if (t.size() != size()) {
-                return false;
-            }
-
-            for (Iterator i = entrySet().iterator(); i.hasNext(); ) {
-                Entry e = (Entry) i.next();
-                Object key = e.getKey();
-                Object value = e.getValue();
-                if (value == null) {
-                    if (!(t.get(key) == null && t.containsKey(key))) {
-                        return false;
-                    }
-                } else {
-                    if (!value.equals(t.get(key))) {
-                        return false;
-                    }
-                }
-            }
+    public synchronized boolean equals(Object o) {
+        if (o == this)
             return true;
-        } finally {
-            rwlock.readLock().unlock();
+
+        if (!(o instanceof Map))
+            return false;
+        Map t = (Map) o;
+        if (t.size() != size())
+            return false;
+
+        Iterator i = entrySet().iterator();
+        while (i.hasNext()) {
+            Entry e = (Entry) i.next();
+            Object key = e.getKey();
+            Object value = e.getValue();
+            if (value == null) {
+                if (!(t.get(key) == null && t.containsKey(key)))
+                    return false;
+            } else {
+                if (!value.equals(t.get(key)))
+                    return false;
+            }
         }
+        return true;
     }
 
     /**
@@ -898,18 +791,11 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      * @see Map#hashCode()
      * @since JDK1.2
      */
-    @Override
-    public int hashCode() {
-        rwlock.readLock().lock();
+    public synchronized int hashCode() {
         int h = 0;
-        try {
-            Iterator i = entrySet().iterator();
-            while (i.hasNext()) {
-                h += i.next().hashCode();
-            }
-        } finally {
-            rwlock.readLock().unlock();
-        }
+        Iterator i = entrySet().iterator();
+        while (i.hasNext())
+            h += i.next().hashCode();
         return h;
     }
 
@@ -920,7 +806,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      *            object output stream instance.
      * @throws IOException
      *             if object cannot be written.
-     *
+     */
     private synchronized void writeObject(java.io.ObjectOutputStream s)
             throws IOException {
         // Write out the length, threshold, loadfactor
@@ -942,7 +828,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
 
     /**
      * Reconstitute the Cache from a stream (i.e., deserialize it).
-     *
+     */
     private synchronized void readObject(java.io.ObjectInputStream s)
             throws IOException, ClassNotFoundException {
         // Read in the length, threshold, and loadfactor
@@ -971,17 +857,19 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
             Object value = s.readObject();
             put(key, value);
         }
-    } */
+    }
 
     /**
      * Class which is used to create and maintain a circular doubly linked with
      * functionality to add and delete Entry objects.
      */
     private class LRUList {
+
         Entry header = new Entry(0, null, null, null);
         int size;
 
         protected LRUList() {
+
         }
 
         protected LRUList(Entry h) {
@@ -989,7 +877,8 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
         }
 
         // Method to add an entry to the end (last) of the list
-        protected synchronized void addLast(Entry e) {
+        protected void addLast(Entry e) {
+
             if (header.lruNext == null) { // LRUList empty
                 header.lruNext = header.lruPrev = e;
                 e.lruNext = e.lruPrev = header;
@@ -1004,7 +893,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
         }
 
         // Method to remove an entry from the list
-        protected synchronized void remove(Entry e) {
+        protected void remove(Entry e) {
             if (e == null)
                 return;
 
@@ -1033,7 +922,7 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
         }
 
         // Method to move an entry to the end of the list
-        protected synchronized void replaceLast(Entry e) {
+        protected void replaceLast(Entry e) {
             remove(e);
             addLast(e);
         }
@@ -1052,11 +941,16 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
      */
     private static class Entry implements Map.Entry {
         int hash;
+
         Object key;
+
         Object value;
+
         Entry next;
+
         // Fields used to maintain a sorted list
         Entry lruNext;
+
         Entry lruPrev;
 
         protected Entry(int hash, Object key, Object value, Entry next) {
@@ -1068,7 +962,6 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
             this.lruPrev = null;
         }
 
-        @Override
         protected synchronized Object clone() {
             return new Entry(hash, key, value, (next == null ? null
                     : (Entry) next.clone()));
@@ -1103,7 +996,6 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
             return oldValue;
         }
 
-        @Override
         public boolean equals(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
@@ -1114,12 +1006,10 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
                             .getValue()));
         }
 
-        @Override
         public int hashCode() {
             return hash ^ (value == null ? 0 : value.hashCode());
         }
 
-        @Override
         public String toString() {
             return key.toString() + "=" + value.toString();
         }
@@ -1238,9 +1128,8 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
         Object mutex; // Object on which to synchronize
 
         SynchronizedCollection(Collection c) {
-            if (c == null) {
+            if (c == null)
                 throw new NullPointerException();
-            }
             this.c = c;
             mutex = this;
         }
@@ -1326,7 +1215,6 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
             }
         }
 
-        @Override
         public String toString() {
             synchronized (mutex) {
                 return c.toString();
@@ -1343,14 +1231,12 @@ public class Cache extends Dictionary implements Map, java.io.Serializable {
             super(s, mutex);
         }
 
-        @Override
         public boolean equals(Object o) {
             synchronized (mutex) {
                 return c.equals(o);
             }
         }
 
-        @Override
         public int hashCode() {
             synchronized (mutex) {
                 return c.hashCode();

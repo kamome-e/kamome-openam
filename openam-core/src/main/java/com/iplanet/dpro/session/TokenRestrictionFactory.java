@@ -29,9 +29,9 @@
 package com.iplanet.dpro.session;
 
 import com.sun.identity.shared.encode.Base64;
-import org.forgerock.openam.utils.IOUtils;
-
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 /**
@@ -41,7 +41,7 @@ import java.io.ObjectOutputStream;
 public class TokenRestrictionFactory {
     /**
      * Serializes the restriction object.
-     *
+     * 
      * @param tr Token Restriction object to be serialized.
      * @return a serialized form of the restriction object
      * @throws Exception if the there was an error.
@@ -58,13 +58,15 @@ public class TokenRestrictionFactory {
 
     /**
      * Deserialize the string into Token Restriction object.
-     *
+     * 
      * @param data Token Restriction object in the string format
      * @return a Token Restriction object.
      * @throws Exception if the there was an error.
      */
     public static TokenRestriction unmarshal(String data) throws Exception {
         // perform general Java deserialization
-        return IOUtils.deserialise(Base64.decode(data), false);
+        ObjectInputStream is = new ObjectInputStream(new ByteArrayInputStream(
+                Base64.decode(data)));
+        return (TokenRestriction) is.readObject();
     }
 }

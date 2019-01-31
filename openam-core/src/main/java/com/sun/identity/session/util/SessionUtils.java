@@ -31,9 +31,14 @@
  */
 package com.sun.identity.session.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.security.AccessController;
+import java.security.PrivilegedExceptionAction;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
@@ -96,7 +101,7 @@ public class SessionUtils {
      * Returns a SessionID string based on a HttpServletRequest object or null
      * if session id is not present or there was an error.
      * <p>
-     *
+     * 
      * @param request
      *            The HttpServletRequest object which contains the session
      *            string.
@@ -114,12 +119,12 @@ public class SessionUtils {
     /**
      * Returns URL encoded with the cookie Value (SSOToken ID) if cookies are
      * not support. Throws an SSOException in case of an error.
-     *
+     * 
      * <p>
      * The cookie Value is written in the URL based on the encodingScheme
      * specified. The Cookie Value could be written as path info separated by
      * either a "/" OR ";" or as a query string.
-     *
+     * 
      * <p>
      * If the encoding scheme is SLASH then the cookie value would be written in
      * the URL as extra path info in the following format:
@@ -132,7 +137,7 @@ public class SessionUtils {
      * file is specified then webcontainers return with "File Not found" error.
      * To rewrite links which are JSP files with cookie value use the SEMICOLON
      * OR QUERY encoding scheme.
-     *
+     * 
      * <p>
      * If the encoding scheme is SEMICOLON then the cookie value would be
      * written in the URL as extra path info in the following format:
@@ -141,7 +146,7 @@ public class SessionUtils {
      * </pre>
      * Note that this is not supported in the servlet specification and some web
      * containers do not support this.
-     *
+     * 
      * <p>
      * If the encoding scheme is QUERY then the cookie value would be written in
      * the URL in the following format:
@@ -157,7 +162,7 @@ public class SessionUtils {
      * the escape is true.Only the ampersand before appending cookie parameter
      * will be entity escaped.
      * <p>
-     *
+     * 
      * @param ssoToken Single Sign Token which contains the session string.
      * @param url the URL to be encoded
      * @param encodingScheme possible values are <code>QUERY</code>,
@@ -186,7 +191,7 @@ public class SessionUtils {
     /**
      * Returns URL encoded with the cookie Value (SSOToken ID) if cookies are
      * not supported.
-     *
+     * 
      * This method assumes default encoding scheme which is QUERY. The cookie
      * value would be written in the URL in the following format:
      * <pre>
@@ -195,14 +200,14 @@ public class SessionUtils {
      *        &lt;cookieName>=&lt;cookieValue>
      * </pre>
      * <p>
-     *
+     * 
      * This is the default and OpenSSO always encodes in this format
      * unless otherwise specified. If the URL passed in has query parameter then
      * entity escaping of ampersand will be done before appending the cookie if
      * the escape is true.Only the ampersand before appending cookie parameter
      * will be entity escaped.
      * <p>
-     *
+     * 
      * @param ssoToken Single Sign Token which contains the session string.
      * @param url the URL to be encoded.
      * @param escape <code>true</code> to escape ampersand when appending the
@@ -214,7 +219,7 @@ public class SessionUtils {
         SSOToken ssoToken,
         String url,
         boolean escape
-    ) throws SSOException
+    ) throws SSOException 
     {
         String encodedURL = url;
         try {
@@ -228,14 +233,14 @@ public class SessionUtils {
 
    /**
     * Returns the remote IP address of the client
-    *
+    * 
     * @param servletRequest The HttpServletRequest object which contains the
     *        session string.
     * @return InetAddress the client address
     * @exception Exception
     */
    public static InetAddress getClientAddress(
-            HttpServletRequest servletRequest) throws Exception
+            HttpServletRequest servletRequest) throws Exception 
     {
 
         InetAddress remoteClient = InetAddress.getByName(servletRequest
@@ -273,7 +278,7 @@ public class SessionUtils {
                         URL url = new URL((String) e.nextElement());
                         result.add(InetAddress.getByName(url.getHost()));
                     } catch (Exception ex) {
-                        debug.error("SessionUtils.getTrustedSourceList : " +
+                        debug.error("SessionUtils.getTrustedSourceList : " + 
                                     "Validating Host exception", ex);
                     }
                 }
@@ -286,7 +291,7 @@ public class SessionUtils {
 
    /**
     * Returns the remote IP address of the client is a trusted source
-    *
+    * 
     * @param source the InetAddress of the remote client
     * @return a <code>true </code> if is a trusted source.<code>false> otherwise
     * @exception Exception
@@ -300,8 +305,64 @@ public class SessionUtils {
     }
 
     /**
+     * Helper method to serialize and encrypt objects saved in the repository
+     * 
+     * @param obj
+     *            object to be serialized and encrypted
+     * @return encrypted byte array containing serialized objects
+     * @throws Exception
+     *             if anything goes wrong
+     */
+    public static byte[] encode(Object obj) throws Exception {
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        ObjectOutputStream objOutStream = new ObjectOutputStream(byteOut);
+
+        // convert object to byte using streams
+        objOutStream.writeObject(obj);
+        objOutStream.close();
+
+        final byte[] blob = byteOut.toByteArray();
+
+        if (SESSION_ENCRYPTION) {
+            return (byte[]) AccessController
+                    .doPrivileged(new PrivilegedExceptionAction() {
+                        public Object run() throws Exception {
+                            return Crypt.getEncryptor().encrypt(blob);
+                        }
+                    });
+        }
+        return blob;
+
+    }
+
+    /**
+     * Deserializes and decrypts objects retrieved from the repository.
+     * 
+     * @param blob Byte array containing serialized and encrypted object value.
+     * @return retrieved object.
+     * @throws Exception if anything goes wrong.
+     */
+    public static Object decode(final byte blob[]) throws Exception {
+        byte[] decryptedBlob;
+        if (SESSION_ENCRYPTION) {
+            decryptedBlob = (byte[]) AccessController
+                    .doPrivileged(new PrivilegedExceptionAction() {
+                        public Object run() throws Exception {
+                            return Crypt.getEncryptor().decrypt(blob);
+                        }
+                    });
+        } else {
+            decryptedBlob = blob;
+        }
+        ByteArrayInputStream byteIn = new ByteArrayInputStream(decryptedBlob);
+        ObjectInputStream objInStream = new ObjectInputStream(byteIn);
+        return objInStream.readObject();
+
+    }
+
+    /**
      * Helper method to get the encrypted session storage key
-     *
+     * 
      * @param sessionID
      *            SessionID
      * @return encrypted session storage key

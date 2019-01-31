@@ -24,6 +24,9 @@
  *
  * $Id: AMPostViewBean.java,v 1.2 2008/06/25 05:42:47 qcheng Exp $
  *
+ */
+
+/*
  * Portions Copyrighted 2014 ForgeRock AS
  */
 
@@ -33,11 +36,11 @@ import com.iplanet.jato.NavigationException;
 import com.iplanet.jato.RequestContext;
 import com.iplanet.jato.model.ModelControlException;
 import com.iplanet.jato.view.View;
+import com.iplanet.jato.view.ViewBeanBase;
 import com.iplanet.jato.view.event.DisplayEvent;
 import com.iplanet.jato.view.html.StaticTextField;
 import com.sun.identity.shared.debug.Debug;
 import com.sun.web.ui.view.alert.CCAlert;
-import org.forgerock.openam.console.base.ConsoleViewBeanBase;
 import org.owasp.esapi.ESAPI;
 
 /**
@@ -45,7 +48,8 @@ import org.owasp.esapi.ESAPI;
  * For example, you want to forward a register from one view bean to
  * another and both view beans are in different file.
  */
-public class AMPostViewBean extends ConsoleViewBeanBase
+public class AMPostViewBean
+    extends ViewBeanBase
 {
     private static final Debug debug = Debug.getInstance("amConsole");
     private static final String PAGE_NAME = "AMPost";

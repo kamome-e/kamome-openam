@@ -36,6 +36,7 @@ import com.sun.identity.shared.locale.AMResourceBundleCache;
 import com.iplanet.am.util.BrowserEncoding;
 import com.sun.identity.shared.debug.Debug;
 import com.iplanet.jato.view.View;
+import com.iplanet.jato.view.ViewBeanBase;
 import com.iplanet.jato.view.html.StaticTextField;
 import com.sun.identity.authentication.client.AuthClientUtils;
 import com.sun.identity.common.ISLocaleContext;
@@ -51,19 +52,18 @@ import javax.servlet.http.HttpServletResponse;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.io.UnsupportedEncodingException;
-import org.forgerock.openam.console.base.ConsoleViewBeanBase;
 
 /**
  * This class is a default implementation of <code>ViewBean</code> auth UI.
  */
-public abstract class AuthViewBeanBase extends ConsoleViewBeanBase {
+public abstract class AuthViewBeanBase extends ViewBeanBase {
     private static String[] ignoreList = {
         "goto", "encoded", "IDtoken0", "IDtoken1", "IDtoken2", "IDButton", "AMAuthCookie", "IDToken3"
     };
 
     private  java.util.Locale accLocale ;
     static Debug loginDebug = Debug.getInstance("amLoginViewBean");
-
+    
     /**
      * Creates <code>AuthViewBeanBase</code> object.
      * @param pageName name of page for auth UI.
@@ -72,14 +72,14 @@ public abstract class AuthViewBeanBase extends ConsoleViewBeanBase {
         super(pageName);
         registerChildren();
     }
-
+    
     /** registers child views */
     protected void registerChildren() {
         registerChild(PAGE_ENCODING, StaticTextField.class);
         registerChild(SERVICE_URI, StaticTextField.class);
     }
-
-
+    
+    
     protected View createChild(String name) {
         if (name.equals(PAGE_ENCODING)) {
             return new StaticTextField(this, PAGE_ENCODING, "");
@@ -88,28 +88,28 @@ public abstract class AuthViewBeanBase extends ConsoleViewBeanBase {
         }
         throw new IllegalArgumentException(
         "Invalid child name [" + name + "]");
-
+        
     }
-
+    
     protected void setPageEncoding(HttpServletRequest request,
     HttpServletResponse response) {
         /** Set the codeset of the page **/
         String client_type = AuthClientUtils.getClientType(request);
         String content_type = AuthClientUtils.getContentType(client_type);
-
+        
         accLocale = fallbackLocale;
         if (accLocale == null) {
             ISLocaleContext localeContext = new ISLocaleContext();
             localeContext.setLocale(request);
             accLocale = localeContext.getLocale();
         }
-
+        
         String charset = AuthClientUtils.getCharSet(client_type, accLocale);
 
         if (response != null) {
             response.setContentType(content_type+";charset="+charset);
         }
-
+        
         String jCharset = BrowserEncoding.mapHttp2JavaCharset(charset);
         if (loginDebug.messageEnabled()) {
             loginDebug.message("In setPageEncoding - charset : " + charset);
@@ -118,7 +118,7 @@ public abstract class AuthViewBeanBase extends ConsoleViewBeanBase {
         setDisplayFieldValue(PAGE_ENCODING, jCharset);
     }
 
-    /**
+    /** 
      * Returns the validated and Base64 ecoded query params value.
      * @param request from which query parameters have to be extracted.
      * @return a String the validated and Base64 ecoded query params String
@@ -200,18 +200,18 @@ public abstract class AuthViewBeanBase extends ConsoleViewBeanBase {
 
     /**
      * Returns the validated and Base64 ecoded URL value.
-     * @param inputURL input URL string value
-     * @param encoded value of "encoded" parameter to tell wheather
+     * @param inputURL input URL string value 
+     * @param encoded value of "encoded" parameter to tell wheather 
      * the inputURL is already encoded or not
      * @param request HttpServletRequest object
      * @return a String the validated and Base64 ecoded URL value
      */
-    public String getValidatedInputURL(String inputURL, String encoded,
+    public String getValidatedInputURL(String inputURL, String encoded, 
         HttpServletRequest request) {
         String returnURL = "";
-        if ((inputURL != null) && (inputURL.length() != 0) &&
+        if ((inputURL != null) && (inputURL.length() != 0) && 
             (!inputURL.equalsIgnoreCase("null"))){
-            if ((encoded == null) || (encoded.length() == 0) ||
+            if ((encoded == null) || (encoded.length() == 0) || 
                 (encoded.equals("false"))) {
                 returnURL = getEncodedInputURL(inputURL, request);
             } else {
@@ -220,28 +220,28 @@ public abstract class AuthViewBeanBase extends ConsoleViewBeanBase {
                     returnURL = inputURL;
                 } catch (RuntimeException rtex) {
                     loginDebug.warning(
-                        "getValidatedInputURL:RuntimeException");
+                        "getValidatedInputURL:RuntimeException");                
                 } catch (UnsupportedEncodingException ueex) {
-                    loginDebug.warning("getValidatedInputURL:" +
-                                       "UnsupportedEncodingException");
-                }
+                    loginDebug.warning("getValidatedInputURL:" + 
+                                       "UnsupportedEncodingException");                
+                }  
             }
         }
 
         if (loginDebug.messageEnabled()) {
-            loginDebug.message("getValidatedInputURL:returnURL : "
+            loginDebug.message("getValidatedInputURL:returnURL : " 
                                + returnURL);
         }
         return returnURL;
     }
 
-    /**
+    /** 
      * Returns the Base64 ecoded URL value.
      * @param inputURL input URL string value
      * @param request HttpServletRequest object
      * @return a String the Base64 ecoded URL value
      */
-    private String getEncodedInputURL(String inputURL,
+    private String getEncodedInputURL(String inputURL, 
         HttpServletRequest request) {
         String returnURL = inputURL;
         try {
@@ -264,52 +264,52 @@ public abstract class AuthViewBeanBase extends ConsoleViewBeanBase {
                 URL url = new URL(newURL);
             } catch (MalformedURLException mfe1) {
                 loginDebug.warning("Relative URL is not standard www URL.");
-                returnURL = "";
+                returnURL = "";                
             }
         }
-
+        
         if ((returnURL != null) && (returnURL.length() != 0)) {
-            try {
-                returnURL = Base64.encode(returnURL.getBytes("UTF-8"));
+            try {            
+                returnURL = Base64.encode(returnURL.getBytes("UTF-8"));                        
             } catch (UnsupportedEncodingException ueex) {
-                loginDebug.warning("getEncodedInputURL:" +
+                loginDebug.warning("getEncodedInputURL:" + 
                     "UnsupportedEncodingException");
                 returnURL = "";
             }
         }
-
+        
         if (loginDebug.messageEnabled()) {
             loginDebug.message("getEncodedInputURL:returnURL : " + returnURL);
         }
         return returnURL;
     }
 
-    /**
+    /** 
      * Returns the Base64 ecoded URL value.
      * @param inputValue input string value
      * @return a String the Base64 ecoded URL value
      */
     public String getEncodedInputValue(String inputValue) {
         String returnValue = "";
-
-        if ((inputValue != null) && (inputValue.length() != 0) &&
-            (!inputValue.equalsIgnoreCase("null"))) {
-            try {
-                returnValue = Base64.encode(inputValue.getBytes("UTF-8"));
+        
+        if ((inputValue != null) && (inputValue.length() != 0) && 
+            (!inputValue.equalsIgnoreCase("null"))) {        
+            try {                
+                returnValue = Base64.encode(inputValue.getBytes("UTF-8"));                            
             } catch (UnsupportedEncodingException ueex) {
-                loginDebug.warning("getEncodedInputValue:" +
-                               "UnsupportedEncodingException");
+                loginDebug.warning("getEncodedInputValue:" + 
+                               "UnsupportedEncodingException");            
             }
         }
 
         if (loginDebug.messageEnabled()) {
-            loginDebug.message("getEncodedInputValue:returnValue : "
+            loginDebug.message("getEncodedInputValue:returnValue : " 
                 + returnValue);
         }
 
         return returnValue;
     }
-
+    
     /**
      * Returns <code>Locale</code> for auth request.
      * @return <code>Locale</code> for auth request.
@@ -317,13 +317,13 @@ public abstract class AuthViewBeanBase extends ConsoleViewBeanBase {
     public java.util.Locale getRequestLocale() {
         return accLocale;
     }
-
+    
     /**
      * Returns tile index for auth UI.
      * @return tile index for auth UI.
      */
     public abstract String getTileIndex();
-
+    
     /**
      * Parameter name for page encoding.
      */
@@ -332,12 +332,12 @@ public abstract class AuthViewBeanBase extends ConsoleViewBeanBase {
      * Parameter name for service uri.
      */
     public static final String SERVICE_URI = "ServiceUri";
-
+    
     /**
      * Configured service uri.
      */
     public static String serviceUri = AuthClientUtils.getServiceURI();
-
+    
     //to be used in case session is destroyed
     protected java.util.Locale fallbackLocale;
     /**
@@ -349,7 +349,7 @@ public abstract class AuthViewBeanBase extends ConsoleViewBeanBase {
      * such case we need to fallback to this locale for responding to user
      */
 
-    public static Set storeCookies = new HashSet();
+    public static Set storeCookies = new HashSet();    
 
     public static AMResourceBundleCache rbCache =
     AMResourceBundleCache.getInstance();
