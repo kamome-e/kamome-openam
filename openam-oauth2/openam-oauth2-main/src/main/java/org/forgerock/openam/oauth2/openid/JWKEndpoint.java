@@ -67,7 +67,7 @@ public class JWKEndpoint extends ServerResource {
     }
 
     private Map<String, Object> createRSAJWK(RSAPublicKey key, KeyUse use, String alg) {
-        return json(object(field("kty", "RSA"), field("kid", UUID.randomUUID().toString()),
+        return json(object(field("kty", "RSA"), field("kid", "oidctestkid"),
                 field("use", use.toString()), field("alg", alg),
                 field("n", Base64url.encode(key.getModulus().toByteArray())),
                 field("e", Base64url.encode(key.getPublicExponent().toByteArray())))).asMap();
