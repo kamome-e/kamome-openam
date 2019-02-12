@@ -124,7 +124,13 @@ public class AuthorizationCodeServerResource extends AbstractFlow {
             String nonce = code.getNonce();
             data.put(OAuth2Constants.Custom.NONCE, nonce);
             data.put(OAuth2Constants.Custom.SSO_TOKEN_ID, code.getSessionId());
-            data.put("clientSecret", String.valueOf(getRequest().getChallengeResponse().getSecret()));
+            if (getRequest().getChallengeResponse() != null) {
+                data.put("clientSecret", String.valueOf(getRequest().getChallengeResponse().getSecret()));
+            } else {
+                String clientSecret = OAuth2Utils.getRequestParameter(getRequest(),
+                        OAuth2Constants.Params.CLIENT_SECRET, String.class);
+                data.put("clientSecret", clientSecret);
+            }
 //            data.put(OAuth2Constants.Custom.SSO_TOKEN_ID, getRequest().getCookies().getValues(
 //                    SystemProperties.get("com.iplanet.am.cookie.name")));
             response.putAll(executeExtraDataScopePlugin(data, token));
