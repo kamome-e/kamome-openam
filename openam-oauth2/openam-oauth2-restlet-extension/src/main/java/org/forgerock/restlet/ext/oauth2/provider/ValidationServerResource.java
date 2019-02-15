@@ -66,7 +66,7 @@ import com.sun.identity.sm.ServiceConfigManager;
 /**
  * Validates the token and returns to the subject the tokeninfo and scope evaluation if it is used.
  * <p/>
- * 
+ *
  * @author Laszlo Hordos
  */
 public class ValidationServerResource extends ServerResource implements
@@ -74,6 +74,9 @@ public class ValidationServerResource extends ServerResource implements
 
     private OAuth2TokenStore tokenStore = null;
     private Reference validationServerRef;
+
+    private final static String CONNECTION_TIMEOUT_MS = "30000";
+    private final static String SOCKET_TIMEOUT = "socketTimeout";
 
     public ValidationServerResource() {
         this.validationServerRef = null;
@@ -93,7 +96,7 @@ public class ValidationServerResource extends ServerResource implements
     /**
      * Set-up method that can be overridden in order to initialize the state of
      * the resource. By default it does nothing.
-     * 
+     *
      * @see #init(org.restlet.Context, org.restlet.Request,
      *      org.restlet.Response)
      */
@@ -196,7 +199,7 @@ public class ValidationServerResource extends ServerResource implements
         Client client = null;
         Response response = null;
         try {
-            client = new Client(new Context(), Protocol.HTTP);
+            client = new Client(new Context(), validationServerRef.getSchemeProtocol());
             ClientResource clientResource = new ClientResource(reference.toUri()) {
                 @Override
                 public void doError(Status errorStatus) {
@@ -210,6 +213,7 @@ public class ValidationServerResource extends ServerResource implements
             };
             setConnectionClose(clientResource);
             clientResource.setNext(client);
+            client.getContext().getParameters().set(SOCKET_TIMEOUT, CONNECTION_TIMEOUT_MS);
             clientResource.get();
 
             // Actually handle the call
