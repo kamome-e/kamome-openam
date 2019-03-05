@@ -275,7 +275,14 @@ public abstract class AjaxPage extends Page {
     }
 
     public String getCookieDomain() {
-    	return getHostName();
+        String hostname = getHostName();
+
+        int idx = hostname.indexOf(".");
+        if (idx == -1) {
+            return hostname;
+        } else {
+            return hostname.substring(idx);
+        }
     }
 
     public boolean validateInput() {

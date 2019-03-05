@@ -39,41 +39,49 @@ import org.apache.click.control.ActionLink;
  * the agent passwords.
  */
 public class Step6 extends ProtectedPage {
-    
+
     // this links required for client side validation calls
-    public ActionLink validateAgent = 
+    public ActionLink validateAgent =
         new ActionLink("checkAgentPassword", this, "checkAgentPassword" );
-    
-    public void onInit() {     
-        String agentPwd = (String)getContext().getSessionAttribute(
-            SessionAttributeNames.CONFIG_VAR_AMLDAPUSERPASSWD);
-        if (agentPwd != null) {
-            addModel("agentPassword",agentPwd);
-        }
-        
-        String confirmPwd = (String)getContext().getSessionAttribute(
-            SessionAttributeNames.CONFIG_VAR_AMLDAPUSERPASSWD_CONFIRM);
-        if (confirmPwd != null) {
-            addModel("agentConfirm", confirmPwd);
-        }
-        
+
+    // password default value
+    private final String AGENT_PWD = "changeit";
+    private final String CONFIRM_PWD = "changeit";
+
+    public void onInit() {
+//        String agentPwd = (String) getContext().getSessionAttribute(
+//            SessionAttributeNames.CONFIG_VAR_AMLDAPUSERPASSWD);
+//        if (agentPwd == null) {
+//            agentPwd = AGENT_PWD;
+//        }
+        String agentPwd = AGENT_PWD;
+        addModel("agentPassword",agentPwd);
+
+//        String confirmPwd = (String) getContext().getSessionAttribute(
+//            SessionAttributeNames.CONFIG_VAR_AMLDAPUSERPASSWD_CONFIRM);
+//        if (confirmPwd == null) {
+//            confirmPwd = CONFIRM_PWD;
+//        }
+        String confirmPwd = CONFIRM_PWD;
+        addModel("agentConfirm", confirmPwd);
+
         super.onInit();
     }
-      
+
     public boolean checkAgentPassword() {
         String agentPassword = toString("agent");
         String agentConfirm = toString("agentConfirm");
         String tmpadmin = (String)getContext().getSessionAttribute(
             SessionAttributeNames.CONFIG_VAR_ADMIN_PWD);
-         
-        if (agentPassword == null || agentConfirm == null) {        
+
+        if (agentPassword == null || agentConfirm == null) {
             writeInvalid(getLocalizedString("missing.required.field"));
         } else if (agentPassword.equals(tmpadmin)) {
             writeInvalid(getLocalizedString("agent.admin.passwords.match"));
         } else if (agentPassword.length() < 8) {
             writeInvalid(getLocalizedString("invalid.password.length"));
         } else if (!agentPassword.equals(agentConfirm)) {
-            writeInvalid(getLocalizedString("passwords.do.not.match"));             
+            writeInvalid(getLocalizedString("passwords.do.not.match"));
         } else {
             writeValid("OK");
             getContext().setSessionAttribute(
@@ -82,6 +90,6 @@ public class Step6 extends ProtectedPage {
         }
         setPath(null);
         return false;
-    }    
+    }
 }
 

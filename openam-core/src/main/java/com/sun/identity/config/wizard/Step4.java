@@ -53,43 +53,43 @@ import javax.naming.directory.InitialDirContext;
  */
 public class Step4 extends ProtectedPage {
     public static final String LDAP_STORE_SESSION_KEY = "wizardCustomUserStore";
-    public ActionLink validateUMHostLink = 
+    public ActionLink validateUMHostLink =
         new ActionLink("validateUMHost", this, "validateUMHost");
-    public ActionLink validateUMDomainNameLink = 
-        new ActionLink("validateUMDomainName", this, 
+    public ActionLink validateUMDomainNameLink =
+        new ActionLink("validateUMDomainName", this,
             "validateUMDomainName");
-    public ActionLink setSSLLink = 
+    public ActionLink setSSLLink =
         new ActionLink("setSSL", this, "setSSL");
-    public ActionLink setUMEmbedded = 
+    public ActionLink setUMEmbedded =
         new ActionLink("setUMEmbedded", this, "setUMEmbedded");
-    public ActionLink resetUMEmbedded = 
+    public ActionLink resetUMEmbedded =
         new ActionLink("resetUMEmbedded", this, "resetUMEmbedded");
-    public ActionLink setHostLink = 
+    public ActionLink setHostLink =
         new ActionLink("setHost", this, "setHost");
-    public ActionLink setDomainNameLink = 
+    public ActionLink setDomainNameLink =
         new ActionLink("setDomainName", this, "setDomainName");
-    public ActionLink setPortLink = 
+    public ActionLink setPortLink =
         new ActionLink("setPort", this, "setPort");
-    public ActionLink setRootSuffixLink = 
+    public ActionLink setRootSuffixLink =
         new ActionLink("setRootSuffix", this, "setRootSuffix");
-    public ActionLink setLoginIDLink = 
+    public ActionLink setLoginIDLink =
         new ActionLink("setLoginID", this, "setLoginID");
-    public ActionLink setPasswordLink = 
+    public ActionLink setPasswordLink =
         new ActionLink("setPassword", this, "setPassword");
-    public ActionLink setStoreTypeLink = 
-        new ActionLink("setStoreType", this, "setStoreType");    
+    public ActionLink setStoreTypeLink =
+        new ActionLink("setStoreType", this, "setStoreType");
 
     private String responseString = "ok";
 
     private static final String ObjectClassFilter = "(objectclass=*)";
-    
+
     public Step4() {
     }
-    
+
     public void onInit() {
         super.onInit();
         Context ctx = getContext();
-        
+
         if (ctx.getSessionAttribute(SessionAttributeNames.USER_STORE_HOST)
             == null) {
             String val = getAttribute(SetupConstants.CONFIG_VAR_DATA_STORE,
@@ -119,7 +119,7 @@ public class Step4 extends ProtectedPage {
             }
 
             ctx.setSessionAttribute(SessionAttributeNames.EXT_DATA_STORE,
-                "true");
+                "false");
             ctx.setSessionAttribute(SessionAttributeNames.USER_STORE_TYPE,
                 "LDAPv3ForODSEE");
         }
@@ -138,7 +138,7 @@ public class Step4 extends ProtectedPage {
         String val = getAttribute(SetupConstants.USER_STORE_HOST,getHostName());
         ctx.setSessionAttribute(SessionAttributeNames.USER_STORE_HOST, val);
         addModel("userStoreHost", val);
-        
+
         val = getAttribute(SetupConstants.USER_STORE_SSL, "SIMPLE");
         ctx.setSessionAttribute(SessionAttributeNames.USER_STORE_SSL, val);
         if (val.equals("SSL")) {
@@ -156,7 +156,7 @@ public class Step4 extends ProtectedPage {
         ctx.setSessionAttribute(SessionAttributeNames.USER_STORE_LOGIN_ID, val);
         addModel("userStoreLoginId", val);
 
-        val = getAttribute(SetupConstants.USER_STORE_ROOT_SUFFIX, 
+        val = getAttribute(SetupConstants.USER_STORE_ROOT_SUFFIX,
             Wizard.defaultRootSuffix);
         ctx.setSessionAttribute(SessionAttributeNames.USER_STORE_ROOT_SUFFIX,
             val);
@@ -217,12 +217,12 @@ public class Step4 extends ProtectedPage {
             addModel("selectExternalUM", "");
         }
     }
-    
-    public boolean setAll() {     
+
+    public boolean setAll() {
         setPath(null);
         return false;
     }
-    
+
     public boolean setSSL() {
         String ssl = toString("ssl");
         if ((ssl != null) && ssl.length() > 0) {
@@ -241,12 +241,12 @@ public class Step4 extends ProtectedPage {
         String domainname = toString("domainname");
         if ((domainname != null) && domainname.length() > 0) {
             getContext().setSessionAttribute(
-                SessionAttributeNames.USER_STORE_DOMAINNAME, 
+                SessionAttributeNames.USER_STORE_DOMAINNAME,
                 domainname);
             getContext().setSessionAttribute(
                 SessionAttributeNames.EXT_DATA_STORE, "true");
         } else {
-            responseString = "missing.domain.name";            
+            responseString = "missing.domain.name";
         }
         writeToResponse(getLocalizedString(responseString));
         setPath(null);
@@ -259,7 +259,7 @@ public class Step4 extends ProtectedPage {
             getContext().setSessionAttribute(
                 SessionAttributeNames.USER_STORE_HOST, host);
         } else {
-            responseString = "missing.host.name";            
+            responseString = "missing.host.name";
         }
         writeToResponse(getLocalizedString(responseString));
         setPath(null);
@@ -279,10 +279,10 @@ public class Step4 extends ProtectedPage {
         setPath(null);
         return false;
     }
-        
+
     public boolean setPort() {
         String port = toString("port");
-        
+
         if ((port != null) && port.length() > 0) {
             int intValue = Integer.parseInt(port);
             if ((intValue > 0) && (intValue < 65535)) {
@@ -292,39 +292,39 @@ public class Step4 extends ProtectedPage {
                 responseString = "invalid.port.number";
             }
         } else {
-            responseString = "missing.host.port";            
+            responseString = "missing.host.port";
         }
         writeToResponse(getLocalizedString(responseString));
         setPath(null);
         return false;
     }
-    
+
     public boolean setLoginID() {
         String dn = toString("dn");
         if ((dn != null) && dn.length() > 0) {
             getContext().setSessionAttribute(
                 SessionAttributeNames.USER_STORE_LOGIN_ID, dn);
         } else {
-            responseString = "missing.login.id";            
+            responseString = "missing.login.id";
         }
         writeToResponse(getLocalizedString(responseString));
         setPath(null);
         return false;
     }
-    
+
     public boolean setPassword() {
         String pwd = toString("password");
         if ((pwd != null) && pwd.length() > 0) {
             getContext().setSessionAttribute(
                 SessionAttributeNames.USER_STORE_LOGIN_PWD, pwd);
         } else {
-            responseString = "missing.password";            
+            responseString = "missing.password";
         }
         writeToResponse(getLocalizedString(responseString));
         setPath(null);
         return false;
     }
-    
+
     public boolean setRootSuffix() {
         String rootsuffix = toString("rootsuffix");
 
@@ -333,33 +333,33 @@ public class Step4 extends ProtectedPage {
                 getContext().setSessionAttribute(
                     SessionAttributeNames.USER_STORE_ROOT_SUFFIX, rootsuffix);
             } else {
-                responseString = "invalid.dn";            
+                responseString = "invalid.dn";
             }
         } else {
-            responseString = "missing.root.suffix";            
+            responseString = "missing.root.suffix";
         }
         writeToResponse(getLocalizedString(responseString));
         setPath(null);
         return false;
     }
-    
+
     public boolean setStoreType() {
         String type = toString("type");
         if ((type != null) && type.length() > 0) {
             getContext().setSessionAttribute(
                 SessionAttributeNames.USER_STORE_TYPE, type);
-        } 
+        }
         writeToResponse(responseString);
         setPath(null);
         return false;
     }
-    
+
     public boolean validateUMHost() {
         Context ctx = getContext();
         String strSSL = (String)ctx.getSessionAttribute(
             SessionAttributeNames.USER_STORE_SSL);
         boolean ssl = (strSSL != null) && (strSSL.equals("SSL"));
-             
+
         String host = (String)ctx.getSessionAttribute(
             SessionAttributeNames.USER_STORE_HOST);
         String strPort = (String)ctx.getSessionAttribute(
@@ -371,7 +371,7 @@ public class Step4 extends ProtectedPage {
             SessionAttributeNames.USER_STORE_ROOT_SUFFIX);
         String bindPwd = (String)ctx.getSessionAttribute(
             SessionAttributeNames.USER_STORE_LOGIN_PWD);
-        
+
         LDAPConnection ld = null;
         try {
             ld = (ssl) ? new LDAPConnection(
@@ -379,7 +379,7 @@ public class Step4 extends ProtectedPage {
                 new LDAPConnection();
             ld.setConnectTimeout(5);
             ld.connect(3, host, port, bindDN, bindPwd);
-            
+
             //String filter = "cn=" + "\"" + rootSuffix + "\"";    // NOT SURE Why "cn" is specified. would never work.
             String[] attrs = {""};
             ld.search(rootSuffix, LDAPConnection.SCOPE_BASE, ObjectClassFilter,
@@ -388,13 +388,13 @@ public class Step4 extends ProtectedPage {
         } catch (LDAPException lex) {
             switch (lex.getLDAPResultCode()) {
                 case LDAPException.CONNECT_ERROR:
-                    writeToResponse(getLocalizedString("ldap.connect.error")); 
+                    writeToResponse(getLocalizedString("ldap.connect.error"));
                     break;
                 case LDAPException.SERVER_DOWN:
-                    writeToResponse(getLocalizedString("ldap.server.down"));   
+                    writeToResponse(getLocalizedString("ldap.server.down"));
                     break;
                 case LDAPException.INVALID_DN_SYNTAX:
-                    writeToResponse(getLocalizedString("ldap.invalid.dn"));  
+                    writeToResponse(getLocalizedString("ldap.invalid.dn"));
                     break;
                 case LDAPException.NO_SUCH_OBJECT:
                     writeToResponse(getLocalizedString("ldap.nosuch.object"));
@@ -414,8 +414,8 @@ public class Step4 extends ProtectedPage {
                     break;
                 default:
                     writeToResponse(
-                        getLocalizedString("cannot.connect.to.SM.datastore"));                                              
-            }           
+                        getLocalizedString("cannot.connect.to.SM.datastore"));
+            }
         } catch (Exception e) {
             writeToResponse(
                 getLocalizedString("cannot.connect.to.SM.datastore"));
@@ -429,7 +429,7 @@ public class Step4 extends ProtectedPage {
             }
         }
 
-        
+
         setPath(null);
         return false;
     }
@@ -445,7 +445,7 @@ public class Step4 extends ProtectedPage {
             SessionAttributeNames.USER_STORE_DOMAINNAME);
         String rootSuffixAD = dnsDomainToDN(domainName);
         getContext().setSessionAttribute(
-            SessionAttributeNames.USER_STORE_ROOT_SUFFIX, 
+            SessionAttributeNames.USER_STORE_ROOT_SUFFIX,
             rootSuffixAD);
         String[] hostAndPort = {""};
         try {
@@ -458,7 +458,7 @@ public class Step4 extends ProtectedPage {
             writeToResponse(
                 getLocalizedString("cannot.connect.to.UM.datastore"));
             return false;
-        } 
+        }
         String host = hostAndPort[0];
         int port = Integer.parseInt(hostAndPort[1]);
 
@@ -468,7 +468,7 @@ public class Step4 extends ProtectedPage {
             SessionAttributeNames.USER_STORE_ROOT_SUFFIX);
         String bindPwd = (String)ctx.getSessionAttribute(
             SessionAttributeNames.USER_STORE_LOGIN_PWD);
-        
+
         LDAPConnection ld = null;
         try {
             ld = (ssl) ? new LDAPConnection(
@@ -476,7 +476,7 @@ public class Step4 extends ProtectedPage {
                 new LDAPConnection();
             ld.setConnectTimeout(5);
             ld.connect(3, host, port, bindDN, bindPwd);
-            
+
             //String filter = "cn=" + "\"" + rootSuffix + "\"";
             String[] attrs = {""};
             ld.search(rootSuffix, LDAPConnection.SCOPE_BASE, ObjectClassFilter,
@@ -486,15 +486,15 @@ public class Step4 extends ProtectedPage {
             switch (lex.getLDAPResultCode()) {
                 case LDAPException.CONNECT_ERROR:
                     writeToResponse(getLocalizedString(
-                        "ldap.connect.error")); 
+                        "ldap.connect.error"));
                     break;
                 case LDAPException.SERVER_DOWN:
                     writeToResponse(getLocalizedString(
-                        "ldap.server.down"));   
+                        "ldap.server.down"));
                     break;
                 case LDAPException.INVALID_DN_SYNTAX:
                     writeToResponse(getLocalizedString(
-                        "ldap.invalid.dn"));  
+                        "ldap.invalid.dn"));
                     break;
                 case LDAPException.NO_SUCH_OBJECT:
                     writeToResponse(getLocalizedString(
@@ -519,7 +519,7 @@ public class Step4 extends ProtectedPage {
                 default:
                     writeToResponse(getLocalizedString(
                         "cannot.connect.to.UM.datastore"));
-            }           
+            }
         } catch (Exception e) {
             writeToResponse(getLocalizedString(
                 "cannot.connect.to.UM.datastore"));
@@ -537,20 +537,20 @@ public class Step4 extends ProtectedPage {
 
     // Method to get hostname and port number with the
     // provided Domain Name for Active Directory user data store.
-    private String[] getLdapHostAndPort(String domainName) 
+    private String[] getLdapHostAndPort(String domainName)
         throws NamingException, IOException {
         if (!domainName.endsWith(".")) {
             domainName+='.';
         }
         DirContext ictx = null;
         // Check if domain name is a valid one.
-        // The resource record type A is defined in RFC 1035. 
+        // The resource record type A is defined in RFC 1035.
         try {
             Hashtable env = new Hashtable();
-            env.put(javax.naming.Context.INITIAL_CONTEXT_FACTORY, 
+            env.put(javax.naming.Context.INITIAL_CONTEXT_FACTORY,
                 "com.sun.jndi.dns.DnsContextFactory");
             ictx = new InitialDirContext(env);
-            Attributes attributes = 
+            Attributes attributes =
                 ictx.getAttributes(domainName, new String[]{"A"});
             Attribute attrib = attributes.get("A");
             if (attrib == null) {
@@ -568,10 +568,10 @@ public class Step4 extends ProtectedPage {
         final String ldapServer = "_ldap._tcp." + domainName;
         try {
             // Attempting to resolve ldapServer to SRV record.
-            // This is a mechanism defined in MSDN, querying 
+            // This is a mechanism defined in MSDN, querying
             // SRV records for _ldap._tcp.DOMAINNAME.
             // and get host and port from domain.
-            Attributes attributes = 
+            Attributes attributes =
                 ictx.getAttributes(ldapServer, new String[]{"SRV"});
             Attribute attr = attributes.get("SRV");
             if (attr == null) {
@@ -579,12 +579,12 @@ public class Step4 extends ProtectedPage {
             }
             String[] srv = attr.get().toString().split(" ");
             String hostNam = srv[3];
-            serverHostName = 
+            serverHostName =
                 hostNam.substring(0, hostNam.length() -1);
-            if ((serverHostName != null) && 
+            if ((serverHostName != null) &&
                 serverHostName.length() > 0) {
                 getContext().setSessionAttribute(
-                    SessionAttributeNames.USER_STORE_HOST, 
+                    SessionAttributeNames.USER_STORE_HOST,
                     serverHostName);
             }
             serverPortStr = srv[2];
@@ -594,7 +594,7 @@ public class Step4 extends ProtectedPage {
             throw e;
         }
 
-        // try to connect to LDAP port to make sure this machine 
+        // try to connect to LDAP port to make sure this machine
         // has LDAP service
         int serverPort = Integer.parseInt(serverPortStr);
         if ((serverPort > 0) && (serverPort < 65535)) {
@@ -615,7 +615,7 @@ public class Step4 extends ProtectedPage {
     }
 
     // Method to convert the domain name to the root suffix.
-    // eg., Domain Name amqa.test.com is converted to root suffix 
+    // eg., Domain Name amqa.test.com is converted to root suffix
     // DC=amqa,DC=test,DC=com
     static String dnsDomainToDN(String domainName) {
         StringBuilder buf = new StringBuilder();
