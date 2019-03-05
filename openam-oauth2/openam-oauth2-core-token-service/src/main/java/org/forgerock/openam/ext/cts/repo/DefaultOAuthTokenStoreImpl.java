@@ -16,7 +16,12 @@
 
 package org.forgerock.openam.ext.cts.repo;
 
+import com.iplanet.sso.SSOException;
+import com.iplanet.sso.SSOToken;
+import com.iplanet.sso.SSOTokenManager;
+import com.sun.identity.shared.DateUtils;
 import com.sun.identity.shared.OAuth2Constants;
+
 import org.forgerock.openam.cts.exceptions.CoreTokenException;
 import org.forgerock.openam.cts.exceptions.DeleteFailedException;
 import org.forgerock.json.fluent.JsonValue;
@@ -31,9 +36,13 @@ import org.forgerock.openam.oauth2.provider.OAuth2TokenStore;
 import org.forgerock.openam.oauth2.utils.OAuth2Utils;
 import org.restlet.Request;
 import org.restlet.data.Status;
+import org.restlet.ext.servlet.ServletUtils;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.servlet.http.HttpServletRequest;
+
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -397,8 +406,34 @@ public class DefaultOAuthTokenStoreImpl implements OAuth2TokenStore {
      */
     public CoreToken createJWT(String realm, String uuid, String clientID, String authorizationParty, String nonce, String ops){
         long timeInSeconds = System.currentTimeMillis()/1000;
+        long authTime = timeInSeconds;
+        try {
+            SSOToken ssoToken = getSSOToken(Request.getCurrent(), ops);
+            if (ssoToken != null) {
+                Date authInstant = DateUtils.stringToDate(ssoToken.getProperty("authInstant"));
+                authTime = authInstant.getTime() / 1000;
+            }
+        } catch (Exception e) {}
         getSettings();
         return new JWTToken(OAuth2Utils.getDeploymentURL(Request.getCurrent()), uuid, clientID,
-                authorizationParty, timeInSeconds + JWT_TOKEN_LIFETIME, timeInSeconds, timeInSeconds, realm, nonce, ops);
+                authorizationParty, timeInSeconds + JWT_TOKEN_LIFETIME, timeInSeconds, authTime, realm, nonce, ops);
+    }
+
+    private SSOToken getSSOToken(Request request, String ops) throws SSOException {
+        SSOToken token = null;
+        SSOTokenManager ssoTokenManager = SSOTokenManager.getInstance();
+
+        try {
+            token = ssoTokenManager.createSSOToken(ops);
+        } catch (SSOException e) {}
+
+        if (token == null) {
+            try {
+                HttpServletRequest servletRequest = ServletUtils.getRequest(request);
+                token = ssoTokenManager.createSSOToken(servletRequest);
+            } catch (SSOException e) {}
+        }
+
+        return token;
     }
 }
