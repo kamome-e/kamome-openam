@@ -249,14 +249,14 @@ public class OAuth2Utils {
          * TODO How to use targetPattern?? TODO Use Custom Redirector to encode
          * variables in protected Reference getTargetRef(Request request,
          * Response response)
-         * 
+         *
          * @param context
          * @return
          */
         public Redirector getRedirector(Context context, OAuthProblemException exception) {
             /*
              * 3.1.2.4. Invalid Endpoint
-             * 
+             *
              * If an authorization request fails validation due to a missing,
              * invalid, or mismatching redirection URI, the authorization server
              * SHOULD inform the resource owner of the error, and MUST NOT
@@ -297,7 +297,7 @@ public class OAuth2Utils {
 
     /**
      * Returns the value of the "access_token_path" parameter.
-     * 
+     *
      * @param context
      *            The context where to find the parameter.
      * @return The value of the "access_token_path" parameter.
@@ -326,7 +326,7 @@ public class OAuth2Utils {
 
     /**
      * Returns the value of the "access_token_path" parameter.
-     * 
+     *
      * @param context
      *            The context where to find the parameter.
      * @return The value of the "access_token_path" parameter.
@@ -355,7 +355,7 @@ public class OAuth2Utils {
 
     /**
      * Returns the value of the "tokeninfo_path" parameter.
-     * 
+     *
      * @param context
      *            The context where to find the parameter.
      * @return The value of the "tokeninfo_path" parameter.
@@ -367,7 +367,7 @@ public class OAuth2Utils {
 
     /**
      * Returns the value of the "scope_delimiter" parameter.
-     * 
+     *
      * @param context
      *            The context where to find the parameter.
      * @return The value of the "scope_delimiter" parameter.
@@ -383,7 +383,7 @@ public class OAuth2Utils {
 
     /**
      * Returns the value of the "ClientVerifier" parameter.
-     * 
+     *
      * @param context
      *            The context where to find the parameter.
      * @return The value of the "ClientVerifier" parameter.
@@ -398,7 +398,7 @@ public class OAuth2Utils {
 
     /**
      * Returns the value of the "OAuth2TokenStore" parameter.
-     * 
+     *
      * @param context
      *            The context where to find the parameter.
      * @return The value of the "OAuth2TokenStore" parameter.
@@ -413,7 +413,7 @@ public class OAuth2Utils {
 
     /**
      * Sets the value of the "access_token_path" parameter.
-     * 
+     *
      * @param value
      *            The value of the "access_token_path" parameter
      * @param context
@@ -425,7 +425,7 @@ public class OAuth2Utils {
 
     /**
      * Sets the value of the "authorize_path" parameter.
-     * 
+     *
      * @param value
      *            The value of the "authorize_path" parameter
      * @param context
@@ -437,7 +437,7 @@ public class OAuth2Utils {
 
     /**
      * Sets the value of the "tokeninfo_path" parameter.
-     * 
+     *
      * @param value
      *            The value of the "tokeninfo_path" parameter
      * @param context
@@ -449,7 +449,7 @@ public class OAuth2Utils {
 
     /**
      * Sets the value of the "scope_delimiter" parameter.
-     * 
+     *
      * @param value
      *            The value of the "scope_delimiter" parameter
      * @param context
@@ -461,7 +461,7 @@ public class OAuth2Utils {
 
     /**
      * Sets the value of the "realm" parameter.
-     * 
+     *
      * @param value
      *            The value of the "realm" parameter
      * @param context
@@ -473,7 +473,7 @@ public class OAuth2Utils {
 
     /**
      * Sets the value of the "scope_delimiter" parameter.
-     * 
+     *
      * @param value
      *            The value of the "scope_delimiter" parameter
      * @param context
@@ -485,7 +485,7 @@ public class OAuth2Utils {
 
     /**
      * Sets the value of the "scope_delimiter" parameter.
-     * 
+     *
      * @param value
      *            The value of the "scope_delimiter" parameter
      * @param context
@@ -571,7 +571,7 @@ public class OAuth2Utils {
      * It copies the given parameters only once!!!
      * way the CallResolver can use it and the FreeMarker can list and add all
      * into the generated form
-     * 
+     *
      * @param request
      *            incoming request object
      * @return The modifiable attributes map.
@@ -597,7 +597,7 @@ public class OAuth2Utils {
      * the request has no body/payload then the parameters are fetched from the
      * query If the content type is "application/x-www-form-urlencoded" then the
      * parameters are fetched from the body
-     * 
+     *
      * @param request
      *            incoming request object
      * @return null if the request does not contains any parameter
@@ -615,7 +615,7 @@ public class OAuth2Utils {
      * Determines if a string is empty. Empty is defined as null or empty
      * string.
      * <p/>
-     * 
+     *
      * <pre>
      *  OAuth2Utils.isEmpty(null)               = true
      *  OAuth2Utils.isEmpty(&quot;&quot;)       = true
@@ -623,7 +623,7 @@ public class OAuth2Utils {
      *  OAuth2Utils.isEmpty(&quot;bob&quot;)    = false
      *  OAuth2Utils.isEmpty(&quot; bob &quot;)  = false
      * </pre>
-     * 
+     *
      * @param val
      *            string to evaluate as empty.
      * @return true if the string is empty else false.
@@ -635,7 +635,7 @@ public class OAuth2Utils {
     /**
      * Determines if a string is not empty. Its the exact opposite for
      * {@link #isEmpty(String)}.
-     * 
+     *
      * @param val
      *            string to evaluate.
      * @return true if the string is not empty
@@ -928,7 +928,7 @@ public class OAuth2Utils {
     /**
      * Gets the KeyPair based on the current restlet Request
      * @param request the restlet request
-     * @return the  KeyPair 
+     * @return the  KeyPair
      */
     public static KeyPair getServerKeyPair(org.restlet.Request request) {
         OAuth2ProviderSettings settings = getSettingsProvider(request);
@@ -936,7 +936,7 @@ public class OAuth2Utils {
     }
 
     /**
-     * Gets the KeyPair based on the current HttpServletRequest 
+     * Gets the KeyPair based on the current HttpServletRequest
      * @param request the HttpServletRequest
      * @return KeyPair
      */
@@ -944,7 +944,7 @@ public class OAuth2Utils {
         OAuth2ProviderSettings settings = getSettingsProvider(request);
         return getServerKeyPairFromSettings(settings);
     }
-    
+
     /*
      * Get the KeyPair from the OAuth2ProviderSettings provided.
      */
@@ -1012,7 +1012,7 @@ public class OAuth2Utils {
     public static OAuth2ProviderSettings getSettingsProvider(org.restlet.Request request) {
         HttpServletRequest httpRequest = ServletUtils.getRequest(request);
         // need to get realm using org.restlet.Request as the corresponding  HttpServletRequest
-        // may have had its post parameters consumed. 
+        // may have had its post parameters consumed.
         String realm =  getRealm(request);
         return getSettingdProviderByRealm(httpRequest, realm);
     }
@@ -1025,7 +1025,7 @@ public class OAuth2Utils {
         return getSettingdProviderByRealm(request, realm);
     }
 
-    
+
     /*
      * Gets the provider settings based on the realm.
      */
@@ -1042,4 +1042,13 @@ public class OAuth2Utils {
             }
         }
 	}
+
+    public static String getArias(org.restlet.Request request){
+        OAuth2ProviderSettings settings = getSettingsProvider(request);
+        return getAriasFromSettings(settings);
+    }
+
+    private static String getAriasFromSettings(OAuth2ProviderSettings settings) {
+        return settings.getKeyStoreAlias();
+    }
 }

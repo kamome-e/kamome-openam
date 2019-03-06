@@ -3,6 +3,7 @@ package org.forgerock.openam.oauth2.openid;
 import static org.forgerock.json.fluent.JsonValue.*;
 
 import java.security.Key;
+import java.security.MessageDigest;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
@@ -21,6 +22,8 @@ import org.restlet.ext.json.JsonRepresentation;
 import org.restlet.representation.Representation;
 import org.restlet.resource.Get;
 import org.restlet.resource.ServerResource;
+
+import com.sun.identity.shared.encode.Base64;
 
 /**
  * JWK_URI Endpoint
@@ -67,9 +70,21 @@ public class JWKEndpoint extends ServerResource {
     }
 
     private Map<String, Object> createRSAJWK(RSAPublicKey key, KeyUse use, String alg) {
-        return json(object(field("kty", "RSA"), field("kid", "oidctestkid"),
+        String kid = hash(OAuth2Utils.getArias(getRequest().getCurrent()) + key.getModulus().toString() + key.getPublicExponent().toString());
+        return json(object(field("kty", "RSA"), field("kid", kid),
                 field("use", use.toString()), field("alg", alg),
                 field("n", Base64url.encode(key.getModulus().toByteArray())),
                 field("e", Base64url.encode(key.getPublicExponent().toByteArray())))).asMap();
+    }
+
+    private String hash(String string) {
+        try {
+            MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+            sha1.update(string.getBytes("UTF-8"));
+            return Base64.encode(sha1.digest());
+        } catch (Exception ex) {
+            OAuth2Utils.DEBUG.warning("Hash.hash:", ex);
+            return null;
+        }
     }
 }
