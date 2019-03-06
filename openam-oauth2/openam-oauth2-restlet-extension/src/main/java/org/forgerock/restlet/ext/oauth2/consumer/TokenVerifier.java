@@ -64,29 +64,29 @@ public abstract class TokenVerifier<T extends AccessTokenExtractor<U>, U extends
             int result = RESULT_INVALID;
             try {
                 U token = null;
-                switch (tokenLocation) {
-                case HTTP_BODY: {
-                    // Methods without request entity
-                    if (Method.GET.equals(request.getMethod())
-                            || Method.HEAD.equals(request.getMethod())) {
-                        token =
-                                getTokenExtractor().extractToken(
-                                        OAuth2Utils.ParameterLocation.HTTP_BODY, request);
-                        break;
-                    }
-                    break;
-                }
-                case HTTP_HEADER: {
-                    if (request.getChallengeResponse() == null) {
-                        return RESULT_MISSING;
-                    }
+//                switch (tokenLocation) {
+//                case HTTP_BODY: {
+//                    // Methods without request entity
+//                    if (Method.GET.equals(request.getMethod())
+//                            || Method.HEAD.equals(request.getMethod())) {
+//                        token =
+//                                getTokenExtractor().extractToken(
+//                                        OAuth2Utils.ParameterLocation.HTTP_BODY, request);
+//                        break;
+//                    }
+//                    break;
+//                }
+//                case HTTP_HEADER: {
+//                    if (request.getChallengeResponse() == null) {
+//                        return RESULT_MISSING;
+//                    }
+//                    token = getTokenExtractor().extractToken(tokenLocation, request);
+//                    break;
+//                }
+//                default: {
                     token = getTokenExtractor().extractToken(tokenLocation, request);
-                    break;
-                }
-                default: {
-                    token = getTokenExtractor().extractToken(tokenLocation, request);
-                }
-                }
+//                }
+//                }
                 if (null == token) {
                     result = RESULT_MISSING;
                 } else {

@@ -33,6 +33,9 @@ import org.forgerock.openam.oauth2.utils.OAuth2Utils;
 import org.restlet.Request;
 import org.restlet.Response;
 import org.restlet.data.*;
+import org.restlet.representation.Representation;
+
+import com.sun.identity.shared.OAuth2Constants;
 
 import java.util.Map;
 
@@ -102,8 +105,16 @@ public class BearerTokenExtractor extends AccessTokenExtractor<BearerToken> {
             token = extractRequestToken(request.getResourceRef().getQueryAsForm());
         } else if (request.getResourceRef().hasFragment()) {
             token = extractRequestToken(new Form(request.getResourceRef().getFragment()));
+        } else {
+            // TODO add the ability to get access_token from body
+            Representation body = request.getEntity();
+            if (body != null && MediaType.APPLICATION_WWW_FORM.equals(body.getMediaType())) {
+                Form formBody = new Form(body);
+                if (formBody.getNames().contains(OAuth2Constants.Params.ACCESS_TOKEN)) {
+                    token = extractRequestToken(formBody);
+                }
+            }
         }
-        // TODO add the ability to get access_token from body
         return token;
     }
 

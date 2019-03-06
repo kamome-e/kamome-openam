@@ -57,7 +57,7 @@ public abstract class AccessTokenExtractor<T extends CoreToken> {
 
     /**
      * Extracts the access token from the contents of an {@link Response}
-     * 
+     *
      * @param response
      *            the contents of the response
      * @return OAuth2 access token
@@ -68,7 +68,7 @@ public abstract class AccessTokenExtractor<T extends CoreToken> {
      * Extracts the access token from the contents of an {@link Request}
      * <p/>
      * This method used to get the token from the redirect GET
-     * 
+     *
      * @return OAuth2 access token @ param request the contents of the request
      */
     // public abstract T extract(OAuth2Utils.ParameterLocation tokenLocation,
@@ -104,7 +104,7 @@ public abstract class AccessTokenExtractor<T extends CoreToken> {
      * id="h480djs93hd8",ts="1336363200",nonce="dj83hs9s",mac=
      * "bhCQXTVyfj5cmA9uKkPFx1zeOXM=" From Query - ?access_token=vF9dft4qmT From
      * APPLICATION_WWW_FORM - access_token=vF9dft4qmT
-     * 
+     *
      * @param request
      *            The request.
      * @return The access token taken from a given request.
@@ -112,33 +112,33 @@ public abstract class AccessTokenExtractor<T extends CoreToken> {
     public T extractToken(OAuth2Utils.ParameterLocation tokenLocation, Request request)
             throws OAuthProblemException {
         T token = null;
-        switch (tokenLocation) {
-        case HTTP_HEADER: {
+//        switch (tokenLocation) {
+//        case HTTP_HEADER: {
             if (null != request.getChallengeResponse()) {
                 token = extractRequestToken(request.getChallengeResponse());
             }
-            break;
-        }
-        case HTTP_BODY: {
-            if (null != request.getEntity()
+//            break;
+//        }
+//        case HTTP_BODY: {
+            else if (null != request.getEntity()
                     && request.getEntity() instanceof EmptyRepresentation == false) {
                 token = extractRequestToken(request);
             }
-            break;
-        }
-        case HTTP_QUERY: {
-            if (request.getResourceRef().hasQuery()) {
+//            break;
+//        }
+//        case HTTP_QUERY: {
+            else if (request.getResourceRef().hasQuery()) {
                 token = extractRequestToken(request.getResourceRef().getQueryAsForm());
             }
-            break;
-        }
-        case HTTP_FRAGMENT: {
-            if (request.getResourceRef().hasFragment()) {
+//            break;
+//        }
+//        case HTTP_FRAGMENT: {
+            else if (request.getResourceRef().hasFragment()) {
                 token = extractRequestToken(new Form(request.getResourceRef().getFragment()));
             }
-            break;
-        }
-        }
+//            break;
+//        }
+//        }
 
         /*
          * if (request.getResourceRef().hasFragment()) { token = new
@@ -157,8 +157,8 @@ public abstract class AccessTokenExtractor<T extends CoreToken> {
     public T extractToken(OAuth2Utils.ParameterLocation tokenLocation, Response response)
             throws OAuthProblemException {
         T token = null;
-        switch (tokenLocation) {
-        case HTTP_HEADER: {
+//        switch (tokenLocation) {
+//        case HTTP_HEADER: {
             // TODO Something nice to have
             /*
              * if (!response.getChallengeRequests().isEmpty()) { for
@@ -167,30 +167,30 @@ public abstract class AccessTokenExtractor<T extends CoreToken> {
              * extractException(cr.getParameters().getValuesMap()); if (null !=
              * exception) { throw exception; } } }
              */
-            break;
-        }
-        case HTTP_BODY: {
+//            break;
+//        }
+//        case HTTP_BODY: {
             if (null != response.getEntity()
                     && response.getEntity() instanceof EmptyRepresentation == false) {
                 token = extractRequestToken(response);
             }
-            break;
-        }
-        case HTTP_QUERY: {
-            if (Status.REDIRECTION_FOUND.equals(response.getStatus())
+//            break;
+//        }
+//        case HTTP_QUERY: {
+            else if (Status.REDIRECTION_FOUND.equals(response.getStatus())
                     && response.getLocationRef().hasQuery()) {
                 token = extractRequestToken(response.getLocationRef().getQueryAsForm());
             }
-            break;
-        }
-        case HTTP_FRAGMENT: {
-            if (Status.REDIRECTION_FOUND.equals(response.getStatus())
+//            break;
+//        }
+//        case HTTP_FRAGMENT: {
+            else if (Status.REDIRECTION_FOUND.equals(response.getStatus())
                     && response.getLocationRef().hasFragment()) {
                 token = extractRequestToken(new Form(response.getLocationRef().getFragment()));
             }
-            break;
-        }
-        }
+//            break;
+//        }
+//        }
         return token;
     }
 

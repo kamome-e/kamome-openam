@@ -33,15 +33,19 @@ import org.forgerock.openam.oauth2.provider.OAuth2ProviderSettings;
 import org.forgerock.openam.oauth2.provider.OAuth2TokenStore;
 import org.forgerock.openam.oauth2.provider.Scope;
 import org.forgerock.openam.oauth2.utils.OAuth2Utils;
+import org.forgerock.restlet.ext.oauth2.consumer.AccessTokenExtractor;
+import org.forgerock.restlet.ext.oauth2.consumer.OAuth2User;
+import org.restlet.data.*;
 import org.restlet.ext.json.JsonRepresentation;
 import org.restlet.representation.Representation;
 import org.restlet.resource.Get;
 import org.restlet.resource.Post;
 import org.restlet.resource.ServerResource;
+import org.restlet.security.User;
 
 import java.util.Map;
 
-public class UserInfo extends ServerResource {
+public class UserInfo extends ServerResource  {
 
     @Get
     @Post
@@ -53,7 +57,23 @@ public class UserInfo extends ServerResource {
             Map<String, Object> userinfo = null;
             String pluginClass = null;
             Scope scopeClass = null;
-            String tokenid = getRequest().getChallengeResponse().getRawValue();
+            String tokenid = null;
+            if (getRequest().getChallengeResponse() != null) {
+                tokenid = getRequest().getChallengeResponse().getRawValue();
+            } else {
+                if (getRequest().getClientInfo() != null) {
+                    User u = getRequest().getClientInfo().getUser();
+                    if (u instanceof OAuth2User) {
+                        OAuth2User user = (OAuth2User) u;
+                        tokenid = user.getAccessToken();
+                    }
+                }
+            }
+            if (tokenid == null) {
+                OAuth2Utils.DEBUG.error("AbstractFlow::Exception during userinfo scope execution");
+                throw OAuthProblemException.OAuthError.SERVER_ERROR.handle(getRequest());
+            }
+
             OAuth2TokenStore store = InjectorHolder.getInstance(DefaultOAuthTokenStoreImpl.class);
             CoreToken token = store.readAccessToken(tokenid);
             try {
