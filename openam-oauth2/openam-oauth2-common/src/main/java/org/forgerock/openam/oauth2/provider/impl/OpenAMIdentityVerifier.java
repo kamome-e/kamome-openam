@@ -26,6 +26,7 @@ package org.forgerock.openam.oauth2.provider.impl;
 
 import com.iplanet.sso.SSOException;
 import com.iplanet.sso.SSOTokenManager;
+import com.sun.identity.shared.DateUtils;
 import com.sun.identity.shared.OAuth2Constants;
 import com.sun.identity.shared.ldap.LDAPDN;
 import com.sun.identity.sm.SMSEntry;
@@ -151,6 +152,16 @@ public class OpenAMIdentityVerifier extends AbstractIdentityVerifier<OpenAMUser>
                 redirect(request, response);
             }
 
+            if (isMaxAgeRedirect(request, token)) {
+                try {
+                    SSOTokenManager mgr = SSOTokenManager.getInstance();
+                    mgr.destroyToken(token);
+                } catch (SSOException e) {
+                    OAuth2Utils.DEBUG.error("Error destorying SSOToken: ", e);
+                }
+                redirect(request, response);
+            }
+
             OpenAMUser user = null;
             try {
                 user = new OpenAMUser(token.getProperty("UserToken"), token);
@@ -173,6 +184,30 @@ public class OpenAMIdentityVerifier extends AbstractIdentityVerifier<OpenAMUser>
         }
 
         return false;
+    }
+
+    private boolean isMaxAgeRedirect(Request request, SSOToken token) {
+        try {
+            long maxAge = -1;
+            long minDefaultMaxAge = 30;
+            boolean maxAgeRedirect = false;
+            String maxAgeStr = OAuth2Utils.getRequestParameter(request, OAuth2Constants.Custom.MAX_AGE, String.class);
+            if (maxAgeStr == null) {
+                return false;
+            }
+            maxAge = Long.valueOf(maxAgeStr);
+            if (maxAge < minDefaultMaxAge) {
+                maxAge = minDefaultMaxAge;
+            }
+            long systemTime = System.currentTimeMillis();
+            long authTime = DateUtils.stringToDate(token.getProperty("authInstant")).getTime();
+            if (maxAge > -1 && maxAge <= ((systemTime - authTime) / 1000)) {
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     protected void redirect(Request request, Response response) throws OAuthProblemException {
@@ -215,6 +250,8 @@ public class OpenAMIdentityVerifier extends AbstractIdentityVerifier<OpenAMUser>
         if (p != null){
             p.setFirst(OAuth2Constants.Custom._PROMPT);
         }
+        query.remove(OAuth2Constants.Custom.MAX_AGE);
+
         request.getResourceRef().setQuery(query.getQueryString());
 
         amserver.addQueryParameter(OAuth2Constants.Custom.GOTO, request.getResourceRef().toString());
