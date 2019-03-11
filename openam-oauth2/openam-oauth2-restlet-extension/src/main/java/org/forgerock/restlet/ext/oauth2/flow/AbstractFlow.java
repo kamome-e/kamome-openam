@@ -43,6 +43,7 @@ import org.forgerock.openam.oauth2.model.SessionClient;
 import org.forgerock.openam.oauth2.provider.ClientVerifier;
 import org.forgerock.restlet.ext.oauth2.provider.OAuth2Client;
 import org.forgerock.openam.oauth2.provider.OAuth2TokenStore;
+import org.forgerock.openam.oauth2.provider.ResponseType;
 import org.forgerock.restlet.ext.oauth2.representation.TemplateFactory;
 import org.owasp.esapi.ESAPI;
 import org.restlet.Context;
@@ -118,7 +119,7 @@ public abstract class AbstractFlow extends ServerResource {
     /**
      * After the call of {@link AbstractFlow#getCheckedScope} it return true if
      * the requested scope was changed.
-     * 
+     *
      * @return
      */
     public boolean isScopeChanged() {
@@ -128,7 +129,7 @@ public abstract class AbstractFlow extends ServerResource {
     /**
      * Set-up method that can be overridden in order to initialize the state of
      * the resource. By default it does nothing.
-     * 
+     *
      * @see #init(Context, Request, Response)
      */
     protected void doInit() throws ResourceException {
@@ -142,7 +143,7 @@ public abstract class AbstractFlow extends ServerResource {
      * conditions, {@link #getInfo()} or
      * {@link #getInfo(org.restlet.representation.Variant)} methods might be
      * invoked.
-     * 
+     *
      * @return The response entity.
      * @throws ResourceException
      */
@@ -175,10 +176,10 @@ public abstract class AbstractFlow extends ServerResource {
      * {@link #get()}, {@link #post(org.restlet.representation.Representation)},
      * {@link #put(org.restlet.representation.Representation)},
      * {@link #delete()}, {@link #head()} or {@link #options()} methods.
-     * 
+     *
      * @return The response entity.
      * @throws org.restlet.resource.ResourceException
-     * 
+     *
      */
     protected Representation doHandle() throws ResourceException {
         validateMethod();
@@ -199,7 +200,7 @@ public abstract class AbstractFlow extends ServerResource {
      * the result of
      * {@link org.restlet.service.StatusService#getStatus(Throwable, org.restlet.resource.Resource)}
      * .
-     * 
+     *
      * @param throwable
      *            The caught error or exception.
      */
@@ -225,7 +226,8 @@ public abstract class AbstractFlow extends ServerResource {
             }
             case AUTHORIZATION_ENDPOINT: {
                 Redirector dispatcher = null;
-                if (fragment){
+                boolean isFragment = isFragment();
+                if (fragment || isFragment){
                     dispatcher =
                             OAuth2Utils.ParameterLocation.HTTP_FRAGMENT.getRedirector(getContext(),
                                     exception);
@@ -258,6 +260,31 @@ public abstract class AbstractFlow extends ServerResource {
         }
     }
 
+    private Boolean isFragment() {
+        try {
+            Map<String, String> responseTypes = getResponseTypes(OAuth2Utils.getRealm(getRequest()));
+            Set<String> requestedResponseTypes = OAuth2Utils.stringToSet(OAuth2Utils.getRequestParameter(getRequest(), OAuth2Constants.Params.RESPONSE_TYPE, String.class));
+            for (String request : requestedResponseTypes) {
+                if (request.isEmpty()) {
+                    continue;
+                }
+                String responseClass = responseTypes.get(request);
+                if (responseClass == null || responseClass.isEmpty()) {
+                    continue;
+                } else if (responseClass.equalsIgnoreCase("none")) {
+                    continue;
+                }
+                Class clazz = Class.forName(responseClass);
+                ResponseType classObj = (ResponseType) clazz.newInstance();
+                String location = classObj.getReturnLocation();
+                if (location.equalsIgnoreCase("FRAGMENT")) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {}
+        return false;
+    }
+
     public void errorPage(OAuthProblemException exception) {
         Representation result = getPage("error.ftl", exception.getErrorMessage());
         if (null != result) {
@@ -283,7 +310,7 @@ public abstract class AbstractFlow extends ServerResource {
      * authorization server SHOULD inform the resource owner of the error, and
      * MUST NOT automatically redirect the user-agent to the invalid redirection
      * URI.
-     * 
+     *
      * @see <a
      *      href="http://tools.ietf.org/html/draft-ietf-oauth-v2-24#section-4.1.2.1">4.1.2.1.
      *      Error Response</a>
@@ -359,7 +386,7 @@ public abstract class AbstractFlow extends ServerResource {
      * session.
      * <p/>
      * Throws {@link OAuthProblemException.OAuthError#REDIRECT_URI_MISMATCH}
-     * 
+     *
      * @return
      * @throws OAuthProblemException
      */
@@ -429,7 +456,7 @@ public abstract class AbstractFlow extends ServerResource {
 
     protected Map<String, Object> getDataModel(Set<String> scopes) {
         Map<String, Object> data = new HashMap<String, Object>(getRequest().getAttributes());
-        
+
         Reference resRef = getRequest().getResourceRef();
         String target = resRef.getPath();
         String query = resRef.getQuery();
@@ -460,7 +487,7 @@ public abstract class AbstractFlow extends ServerResource {
         SSOToken token = OAuth2Utils.getSSOToken(getRequest());
         data.put("csrf",  token.getTokenID().toString());
         // 2018.02.19 add -- end
-        
+
         return data;
     }
 
@@ -811,7 +838,7 @@ public abstract class AbstractFlow extends ServerResource {
         }
         return responseTypes;
     }
-    
+
     protected String getGrantType() {
     	return OAuth2Utils.getRequestParameter(getRequest(), OAuth2Constants.Params.GRANT_TYPE, String.class);
     }
