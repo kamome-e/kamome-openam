@@ -35,14 +35,14 @@ public interface OAuth2TokenStore {
      * Creates and stores an authorization code. The code is not marked as
      * having been used, and may be used once only in a call to
      * createAccessToken or createRefreshToken
-     * 
+     *
      * @param scopes the scopes of the token
      * @param realm the realm of this token
      * @param uuid the user identifier (resource owner)
      * @param client the client of this token
      * @return Generated authorization code
      * @throws OAuthProblemException
-     * 
+     *
      */
     public CoreToken createAuthorizationCode(Set<String> scopes, String realm, String uuid,
             SessionClient client, String nonce, String ssoTokenId) throws OAuthProblemException;
@@ -59,12 +59,12 @@ public interface OAuth2TokenStore {
 
     /**
      * Retrieves an authorization code from store.
-     * 
+     *
      * @param id
      *            the id of the authorization code to find
      * @return an existing authorization code, or null if not found
      * @throws OAuthProblemException
-     * 
+     *
      */
     public CoreToken readAuthorizationCode(String id) throws OAuthProblemException;
 
@@ -74,11 +74,11 @@ public interface OAuth2TokenStore {
      * authorization code, and must make sure that the code is only deleted when
      * all tokens issued directly or indirectly using this code have also been
      * deleted.
-     * 
+     *
      * @param id
      *            the id of the authorization code that should be deleted
      * @throws OAuthProblemException
-     * 
+     *
      */
     public void deleteAuthorizationCode(String id) throws OAuthProblemException;
 
@@ -99,12 +99,12 @@ public interface OAuth2TokenStore {
 
     /**
      * Retrieves an access token from store.
-     * 
+     *
      * @param id
      *            the unique identifier of the token
      * @return the access token object, or null if it does not exist
      * @throws OAuthProblemException
-     * 
+     *
      */
     public CoreToken readAccessToken(String id) throws OAuthProblemException;
 
@@ -113,18 +113,18 @@ public interface OAuth2TokenStore {
      * further resources. This does not imply that any parent tokens
      * (authorization token or refresh token) should be deleted at the same
      * time.
-     * 
+     *
      * @param id
      *            the id of the access token that should be deleted
      * @throws OAuthProblemException
-     * 
+     *
      */
     public void deleteAccessToken(String id) throws OAuthProblemException;
 
     /**
      * Creates and stores a refresh token in the resource owner password flow.
      * There is no parent token to the refresh token in this case.
-     * 
+     *
      * @param scopes
      *            the scope(s) for which to issue the token, must be identical
      *            to or a subset of authz code scopes
@@ -138,7 +138,7 @@ public interface OAuth2TokenStore {
      *            the grant type the refresh token was created in.
      * @return a newly created refresh token
      * @throws OAuthProblemException
-     * 
+     *
      */
     public CoreToken createRefreshToken(Set<String> scopes, String realm, String uuid, String clientId, String redirect_uri,
                                         String grantType)
@@ -146,12 +146,12 @@ public interface OAuth2TokenStore {
 
     /**
      * Retrieves a refresh token from store.
-     * 
+     *
      * @param id
      *            the unique identifier of the token
      * @return the refresh token object, or null if it does not exist
      * @throws OAuthProblemException
-     * 
+     *
      */
     public CoreToken readRefreshToken(String id) throws OAuthProblemException;
 
@@ -159,11 +159,11 @@ public interface OAuth2TokenStore {
      * Deletes a refresh token, ensuring that it cannot be used to issue any
      * further access tokens and deleting any access tokens that have been
      * issued using this refresh token.
-     * 
+     *
      * @param id
      *            the id of the refresh token that should be deleted
      * @throws OAuthProblemException
-     * 
+     *
      */
     public void deleteRefreshToken(String id) throws OAuthProblemException;
 
@@ -180,5 +180,7 @@ public interface OAuth2TokenStore {
      * @return
      */
     public CoreToken createJWT(String realm, String uuid, String clientID, String authorizationParty, String nonce, String ops);
+
+    public CoreToken createJWT(String realm, String uuid, String clientID, String authorizationParty, String nonce, String ops, String atHash, String cHash);
 
 }

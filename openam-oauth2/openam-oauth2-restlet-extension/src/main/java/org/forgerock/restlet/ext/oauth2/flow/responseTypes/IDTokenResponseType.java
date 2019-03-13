@@ -41,7 +41,9 @@ public class IDTokenResponseType implements ResponseType {
                 (String)data.get(OAuth2Constants.CoreTokenParams.CLIENT_ID),
                 (String)data.get(OAuth2Constants.CoreTokenParams.CLIENT_ID),
                 (String)data.get(OAuth2Constants.Custom.NONCE),
-                (String)data.get(OAuth2Constants.Custom.SSO_TOKEN_ID));
+                (String)data.get(OAuth2Constants.Custom.SSO_TOKEN_ID),
+                (String)data.get(OAuth2Constants.JWTTokenParams.AT_HASH),
+                (String)data.get(OAuth2Constants.JWTTokenParams.C_HASH));
     }
 
     public String getReturnLocation(){

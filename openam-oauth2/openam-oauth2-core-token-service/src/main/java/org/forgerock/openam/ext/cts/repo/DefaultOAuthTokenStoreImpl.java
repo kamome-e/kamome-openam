@@ -419,6 +419,21 @@ public class DefaultOAuthTokenStoreImpl implements OAuth2TokenStore {
                 authorizationParty, timeInSeconds + JWT_TOKEN_LIFETIME, timeInSeconds, authTime, realm, nonce, ops);
     }
 
+    public CoreToken createJWT(String realm, String uuid, String clientID, String authorizationParty, String nonce, String ops, String atHash, String cHash){
+        long timeInSeconds = System.currentTimeMillis()/1000;
+        long authTime = timeInSeconds;
+        try {
+            SSOToken ssoToken = getSSOToken(Request.getCurrent(), ops);
+            if (ssoToken != null) {
+                Date authInstant = DateUtils.stringToDate(ssoToken.getProperty("authInstant"));
+                authTime = authInstant.getTime() / 1000;
+            }
+        } catch (Exception e) {}
+        getSettings();
+        return new JWTToken(OAuth2Utils.getDeploymentURL(Request.getCurrent()), uuid, clientID,
+                authorizationParty, timeInSeconds + JWT_TOKEN_LIFETIME, timeInSeconds, authTime, realm, nonce, ops, atHash, cHash);
+    }
+
     private SSOToken getSSOToken(Request request, String ops) throws SSOException {
         SSOToken token = null;
         SSOTokenManager ssoTokenManager = SSOTokenManager.getInstance();
